@@ -98,7 +98,7 @@ and the package contains no development or private artifacts.
 - [X] T019 [US3] Implement deterministic versioned ZIP packaging in `tools/package.py`.
 - [X] T020 [P] [US3] Document requirements, installation, ZIP-based updates, migration and rollback in `README.md`, with first-release notes in `CHANGELOG.md`.
 - [X] T021 [US3] Add `.github/workflows/release.yml` to validate/package source and publish `v1.0.0` plus the installable artifact using the scoped runner token; handle existing release conflicts explicitly.
-- [ ] T022 [US3] Publish the verified source and observe the tagged release/artifact produced by `.github/workflows/release.yml`.
+- [X] T022 [US3] Publish the verified source and observe the tagged release/artifact produced by `.github/workflows/release.yml`.
 
 **Checkpoint**: The supplied GitHub repository contains the traceable first release.
 
@@ -107,7 +107,7 @@ and the package contains no development or private artifacts.
 **Purpose**: Complete review and evidence without expanding release scope.
 
 - [X] T023 Review the runtime diff, public-file contents and final version metadata in `artnovo-core.php`; resolve in-scope findings before publication.
-- [ ] T024 Run `specs/001-unify-artnovo-core/quickstart.md` verification and record convergence against FR-001 through FR-012 without inventing unobserved results.
+- [X] T024 Run `specs/001-unify-artnovo-core/quickstart.md` verification and record convergence against FR-001 through FR-012 without inventing unobserved results.
 
 ## Dependencies & Execution Order
 

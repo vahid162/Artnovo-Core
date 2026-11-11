@@ -63,11 +63,26 @@ The deployment operator checked availability, private redirects, assets, sender,
 configuration fingerprints and bridge independence immediately after activation.
 Unexpected route failures, missing assets, changed sender/configuration or an enabled
 service purchase without its bridge are rollback triggers. Use the documented guarded
-rollback with the same private snapshot; it refuses later activation/source changes
+rollback with the same private snapshot; it refuses later activation or legacy-source changes
 instead of discarding them. There is no scheduled background monitoring task.
 
 ## Publication
 
-The repository's `Validate and release` workflow publishes the tagged runtime ZIP
-and `SHA256SUMS`. Its release-state checks reject drafts or incomplete existing
-releases. Final publication is verified against the downloadable release assets.
+The [release workflow](https://github.com/vahid162/Artnovo-Core/actions/runs/43038726105)
+completed successfully. The non-draft, non-prerelease
+[v1.0.0 release](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.0.0)
+targets source commit `cf1d88535dd620830798e43763d1bed71ed9178f`.
+
+Both assets were downloaded after publication. `artnovo-core-1.0.0.zip` is 239056
+bytes and has SHA-256
+`9003405f8d323610e6daf3eeb2e2a0f6c88bea14215e7182abf3368dd85e72f4`.
+Its checksum file matches, and all 28 archive entries match the live Core files.
+The source tag resolves to the workflow's verified commit. Existing tags/assets
+were not overwritten.
+
+## Spec Kit completion
+
+The project-native `speckit-converge` stage checked all 12 functional requirements,
+the acceptance/edge scenarios, plan decisions and existing evidence. It found no
+implementation gap and made no file changes. The publication and convergence task
+markers were then completed separately as implementation bookkeeping.
