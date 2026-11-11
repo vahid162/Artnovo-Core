@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+/dist/
+/.venv/
+/.DS_Store
+/.compound-engineering/config.local.yaml
+/.codex/
+*.log
+*.cache
+.env*

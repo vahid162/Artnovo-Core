@@ -1,0 +1,281 @@
+body.artnovo-received-page {
+	background: #0c1723;
+	color: #f0f9f7;
+}
+
+.artnovo-received-header {
+	display: grid;
+	gap: .625rem;
+	margin-block-end: 1.25rem;
+}
+
+.artnovo-received-header > :last-child {
+	margin-block-end: 0;
+}
+
+.artnovo-received-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	grid-template-areas: "main" "summary";
+	align-items: start;
+	gap: 1rem;
+}
+
+.artnovo-received-main {
+	grid-area: main;
+	display: grid;
+	gap: 1rem;
+	min-width: 0;
+}
+
+.artnovo-received-summary {
+	grid-area: summary;
+	min-width: 0;
+}
+
+.artnovo-received {
+	--received-state-background: #403923;
+	--received-state-text: #f6df9b;
+}
+
+.artnovo-received[data-state="issuing"],
+.artnovo-received-status[data-state="issuing"] {
+	--received-state-background: #172e41;
+	--received-state-text: #d0edff;
+}
+
+.artnovo-received[data-state="ready"],
+.artnovo-received-status[data-state="ready"] {
+	--received-state-background: #173b3c;
+	--received-state-text: #b8f4db;
+}
+
+.artnovo-received[data-state="failed"],
+.artnovo-received-status[data-state="failed"] {
+	--received-state-background: #392934;
+	--received-state-text: #ffd5dd;
+}
+
+.artnovo-received[data-state="closed"],
+.artnovo-received-status[data-state="closed"] {
+	--received-state-background: #203440;
+	--received-state-text: #bdd1d0;
+}
+
+.artnovo-received .artnovo-received-status {
+	display: grid;
+	gap: .5rem;
+	min-width: 0;
+	padding: var(--account-padding);
+	border: 0;
+	border-radius: 1.125rem;
+	background: var(--received-state-background);
+	color: var(--received-state-text);
+	box-shadow: 0 .5rem 1.75rem #0003;
+}
+
+.artnovo-received .artnovo-received-status :is(h1, h2, h3, p, strong) {
+	margin: 0;
+	color: inherit;
+}
+
+.artnovo-received .artnovo-received-progress,
+.artnovo-received .artnovo-received-progress ol {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: .5rem;
+	margin: 0 0 1.25rem;
+	padding: 0;
+	list-style: none;
+	counter-reset: artnovo-received-step;
+}
+
+.artnovo-received .artnovo-received-progress:not(ol) {
+	display: block;
+}
+
+.artnovo-received .artnovo-received-progress ol {
+	margin: 0;
+}
+
+.artnovo-received .artnovo-received-progress li {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	min-width: 0;
+	min-height: 3.25rem;
+	padding: .625rem;
+	border: 0;
+	border-radius: .75rem;
+	background: var(--account-surface);
+	color: var(--account-muted);
+	font-size: .8125rem;
+	line-height: 1.6;
+}
+
+.artnovo-received .artnovo-received-progress li::before {
+	counter-increment: artnovo-received-step;
+	content: counter(artnovo-received-step);
+	display: inline-grid;
+	flex: 0 0 1.75rem;
+	place-items: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: 50%;
+	background: var(--account-navy);
+	color: inherit;
+	font-variant-numeric: tabular-nums;
+}
+
+.artnovo-received .artnovo-received-progress li[data-complete="true"] {
+	background: #173b3c;
+	color: #b8f4db;
+}
+
+.artnovo-received .artnovo-received-progress li[aria-current="step"] {
+	background: #203c49;
+	color: var(--account-focus);
+	font-weight: 700;
+}
+
+.artnovo-received :is(.artnovo-received-summary dl, .artnovo-received-details dl) {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+	gap: .625rem 1rem;
+	margin: 0;
+}
+
+.artnovo-received :is(.artnovo-received-summary dt, .artnovo-received-details dt) {
+	color: var(--account-muted);
+	font-weight: 400;
+}
+
+.artnovo-received :is(.artnovo-received-summary dd, .artnovo-received-details dd) {
+	min-width: 0;
+	margin: 0;
+	color: var(--account-text);
+	overflow-wrap: anywhere;
+}
+
+.artnovo-received .artnovo-received-amount {
+	color: var(--account-emerald);
+	font-size: 1.125rem;
+	font-weight: 700;
+}
+
+.artnovo-received :is(.artnovo-received-bank, .artnovo-received-bank-detail) {
+	display: grid;
+	gap: .75rem;
+	min-width: 0;
+}
+
+.artnovo-received ul.wc-bacs-bank-details {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: .75rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.artnovo-received ul.wc-bacs-bank-details li {
+	float: none;
+	width: auto;
+	min-width: 0;
+	margin: 0;
+	padding: .875rem;
+	border: 0;
+	border-radius: .875rem;
+	background: var(--account-navy);
+}
+
+.artnovo-received ul.wc-bacs-bank-details li strong {
+	display: block;
+	margin-block: .25rem .5rem;
+	font-size: 1rem;
+	overflow-wrap: anywhere;
+}
+
+.artnovo-received ul.wc-bacs-bank-details li:is(.account_number, .iban, .sort_code, .bic) strong {
+	direction: ltr;
+	text-align: left;
+	font-variant-numeric: tabular-nums;
+}
+
+.artnovo-received .artnovo-received-bank-detail {
+	padding: .875rem;
+	border-radius: .875rem;
+	background: var(--account-navy);
+}
+
+.artnovo-received .artnovo-received-bank :is(code, input[readonly]) {
+	display: block;
+	max-width: 100%;
+	min-width: 0;
+	direction: ltr;
+	text-align: left;
+	overflow-wrap: anywhere;
+	font: inherit;
+	font-variant-numeric: tabular-nums;
+}
+
+.artnovo-received :is([data-artnovo-copy-status], [data-artnovo-upload-status]) {
+	display: block;
+	min-width: 0;
+	margin-block: .375rem 0;
+	color: var(--account-emerald);
+	font-size: .8125rem;
+	overflow-wrap: anywhere;
+}
+
+.artnovo-received input[type="file"] {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	padding: .625rem;
+	color: var(--account-muted);
+	overflow: hidden;
+}
+
+.artnovo-received input[type="file"]::file-selector-button {
+	margin-inline: 0 .625rem;
+	padding: .5rem .75rem;
+	border: 0;
+	border-radius: .625rem;
+	background: #203c49;
+	color: var(--account-focus);
+	font: inherit;
+	cursor: pointer;
+}
+
+.artnovo-received .wpvpn-service > h2 {
+	margin-block-end: .75rem;
+}
+
+@media (min-width: 900px) {
+	.artnovo-received-layout {
+		grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
+		grid-template-areas: "main summary";
+		gap: 1.25rem;
+	}
+}
+
+@media (max-width: 600px) {
+	.artnovo-received .artnovo-received-progress,
+	.artnovo-received .artnovo-received-progress ol {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.artnovo-received .artnovo-account-actions > :is(button, .button, .artnovo-account-button) {
+		width: 100%;
+	}
+
+	.artnovo-received :is(.artnovo-received-summary dl, .artnovo-received-details dl) {
+		grid-template-columns: minmax(0, 1fr);
+		gap: .25rem;
+	}
+
+	.artnovo-received :is(.artnovo-received-summary dd, .artnovo-received-details dd) {
+		margin-block-end: .625rem;
+	}
+}

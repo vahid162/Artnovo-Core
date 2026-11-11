@@ -1,0 +1,501 @@
+body.artnovo-account-page {
+	background: #0c1723;
+	color: #f0f9f7;
+}
+
+.artnovo-account {
+	--account-navy: #0c1723;
+	--account-surface: #152735;
+	--account-text: #f0f9f7;
+	--account-muted: #bdd1d0;
+	--account-emerald: #46d7a6;
+	--account-ink: #06261b;
+	--account-focus: #9adaf0;
+	--account-padding: clamp(1rem, 2.8vw, 1.5rem);
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 1160px;
+	min-width: 0;
+	margin-inline: auto;
+	padding: 1.5rem 1.5rem 3rem;
+	color: var(--account-text);
+	direction: rtl;
+	text-align: start;
+	line-height: 1.8;
+}
+
+.artnovo-account *,
+.artnovo-account *::before,
+.artnovo-account *::after {
+	box-sizing: border-box;
+}
+
+.artnovo-account [hidden] {
+	display: none !important;
+}
+
+.artnovo-account :is(h1, h2, h3, h4, strong, label, legend) {
+	color: var(--account-text);
+}
+
+.artnovo-account :is(h1, h2, h3, h4, p, ul, ol, form) {
+	margin-block-start: 0;
+}
+
+.artnovo-account h1 {
+	margin-block-end: .375rem;
+	font-size: clamp(1.6rem, 4vw, 2rem);
+	line-height: 1.5;
+}
+
+.artnovo-account h2 {
+	margin-block-end: .75rem;
+	font-size: 1.25rem;
+	line-height: 1.6;
+}
+
+.artnovo-account h3 {
+	margin-block-end: .625rem;
+	font-size: 1.0625rem;
+	line-height: 1.6;
+}
+
+.artnovo-account :is(p, li, td, th, h1, h2, h3, h4) {
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account :is(p, li) {
+	color: var(--account-muted);
+}
+
+.artnovo-account p:last-child {
+	margin-block-end: 0;
+}
+
+.artnovo-account a {
+	color: var(--account-focus);
+	text-underline-offset: .2em;
+}
+
+.artnovo-account :is(a, button, input, select, textarea, summary):focus-visible {
+	outline: 2px solid var(--account-focus);
+	outline-offset: 3px;
+}
+
+.artnovo-account-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: .875rem 1.25rem;
+	margin-block-end: 1.25rem;
+}
+
+.artnovo-account-header > *,
+.artnovo-account-main,
+.artnovo-account-grid > * {
+	min-width: 0;
+}
+
+.artnovo-account-layout,
+.artnovo-account-grid,
+.artnovo-account-auth-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	align-items: start;
+	gap: 1rem;
+}
+
+.artnovo-account-main {
+	display: grid;
+	gap: 1rem;
+}
+
+.artnovo-account :is(.artnovo-account-card, .wpvpn-subscription, .artnovo-account-nav, .artnovo-account-feature, .woocommerce-MyAccount-navigation) {
+	min-width: 0;
+	padding: var(--account-padding);
+	border: 0;
+	border-radius: 1.125rem;
+	background: var(--account-surface);
+	box-shadow: 0 .5rem 1.75rem #0003;
+}
+
+.artnovo-account :is(.artnovo-account-nav, .woocommerce-MyAccount-navigation) {
+	padding: .5rem;
+}
+
+.artnovo-account .artnovo-account-nav {
+	display: grid;
+	gap: .25rem;
+}
+
+.artnovo-account :is(.artnovo-account-nav ul, .woocommerce-MyAccount-navigation ul) {
+	display: grid;
+	gap: .25rem;
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+.artnovo-account :is(.artnovo-account-nav li, .woocommerce-MyAccount-navigation li) {
+	margin: 0;
+	padding: 0;
+}
+
+.artnovo-account :is(.artnovo-account-nav a, .woocommerce-MyAccount-navigation a) {
+	display: flex;
+	align-items: center;
+	min-height: 2.875rem;
+	padding: .625rem .875rem;
+	border-radius: .75rem;
+	color: var(--account-muted);
+	text-decoration: none;
+}
+
+.artnovo-account :is(.artnovo-account-nav a, .woocommerce-MyAccount-navigation a):hover {
+	background: #1a3442;
+	color: var(--account-text);
+}
+
+.artnovo-account :is(.artnovo-account-nav [aria-current="page"], .artnovo-account-nav .is-active > a, .woocommerce-MyAccount-navigation .is-active > a) {
+	background: #173b3c;
+	color: var(--account-emerald);
+	font-weight: 700;
+}
+
+.artnovo-account :is(.woocommerce-MyAccount-navigation, .woocommerce-MyAccount-content) {
+	float: none;
+	width: 100%;
+}
+
+.artnovo-account .woocommerce-MyAccount-content {
+	min-width: 0;
+}
+
+.artnovo-account :is(.artnovo-account-actions, .artnovo-account-otp-actions) {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .625rem;
+}
+
+.artnovo-account :is(button, .button, .artnovo-account-button, input[type="submit"]) {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 2.875rem;
+	max-width: 100%;
+	padding: .625rem 1rem;
+	border: 0;
+	border-radius: .75rem;
+	background: var(--account-emerald);
+	box-shadow: 0 .25rem 1rem #0002;
+	color: var(--account-ink);
+	font: inherit;
+	font-weight: 700;
+	line-height: 1.6;
+	text-align: center;
+	text-decoration: none;
+	white-space: normal;
+	cursor: pointer;
+}
+
+.artnovo-account :is(button, .button, .artnovo-account-button, input[type="submit"]):hover {
+	background: #67e0b7;
+	color: var(--account-ink);
+}
+
+.artnovo-account :is(.artnovo-account-button-secondary, .artnovo-account-otp-actions button, [data-artnovo-auth-edit], [data-artnovo-auth-resend], [data-artnovo-qr]) {
+	background: #203c49;
+	color: var(--account-focus);
+}
+
+.artnovo-account :is(.artnovo-account-button-secondary, .artnovo-account-otp-actions button, [data-artnovo-auth-edit], [data-artnovo-auth-resend], [data-artnovo-qr]):hover {
+	background: #294b59;
+	color: var(--account-text);
+}
+
+.artnovo-account :is(button, .button, input[type="submit"]):is(:disabled, [aria-disabled="true"]) {
+	background: #263b48;
+	color: #b4c7ce;
+	box-shadow: none;
+	cursor: default;
+}
+
+.artnovo-account :is(.artnovo-account-badge, .artnovo-account-status) {
+	display: inline-flex;
+	align-items: center;
+	width: fit-content;
+	max-width: 100%;
+	gap: .375rem;
+	padding: .25rem .625rem;
+	border-radius: .625rem;
+	background: #173b3c;
+	color: var(--account-emerald);
+	font-size: .8125rem;
+	line-height: 1.7;
+}
+
+.artnovo-account .artnovo-account-muted,
+.artnovo-account small {
+	color: var(--account-muted);
+	font-size: .8125rem;
+}
+
+.artnovo-account-metrics {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+	gap: .75rem;
+	margin-block: 1rem;
+}
+
+.artnovo-account-metric {
+	display: grid;
+	gap: .25rem;
+	min-width: 0;
+	padding: .75rem;
+	border-radius: .75rem;
+	background: var(--account-navy);
+	color: var(--account-muted);
+}
+
+.artnovo-account-metric strong {
+	font-size: 1.0625rem;
+}
+
+.artnovo-account-auth {
+	display: grid;
+	gap: 1rem;
+	margin: 0;
+}
+
+.artnovo-account :is(.artnovo-account-field, [data-artnovo-code-fields], .form-row, .wpvpn-subscription-link label) {
+	display: grid;
+	gap: .5rem;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+}
+
+.artnovo-account :is(input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="hidden"]), select, textarea) {
+	width: 100%;
+	min-width: 0;
+	min-height: 3rem;
+	max-width: 100%;
+	padding: .625rem .75rem;
+	border: 0;
+	border-radius: .75rem;
+	background: var(--account-navy);
+	box-shadow: 0 .25rem 1rem #0003;
+	color: var(--account-text);
+	font: inherit;
+	line-height: 1.6;
+}
+
+.artnovo-account :is(input[type="email"], input[type="url"]) {
+	direction: ltr;
+	text-align: left;
+}
+
+.artnovo-account input[name="artnovo_otp_code"] {
+	direction: ltr;
+	text-align: center;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: .25em;
+}
+
+.artnovo-account :is(input, textarea)::placeholder {
+	color: #a3b9c1;
+	opacity: 1;
+}
+
+.artnovo-account :is(input, textarea):read-only {
+	color: var(--account-muted);
+}
+
+.artnovo-account :is(input, select, textarea)[aria-invalid="true"] {
+	box-shadow: inset 0 0 0 1px #ff9eb2;
+}
+
+.artnovo-account .form-row {
+	margin-block-end: 1rem;
+}
+
+.artnovo-account .form-row .required {
+	color: #ffd5dd;
+}
+
+.artnovo-account :is(.artnovo-account-notice, [data-artnovo-auth-message], .woocommerce-error, .woocommerce-message, .woocommerce-info) {
+	margin: 0;
+	padding: .75rem 1rem;
+	border: 0;
+	border-radius: .75rem;
+	background: #173b3c;
+	color: #c2f3da;
+	list-style-position: inside;
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account [data-artnovo-auth-message][data-error],
+.artnovo-account .woocommerce-error {
+	background: #392934;
+	color: #ffd5dd;
+}
+
+.artnovo-account .woocommerce-info {
+	background: #172e41;
+	color: #d0edff;
+}
+
+.artnovo-account :is(.woocommerce-error, .woocommerce-message, .woocommerce-info)::before {
+	display: none;
+}
+
+.artnovo-account .wpvpn-subscription {
+	display: grid;
+	gap: .75rem;
+	margin-block-end: 1rem;
+}
+
+.artnovo-account .wpvpn-subscription > :is(h3, p),
+.artnovo-account .wpvpn-subscription-link p {
+	margin: 0;
+}
+
+.artnovo-account .wpvpn-subscription-link {
+	display: grid;
+	gap: .75rem;
+	min-width: 0;
+}
+
+.artnovo-account .wpvpn-subscription-link input {
+	font-size: .8125rem;
+}
+
+.artnovo-account .wpvpn-subscription-link [role="status"] {
+	display: block;
+	color: var(--account-emerald);
+	font-size: .8125rem;
+}
+
+.artnovo-account [data-artnovo-qr-target] {
+	width: fit-content;
+	max-width: 100%;
+	padding: 1rem;
+	border-radius: .75rem;
+	background: #fff;
+	line-height: 0;
+}
+
+.artnovo-account [data-artnovo-qr-target] :is(canvas, img, table) {
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
+
+.artnovo-account details > summary {
+	min-height: 2.75rem;
+	padding-block: .5rem;
+	color: var(--account-focus);
+	cursor: pointer;
+}
+
+.artnovo-account details[open] > summary {
+	margin-block-end: .625rem;
+}
+
+.artnovo-account-purchase dl {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+	gap: .5rem .75rem;
+	margin-block: 0 .875rem;
+}
+
+.artnovo-account-purchase :is(dt, dd) {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account-purchase dt {
+	color: var(--account-muted);
+}
+
+.artnovo-account-purchase dd {
+	color: var(--account-text);
+}
+
+.artnovo-account table.shop_table {
+	width: 100%;
+	max-width: 100%;
+	margin: 0 0 1rem;
+	border: 0;
+	border-collapse: separate;
+	border-spacing: 0;
+	border-radius: .75rem;
+	background: var(--account-navy);
+	color: var(--account-muted);
+	table-layout: fixed;
+}
+
+.artnovo-account table.shop_table :is(th, td) {
+	padding: .625rem;
+	border: 0;
+	color: inherit;
+	font-size: .875rem;
+	line-height: 1.7;
+	text-align: start;
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account table.shop_table th {
+	color: var(--account-text);
+}
+
+.artnovo-account :is(address, .woocommerce-customer-details address) {
+	padding: 1rem;
+	border: 0;
+	border-radius: .75rem;
+	background: var(--account-navy);
+	color: var(--account-muted);
+	font-style: normal;
+	overflow-wrap: anywhere;
+}
+
+@media (min-width: 900px) {
+	.artnovo-account-layout {
+		grid-template-columns: minmax(12rem, 14rem) minmax(0, 1fr);
+		gap: 1.25rem;
+	}
+
+	.artnovo-account-auth-layout {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	}
+
+	.artnovo-account-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 899px) {
+	.artnovo-account :is(.artnovo-account-nav, .artnovo-account-nav ul, .woocommerce-MyAccount-navigation ul) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 479px) {
+	.artnovo-account {
+		padding: .875rem .875rem 2rem;
+	}
+
+	.artnovo-account-header > .artnovo-account-actions,
+	.artnovo-account-header > .artnovo-account-button,
+	.artnovo-account-actions > :is(a, button),
+	.artnovo-account-auth [data-artnovo-auth-submit] {
+		width: 100%;
+	}
+
+	.artnovo-account-otp-actions > button,
+	.artnovo-account-auth .artnovo-account-actions > button {
+		flex: 1 1 9rem;
+	}
+}

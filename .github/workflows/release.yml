@@ -1,0 +1,68 @@
+name: Validate and release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: artnovo-core-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Validate PHP and isolated contracts
+        run: |
+          php --version
+          php -l artnovo-core.php
+          find modules tests -name '*.php' -print0 | xargs -0 -n 1 php -l
+          php -l tools/migrate.php
+          php tests/bootstrap.php
+          php tests/migration.php
+          python3 tests/release.py
+      - name: Build runtime package
+        id: package
+        run: |
+          python3 tools/package.py > "$RUNNER_TEMP/artnovo-release.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          data = json.loads((Path(os.environ['RUNNER_TEMP']) / 'artnovo-release.json').read_text())
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              for key in ('tag', 'version', 'archive'):
+                  output.write(f'{key}={data[key]}\n')
+          print(json.dumps(data))
+          PY
+      - name: Publish versioned ZIP
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.package.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.package.outputs.version }}
+          RELEASE_ARCHIVE: ${{ steps.package.outputs.archive }}
+        run: |
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > "$RUNNER_TEMP/artnovo-existing-release.json" 2>/dev/null; then
+            python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          data = json.loads((Path(os.environ['RUNNER_TEMP']) / 'artnovo-existing-release.json').read_text())
+          required = {Path(os.environ['RELEASE_ARCHIVE']).name, 'SHA256SUMS'}
+          assets = {asset['name'] for asset in data.get('assets', []) if asset.get('size', 0) > 0}
+          if data.get('isDraft') is not False or not required.issubset(assets):
+              raise SystemExit('::error::Existing release is a draft or lacks the non-empty versioned ZIP/checksum. Inspect it before publishing.')
+          PY
+            echo "::notice::Release $RELEASE_TAG already exists; its tag and assets were left intact."
+            exit 0
+          fi
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" > /dev/null 2>&1; then
+            echo "::error::Tag $RELEASE_TAG already exists without a release. Inspect its target before publishing."
+            exit 1
+          fi
+          gh release create "$RELEASE_TAG" "$RELEASE_ARCHIVE" dist/SHA256SUMS \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Artnovo Core $RELEASE_VERSION" --notes-file CHANGELOG.md --latest
