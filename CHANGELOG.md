@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Align the project policy with AI Development Governance 1.2.0 informed release and installation defaults; no runtime, site or public-release change.
+
 - Adopt repository-specific AI Development Governance instructions, document
   ownership, risk/review gates and a canonical current-state record.
 - Add read-only PHP 8.5 pull-request validation and separate explicitly confirmed
