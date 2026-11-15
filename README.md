@@ -70,9 +70,12 @@ sender filter does not change SMTP credentials or delivery routing.
 ## Verify and build
 
 ```sh
+python3 tools/check.py
+python3 tests/governance.py
 php tests/bootstrap.php
 php tests/migration.php
 python3 tests/release.py
+python3 tests/package.py
 python3 tools/package.py
 ```
 
@@ -82,8 +85,19 @@ They use synthetic records and do not authorize real customer payments or receip
 
 The package builder includes only runtime files, this README, the changelog and
 third-party notices. It excludes tests, tools, Git, Spec Kit and operational backups.
-`dist/SHA256SUMS` identifies the versioned ZIP. GitHub Actions validates the bootstrap,
-migration and release-state fixtures and package before publishing a release from `main`.
+`dist/SHA256SUMS` identifies the versioned ZIP. Read-only GitHub Actions checks run
+for pushes and pull requests with PHP 8.5. Publication is a separate manual workflow
+on `main` with explicit confirmation; a push or PR does not publish a release.
+
+## Development
+
+Start with [AGENTS.md](https://github.com/vahid162/Artnovo-Core/blob/main/AGENTS.md),
+the [development governance](https://github.com/vahid162/Artnovo-Core/blob/main/docs/development-governance.md)
+and [current project state](https://github.com/vahid162/Artnovo-Core/blob/main/docs/project-state.md).
+They define technical ownership,
+verification, document ownership, release authority and the current delivery status.
+The standalone development checks require PHP 8.5.x and Python 3.10+; no WordPress
+installation or real customer transaction is needed for them.
 
 The specification and compatibility contracts are in
 [specs/001-unify-artnovo-core](https://github.com/vahid162/Artnovo-Core/tree/v1.0.0/specs/001-unify-artnovo-core).

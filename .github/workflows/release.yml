@@ -1,31 +1,36 @@
-name: Validate and release
+name: Publish release
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish the versioned ZIP after owner authorization'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: artnovo-core-release
   cancel-in-progress: false
 
 jobs:
-  release:
+  validate:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.publish
+    uses: ./.github/workflows/validate.yml
+  publish:
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.publish
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-      - name: Validate PHP and isolated contracts
-        run: |
-          php --version
-          php -l artnovo-core.php
-          find modules tests -name '*.php' -print0 | xargs -0 -n 1 php -l
-          php -l tools/migrate.php
-          php tests/bootstrap.php
-          php tests/migration.php
-          python3 tests/release.py
+        with:
+          persist-credentials: false
       - name: Build runtime package
         id: package
         run: |
@@ -45,7 +50,12 @@ jobs:
           RELEASE_TAG: ${{ steps.package.outputs.tag }}
           RELEASE_VERSION: ${{ steps.package.outputs.version }}
           RELEASE_ARCHIVE: ${{ steps.package.outputs.archive }}
+          RELEASE_CONFIRMED: ${{ inputs.publish }}
         run: |
+          if [[ "${GITHUB_EVENT_NAME:-}" != "workflow_dispatch" || "${GITHUB_REF:-}" != "refs/heads/main" || "${RELEASE_CONFIRMED:-}" != "true" ]]; then
+            echo "::error::Publish requires a confirmed manual run on main."
+            exit 1
+          fi
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > "$RUNNER_TEMP/artnovo-existing-release.json" 2>/dev/null; then
             python3 - <<'PY'
           import json, os

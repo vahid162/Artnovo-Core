@@ -61,6 +61,8 @@ with tempfile.TemporaryDirectory(prefix="artnovo-core-release-") as directory:
             "GH_TOKEN": "fixture-only", "GITHUB_REPOSITORY": "fixture/Artnovo-Core",
             "GITHUB_SHA": "a" * 40, "RELEASE_TAG": "v1.0.0", "RELEASE_VERSION": "1.0.0",
             "RELEASE_ARCHIVE": "dist/" + archive,
+            "GITHUB_EVENT_NAME": "workflow_dispatch", "GITHUB_REF": "refs/heads/main",
+            "RELEASE_CONFIRMED": "true",
         }
         result = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", script],
                                 cwd=root, env=environment, text=True, capture_output=True)
@@ -73,6 +75,31 @@ with tempfile.TemporaryDirectory(prefix="artnovo-core-release-") as directory:
             command = creation[0]
             passed = passed and command[2:5] == ["v1.0.0", "dist/" + archive, "dist/SHA256SUMS"]
             passed = passed and command[command.index("--target") + 1] == environment["GITHUB_SHA"]
+        print(("PASS " if passed else "FAIL ") + name)
+        if not passed:
+            failures.append(name)
+            print((result.stdout + result.stderr)[-600:])
+
+    denied = [
+        ("push cannot publish", {"GITHUB_EVENT_NAME": "push"}),
+        ("pull request cannot publish", {"GITHUB_EVENT_NAME": "pull_request"}),
+        ("feature branch cannot publish", {"GITHUB_REF": "refs/heads/work/test"}),
+        ("tag cannot publish", {"GITHUB_REF": "refs/tags/v1.0.0"}),
+        ("unconfirmed dispatch cannot publish", {"RELEASE_CONFIRMED": "false"}),
+        ("missing confirmation cannot publish", {"RELEASE_CONFIRMED": ""}),
+    ]
+    for number, (name, overrides) in enumerate(denied):
+        case = temporary / f"denied-{number}"
+        case.mkdir(mode=0o700)
+        calls = case / "calls.jsonl"
+        blocked_environment = {**environment, "RUNNER_TEMP": str(case),
+            "MOCK_GH_CALLS": str(calls), "MOCK_RELEASE": "null", "MOCK_TAG_EXISTS": "0",
+            **overrides,
+        }
+        result = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", script],
+                                cwd=root, env=blocked_environment, text=True, capture_output=True)
+        passed = result.returncode != 0 and "::error::" in result.stdout + result.stderr
+        passed = passed and not calls.exists()
         print(("PASS " if passed else "FAIL ") + name)
         if not passed:
             failures.append(name)

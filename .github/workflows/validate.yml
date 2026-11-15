@@ -1,0 +1,39 @@
+name: Validate
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set up PHP 8.5
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: none
+      - name: Validate source and isolated contracts
+        run: |
+          php --version
+          php -r 'exit(PHP_MAJOR_VERSION === 8 && PHP_MINOR_VERSION === 5 ? 0 : 1);'
+          php -l artnovo-core.php
+          find modules tests tools -name '*.php' -print0 | xargs -0 -n 1 php -l
+          php tests/bootstrap.php
+          php tests/migration.php
+          python3 tests/release.py
+          python3 tests/package.py
+          python3 tools/check.py
+          python3 tests/governance.py
+      - name: Build runtime package
+        run: python3 tools/package.py
