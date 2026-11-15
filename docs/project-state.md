@@ -7,10 +7,13 @@ a short handoff for Bridge's receipt-policy issue, and safe independence when
 either plugin is removed. Base: `28ed9a877ac10969cf4f08592f81c2ebea604880` (merged
 PR #1). Branch: `work/fix-core-bridge-isolation`.
 
-The [governance policy](development-governance.md) owns delivery rules. This request
-authorizes Core development, tests, documentation and a branch/PR. It does not
-authorize changing Bridge, merging this PR, releasing a ZIP or installing on the
-live site. The earlier merge instruction applied only to PR #1, already merged.
+The [governance policy](development-governance.md) owns delivery rules. The initial request authorized Core development, tests, documentation and a
+branch/PR. The owner subsequently annotated the staging gate: “نیازی به تست روی
+محیط ازمایشی نیست. اگه تست های ریپو کامل شده مراحل بعدی رو انجام بده”. This
+current instruction waives staging as a merge prerequisite and authorizes the next
+PR #2 delivery steps: mark ready and squash-merge after current repository checks
+pass. It does not grant authority to modify Bridge or publish/install a new release.
+The separate role-boundary request is read-only analysis.
 
 ## Plan and risk
 
@@ -63,10 +66,15 @@ and evidence. Exact current-head hosted results are owned by
 [PR #2 checks](https://github.com/vahid162/Artnovo-Core/pull/2/checks); verify that
 live record rather than treating an earlier head's run as evidence for this one.
 
-Controlled WordPress/browser acceptance has not run, so the PR remains draft and
-conditional. Next safe step: validate the same candidate in controlled staging,
-then seek separately scoped merge/release/installation authority. No production
-acceptance is inferred from synthetic tests or hosted CI.
+Controlled WordPress/browser acceptance has not run. The owner explicitly waived
+it as a delivery gate; it is not relabelled as passed. The existing repository
+checks and distinct independent implementation review remain required. Recheck
+current base/head, all hosted results and unchanged runtime/test hashes immediately
+before marking PR #2 ready and squash-merging. Squash keeps one scoped recovery
+commit for this coherent fix. No production acceptance is inferred from this waiver.
+Actual merge outcome is owned by [PR #2](https://github.com/vahid162/Artnovo-Core/pull/2),
+and final main validation by
+[main CI](https://github.com/vahid162/Artnovo-Core/actions/workflows/validate.yml?query=branch%3Amain).
 
 The plugin remains version **1.0.0** during development. Runtime changes need an
 appropriate new version before a separately authorized release. Published tag,

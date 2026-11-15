@@ -74,9 +74,18 @@ or customer writes; none were performed here. Before live installation, preserve
 activation/configuration/data recovery separately and validate the candidate in a
 controlled environment. Release needs an appropriate new plugin version first.
 
-## Delivery gate
+## Delivery gate and owner waiver
 
-Keep this PR **draft/conditional** pending controlled WordPress acceptance for the
-changed payment/optional-dependency paths. Hosted standalone validation is a
-separate gate and must match the actual PR head. No merge, publication, installation
-or production acceptance is implied by the branch or its local passes.
+The initial delivery was draft/conditional pending controlled WordPress acceptance.
+The owner subsequently stated: “نیازی به تست روی محیط ازمایشی نیست. اگه تست های ریپو
+کامل شده مراحل بعدی رو انجام بده”. This explicitly removes staging as a merge gate;
+it does not convert an unrun check into a pass. Repository tests, hosted checks,
+independent review and exact-source recovery remain required.
+
+Proceed with PR #2 ready status and squash merge only after rechecking its exact
+head/base, green current-head repository checks and unchanged reviewed file hashes.
+Squash is selected to keep this coherent fix recoverable as one source commit.
+No Bridge modification, release publication, live installation or real payment is
+part of these next repository steps. The current merge outcome is recorded by
+[PR #2](https://github.com/vahid162/Artnovo-Core/pull/2); final main validation is
+[here](https://github.com/vahid162/Artnovo-Core/actions/workflows/validate.yml?query=branch%3Amain).
