@@ -1,0 +1,20 @@
+{
+  "base_commit": "547a7dd6a13c423a75d51160920cac57516d3163",
+  "implementation_commit": "d8d20896e699ea51d1d8bae4fd7efec269d8bd73",
+  "files": {
+    ".github/workflows/release.yml": "11e18753ed40366fdd631e89d6aaf7115b9c9874e7a92cd6f84e85a25c07a171",
+    ".github/workflows/validate.yml": "ae7478307c3f52c33b19e687c18bf69ff7a3e0b593799c5f500302cdc54619c3",
+    "AGENTS.md": "4e96aba76ec9bb80ba9a29a6a0ba42f480815b9a40b78f216a2cf9e7e524411c",
+    "CHANGELOG.md": "5fb1bba49109fa3d8215ae634a0de4677ca7d0f6b98fb3dcb07738a9c8d73b89",
+    "README.md": "bc3e19cdba98e2821f9fb0dfe48e1440032b7e420457b8a9dfd0803ac3d77a77",
+    "docs/development-governance.md": "a368196410fad01aa798348cd40e05845720ff085adcb4bce39f8a55939279f9",
+    "docs/project-state.md": "66f80ff65732e334827a1794cae51d2c3bb53a907f0eab88107bb97f99e31206",
+    "tests/governance.py": "96e5652859640f74031b8bf2e36e2b4186bfd1117e24a29e77cb8b7cf24eb054",
+    "tests/package.py": "5ce24da3308436c9603578a3fae33c41e926bdb98808f83230e8e8bc5a821f82",
+    "tests/release.py": "ceb56ce984fe435ef99b1751bfbd1cabba7cbf88b0634fcfd202c8823f0d69c5",
+    "tools/check.py": "81c7995cb67683f89bd1d8c683ab2d68e3977c2e88594d6b6ab1cfef7c2a1ea4"
+  },
+  "scope": "Files reviewed and tested in the implementation commit. Later current-state/evidence receipts are documentation-only and checked separately.",
+  "github_equivalent_implementation_commit": "20bff55015f2898cac97c909b2b8629b793f2460",
+  "implementation_git_tree": "93fe64810525d5145cda57870ea181b45c392d10"
+}

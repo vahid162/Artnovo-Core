@@ -48,11 +48,26 @@ later authorized. Keep released `v1.0.0` and its assets unchanged.
 
 ## Verification and delivery
 
-Implementation and verification are in progress. This is not a claim of passing
-checks, an open PR, merge or deployment. The dated verification record will bind
-the candidate source, commands, review, recovery and hosted-check results before
-handoff. Integration/payment/browser tests are not required for unchanged runtime;
-no production acceptance result will be inferred from that exclusion.
+Implementation is committed locally as
+`d8d20896e699ea51d1d8bae4fd7efec269d8bd73`; its GitHub equivalent is
+`20bff55015f2898cac97c909b2b8629b793f2460`, with an identical source tree. The
+[verification record](evidence/2026-11-15-governance/verification.md) and its source
+manifest bind actual checks and review to that implementation. Subsequent receipt
+changes are current-state/evidence only and must be checked separately.
+
+- Passed: document checker, 6 document regressions, 14 bootstrap scenarios,
+  40 migration assertions, 14 release cases, 5 package cases and 27 PHP syntax checks.
+- Passed: distinct independent technical review after its README/package finding
+  was fixed; isolated source revert and exact baseline ZIP reconstruction.
+- Passed at **decision-only** scope: 16 isolated Codex policy scenarios. Full upstream
+  fixture implementations and ChatGPT activation were not run; no such claim is made.
+- Hosted validation: pending submission/observation of the exact remote candidate.
+  PR creation is next; this receipt does not claim an existing PR or completed CI.
+- No merge, tag, release or repository deployment has occurred. The development ZIP
+  is unpublished; existing v1.0.0 assets remain unchanged.
+
+Integration/payment/browser tests are not applicable to unchanged runtime in this
+mission; no production acceptance result is inferred from that exclusion.
 
 ## Follow-up work outside this mission
 
