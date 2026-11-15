@@ -20,8 +20,9 @@ function received_order_url( \WC_Order $order ): string {
 		wc_get_endpoint_url( 'order-received', (string) $order->get_id(), wc_get_page_permalink( 'checkout' ) ) );
 }
 
-function received_order(): \WC_Order|false {
-	if ( ! received_page() || get_current_user_id() < 1 ) {
+// A valid key identifies a route; private Core output additionally requires its owner below.
+function received_keyed_order(): \WC_Order|false {
+	if ( ! received_page() ) {
 		return false;
 	}
 	$id = get_query_var( 'order-received' );
@@ -30,8 +31,15 @@ function received_order(): \WC_Order|false {
 		return false;
 	}
 	$order = class_exists( Orders::class ) ? Orders::fresh_order( (int) $id ) : wc_get_order( (int) $id );
-	return $order instanceof \WC_Order && get_current_user_id() === $order->get_customer_id()
-		&& hash_equals( $order->get_order_key(), wp_unslash( $key ) ) ? $order : false;
+	return $order instanceof \WC_Order && hash_equals( $order->get_order_key(), wp_unslash( $key ) ) ? $order : false;
+}
+
+function received_order(): \WC_Order|false {
+	if ( get_current_user_id() < 1 ) {
+		return false;
+	}
+	$order = received_keyed_order();
+	return $order && get_current_user_id() === $order->get_customer_id() ? $order : false;
 }
 
 add_action( 'template_redirect', static function (): void {
@@ -46,7 +54,14 @@ add_filter( 'template_include', static function ( string $template ): string {
 		return $template;
 	}
 	$order = received_order();
-	if ( $order && class_exists( Orders::class ) && ! Orders::is_service_order( $order ) ) {
+	if ( ! $order && ! \Artnovo\Core\bridge_available() ) {
+		$guest = received_keyed_order();
+		// Native WooCommerce owns guest email/key verification; Core never renders its private data.
+		if ( $guest && 0 === $guest->get_customer_id() ) {
+			$order = $guest;
+		}
+	}
+	if ( $order && ! \Artnovo\Core\is_service_order( $order ) ) {
 		return $template;
 	}
 	return __DIR__ . '/received-page.php';
@@ -87,6 +102,9 @@ function received_services( \WC_Order $order ): array {
 }
 
 function received_state( \WC_Order $order, ?array $delivery = null ): array {
+	if ( ! \Artnovo\Core\bridge_available() ) {
+		return [ 'state' => 'unavailable', 'title' => 'پیگیری سرویس موقتاً در دسترس نیست', 'message' => 'برای بررسی این خرید با شمارهٔ پیگیری به پشتیبانی پیام بدهید. تا فعال‌شدن سرویس، پرداخت تازه انجام ندهید.', 'step' => 1 ];
+	}
 	if ( $order->has_status( [ 'cancelled', 'refunded', 'trash' ] ) || (float) $order->get_total_refunded() > 0 ) {
 		return [ 'state' => 'closed', 'title' => 'این خرید قابل دریافت نیست', 'message' => 'وضعیت خرید را در جزئیات ببینید و برای پیگیری با شمارهٔ خرید به پشتیبانی پیام بدهید.', 'step' => 1 ];
 	}

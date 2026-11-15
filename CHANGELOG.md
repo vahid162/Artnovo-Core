@@ -2,12 +2,19 @@
 
 ## Unreleased
 
+- Keep existing-order Store API payment eligibility independent of an unrelated
+  current cart, preserving the gateways already authorized by Bridge.
+- Load Core's general features without Bridge, preserve native WooCommerce account
+  and checkout fallbacks, and reject service payments while Bridge is unavailable.
+- Add isolated payment-context and optional-Bridge regression checks. These runtime
+  changes need a new plugin version before release; published 1.0.0 is unchanged.
 - Adopt repository-specific AI Development Governance instructions, document
   ownership, risk/review gates and a canonical current-state record.
 - Add read-only PHP 8.5 pull-request validation and separate explicitly confirmed
   manual publication from development pushes.
 - Check documentation links and package exclusion, reproducibility and rejection
-  boundaries with isolated fixtures. Plugin runtime and version remain unchanged.
+  boundaries with isolated fixtures. The governance adoption itself did not change
+  plugin runtime or version.
 
 ## 1.0.0 — 2026-11-11
 

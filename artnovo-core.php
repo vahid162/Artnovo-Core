@@ -6,7 +6,7 @@
  * Version: 1.0.0
  * Requires at least: 7.0
  * Requires PHP: 8.5
- * Requires Plugins: woocommerce, elementor, pinova, wp-vpn-bridge
+ * Requires Plugins: woocommerce, elementor, pinova
  * Update URI: https://github.com/vahid162/Artnovo-Core
  * Author: ArtNovo
  * Text Domain: artnovo-core
@@ -34,18 +34,48 @@ if ( ! in_array( $legacy_sender, array_map( 'wp_normalize_path', get_included_fi
 
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\boot', 30 );
 
+function bridge_available(): bool {
+	return class_exists( '\WPVPNBridge\Commerce\Orders' );
+}
+
+// Identify retained service orders even after Bridge or the product is removed.
+// Payment validation and issuance remain exclusively owned by Bridge.
+function is_service_order( \WC_Order $order ): bool {
+	if ( is_array( $order->get_meta( '_wpvpn_snapshot', true ) ) ) {
+		return true;
+	}
+	foreach ( $order->get_items() as $item ) {
+		if ( ! $item instanceof \WC_Order_Item_Product ) {
+			continue;
+		}
+		$product = $item->get_product();
+		if ( is_array( $item->get_meta( '_wpvpn_snapshot', true ) )
+			|| ( $product instanceof \WC_Product && 'yes' === $product->get_meta( '_wpvpn_enabled', true ) ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
 function boot(): void {
+	static $booted = false;
+	if ( $booted ) {
+		return;
+	}
+	$booted = true;
 	$active = (array) get_option( 'active_plugins', [] );
 	if ( is_multisite() ) {
 		$active = array_merge( $active, array_keys( (array) get_site_option( 'active_sitewide_plugins', [] ) ) );
 	}
 	$message = '';
-	if ( ! class_exists( '\WooCommerce' ) || ! class_exists( '\WPVPNBridge\Commerce\Orders' )
+	if ( ! bridge_available() || ! class_exists( '\WooCommerce' )
 		|| ! class_exists( '\Pinova\Pinova' ) || ! class_exists( '\Elementor\Plugin' ) ) {
 		add_filter( 'woocommerce_is_purchasable', static function ( bool $purchasable, \WC_Product $product ): bool {
 			return 'yes' === $product->get_meta( '_wpvpn_enabled', true ) ? false : $purchasable;
 		}, PHP_INT_MAX, 2 );
-		$message = 'Artnovo Core به ووکامرس، المنتور، Pinova و افزونهٔ مستقل WP VPN Bridge نیاز دارد. فعال بودن این وابستگی‌ها را بررسی کنید.';
+	}
+	if ( ! class_exists( '\WooCommerce' ) || ! class_exists( '\Pinova\Pinova' ) || ! class_exists( '\Elementor\Plugin' ) ) {
+		$message = 'Artnovo Core به ووکامرس، المنتور و Pinova نیاز دارد. فعال بودن این وابستگی‌ها را بررسی کنید.';
 	} elseif ( array_intersect( LEGACY_PLUGINS, $active ) ) {
 		$message = 'برای اجرای Artnovo Core، ابتدا انتقال افزونه‌های قدیمی آرت‌نوو را طبق راهنمای نصب کامل کنید. کدهای قدیمی هم‌زمان با Core اجرا نمی‌شوند.';
 	}
@@ -56,6 +86,13 @@ function boot(): void {
 			}
 		} );
 		return;
+	}
+	if ( ! bridge_available() ) {
+		add_action( 'admin_notices', static function (): void {
+			if ( current_user_can( 'activate_plugins' ) ) {
+				echo '<div class="notice notice-warning"><p>WP VPN Bridge فعال نیست؛ خرید و تحویل سرویس موقتاً در دسترس نیست. بخش‌های عمومی Artnovo Core فعال می‌مانند.</p></div>';
+			}
+		} );
 	}
 
 	// Preserve the original registration order for callbacks sharing a priority.

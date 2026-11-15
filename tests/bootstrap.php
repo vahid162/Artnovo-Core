@@ -55,6 +55,7 @@ function is_multisite(): bool { return 'network-legacy' === $GLOBALS['case']; }
 function current_user_can( $cap ): bool { return true; }
 function esc_html( $value ): string { return htmlspecialchars( $value, ENT_QUOTES, 'UTF-8' ); }
 function wp_normalize_path( string $path ): string { return str_replace( '\\', '/', $path ); }
+function has_term( ...$args ): bool { return false; }
 function check( bool $condition, string $message ): void {
 	if ( ! $condition ) {
 		fwrite( STDERR, "FAIL {$GLOBALS['case']}: $message\n" );
@@ -69,6 +70,8 @@ function mail_sender( string $address ): string {
 }
 class WC_Product {
 	public function __construct( private bool $service ) {}
+	public function is_type( string $type ): bool { return false; }
+	public function get_id(): int { return 25; }
 	public function get_meta( string $key, bool $single = true ): string {
 		return '_wpvpn_enabled' === $key && $this->service ? 'yes' : '';
 	}
@@ -109,15 +112,22 @@ check( count( $hooks['wp_mail_from'][10] ?? [] ) === 1, 'exactly one early sende
 check( 'orders@artnovo.ir' === mail_sender( 'wordpress@artnovo.ir' ), 'default sender retained' );
 check( 'support@artnovo.ir' === mail_sender( 'support@artnovo.ir' ), 'explicit sender retained' );
 Artnovo\Core\boot();
-$expected = in_array( $case, [ 'ready', 'legacy-mail', 'restored-mail', 'retired-loaded-mail' ], true );
+$expected = in_array( $case, [ 'ready', 'missing-bridge', 'legacy-mail', 'restored-mail', 'retired-loaded-mail' ], true );
 check( function_exists( 'Artnovo\\AccountUI\\account_url' ) === $expected, 'account loading is guarded' );
 check( function_exists( 'Artnovo\\PlanCheckout\\is_plan' ) === $expected, 'checkout loading is guarded' );
 check( function_exists( 'Artnovo\\HomeOrderUI\\Wizard\\is_page' ) === $expected, 'wizard loading is guarded' );
 check( function_exists( 'Artnovo\\AccountUI\\received_state' ) === $expected, 'received loading is guarded' );
 if ( $expected ) {
+	check( function_exists( 'Artnovo\\AccountUI\\account_email_login_ready' ), 'account email-code helpers remain available' );
+	if ( 'missing-bridge' === $case ) {
+		check( ! product_purchasable( true, new WC_Product( true ) ), 'missing Bridge blocks service purchases while Core runs' );
+		check( product_purchasable( true, new WC_Product( false ) ), 'missing Bridge preserves ordinary product purchases' );
+		check( ! product_purchasable( false, new WC_Product( false ) ), 'missing Bridge preserves existing ordinary product denial' );
+	}
 	$paths = array_map( static fn( $callback ) => ( new ReflectionFunction( $callback ) )->getFileName(), $hooks['wp_enqueue_scripts'][10] ?? [] );
 	$modules = array_map( static fn( $path ) => basename( dirname( $path ) ), $paths );
-	check( [ 'account', 'header', 'home', 'home', 'checkout' ] === $modules, 'same-priority asset callback order retained' );
+	$expected_modules = 'missing-bridge' === $case ? [ 'account', 'header', 'home', 'home' ] : [ 'account', 'header', 'home', 'home', 'checkout' ];
+	check( $expected_modules === $modules, 'same-priority base asset callback order retained; absent service integration adds no checkout assets' );
 	check( count( $hooks['gettext_wp-vpn-bridge'][10] ?? [] ) === 1 && count( $hooks['gettext_wp-vpn-bridge'][20] ?? [] ) === 1, 'translation priorities retained' );
 	$before = array_map( static fn( $priorities ) => array_map( 'count', $priorities ), $hooks );
 	Artnovo\Core\boot();

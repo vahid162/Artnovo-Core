@@ -21,7 +21,7 @@ function account_auth_key(): string {
 }
 
 function account_auth_destination( string $requested = '' ): string {
-	$fallback = wc_get_account_endpoint_url( 'vpn-subscriptions' );
+	$fallback = account_url();
 	$account = wp_parse_url( wc_get_page_permalink( 'myaccount' ) );
 	$destination = wp_validate_redirect( $requested, $fallback );
 	$target = wp_parse_url( $destination );

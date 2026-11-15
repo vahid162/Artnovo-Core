@@ -34,8 +34,9 @@ copy fixtures/runtime to an accessible temporary directory when necessary.
 The normal fixtures require the candidate entrypoint and call `Artnovo\Core\boot()`
 explicitly after WP-CLI has bootstrapped WordPress. Temporary option filters hide
 legacy/Core activation entries only during this call; the database activation set
-is never changed. The receipt and template-scope checks deliberately include only
-their candidate module. Skip Core and the four legacy plugins in every CLI command
+is never changed. The receipt checks deliberately include only their candidate module. The
+received-template and multipart checks also load the entrypoint helpers without
+calling the full Core bootstrap. Skip Core and the four legacy plugins in every CLI command
 to prevent duplicate functions or testing an already loaded implementation.
 
 ## WP-CLI commands

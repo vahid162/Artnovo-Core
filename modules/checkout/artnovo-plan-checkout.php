@@ -12,6 +12,52 @@ const WIZARD_DRAFT = 'artnovo_wizard_checkout';
 
 require_once dirname( __DIR__ ) . '/auth/artnovo-checkout-email.php';
 
+function store_order_payment_id( \WP_REST_Request $request ): int {
+	return 'POST' === $request->get_method()
+		&& 1 === preg_match( '~\A/wc/store(?:/v[0-9]+)?/checkout/([0-9]+)\z~i', $request->get_route(), $matches )
+		? (int) $matches[1] : 0;
+}
+
+add_action( 'woocommerce_before_pay_action', static function ( \WC_Order $order ): void {
+	if ( ! \Artnovo\Core\bridge_available() && \Artnovo\Core\is_service_order( $order ) ) {
+		wp_die( 'پرداخت سرویس موقتاً در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید.', '', [ 'response' => 503 ] );
+	}
+} );
+
+// REST route permissions run before dispatch; stop before the callback can update or pay a retained service order.
+add_filter( 'rest_dispatch_request', static function ( $result, \WP_REST_Request $request ) {
+	if ( null !== $result || \Artnovo\Core\bridge_available() ) {
+		return $result;
+	}
+	$order_id = store_order_payment_id( $request );
+	$order = $order_id ? wc_get_order( $order_id ) : false;
+	if ( $order instanceof \WC_Order && \Artnovo\Core\is_service_order( $order ) ) {
+		return new \WP_Error( 'artnovo_bridge_unavailable', 'پرداخت سرویس موقتاً در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید.', [ 'status' => 503 ] );
+	}
+	return $result;
+}, 10, 2 );
+
+add_action( 'elementor/dynamic_tags/register', static function ( $manager ): void {
+	$manager->register( new class extends \Elementor\Core\DynamicTags\Data_Tag {
+		public function get_name() { return 'artnovo-plan-checkout'; }
+		public function get_title() { return 'ادامهٔ خرید پلن آرت‌نوو'; }
+		public function get_group() { return 'post'; }
+		public function get_categories() { return array( \Elementor\Modules\DynamicTags\Module::URL_CATEGORY ); }
+		public function get_value( array $options = array() ) {
+			if ( ! \Artnovo\Core\bridge_available() ) {
+				return wc_get_page_permalink( 'myaccount' );
+			}
+			$product = function_exists( 'wc_get_product' ) ? wc_get_product( get_the_ID() ) : null;
+			return is_plan( $product ) ? wizard_url( $product->get_id() ) : '';
+		}
+	} );
+} );
+
+// Keep shared auth/helpers and retained-order guards, leaving ordinary WooCommerce journeys intact.
+if ( ! \Artnovo\Core\bridge_available() ) {
+	return;
+}
+
 add_filter( 'woocommerce_persistent_cart_enabled', '__return_false' );
 add_filter( 'wc_add_to_cart_message_html', '__return_empty_string' );
 
@@ -115,8 +161,19 @@ function cart_selection( int $id, int $quantity = 1 ): string {
 	return 1 === count( $items ) && $id === (int) ( $item['product_id'] ?? 0 ) && (float) $quantity === (float) ( $item['quantity'] ?? 0 ) ? 'same' : 'different';
 }
 
-add_filter( 'woocommerce_available_payment_gateways', static function ( array $gateways ): array {
-	if ( is_wc_endpoint_url( 'order-pay' ) ) {
+// Scope the cart-only guard to each REST request, including nested requests and batch siblings.
+$artnovo_order_payment_requests = [];
+add_filter( 'rest_request_before_callbacks', static function ( $response, $handler, \WP_REST_Request $request ) use ( &$artnovo_order_payment_requests ) {
+	$artnovo_order_payment_requests[] = store_order_payment_id( $request ) > 0;
+	return $response;
+}, 10, 3 );
+add_filter( 'rest_request_after_callbacks', static function ( $response ) use ( &$artnovo_order_payment_requests ) {
+	array_pop( $artnovo_order_payment_requests );
+	return $response;
+}, PHP_INT_MAX );
+
+add_filter( 'woocommerce_available_payment_gateways', static function ( array $gateways ) use ( &$artnovo_order_payment_requests ): array {
+	if ( is_wc_endpoint_url( 'order-pay' ) || true === end( $artnovo_order_payment_requests ) ) {
 		return $gateways;
 	}
 	foreach ( cart_items() as $item ) {
@@ -139,7 +196,7 @@ add_filter( 'woocommerce_available_payment_gateways', static function ( array $g
 }, PHP_INT_MAX );
 
 function wizard_page(): bool {
-	return function_exists( '\\Artnovo\\HomeOrderUI\\Wizard\\is_page' ) && \Artnovo\HomeOrderUI\Wizard\is_page();
+	return \Artnovo\Core\bridge_available() && function_exists( '\\Artnovo\\HomeOrderUI\\Wizard\\is_page' ) && \Artnovo\HomeOrderUI\Wizard\is_page();
 }
 
 function wizard_url( int $product_id, bool $checkout = false ): string {
@@ -510,19 +567,6 @@ add_filter( 'elementor/widget/render_content', static function ( string $content
 	$product = wc_get_product( get_queried_object_id() );
 	return is_plan( $product ) ? '<div class="artnovo-plan-flow">' . button_link( wizard_url( $product->get_id() ), 'ادامهٔ خرید' ) . '</div>' : $content;
 }, 10, 2 );
-
-add_action( 'elementor/dynamic_tags/register', static function ( $manager ): void {
-	$manager->register( new class extends \Elementor\Core\DynamicTags\Data_Tag {
-		public function get_name() { return 'artnovo-plan-checkout'; }
-		public function get_title() { return 'ادامهٔ خرید پلن آرت‌نوو'; }
-		public function get_group() { return 'post'; }
-		public function get_categories() { return array( \Elementor\Modules\DynamicTags\Module::URL_CATEGORY ); }
-		public function get_value( array $options = array() ) {
-			$product = function_exists( 'wc_get_product' ) ? wc_get_product( get_the_ID() ) : null;
-			return is_plan( $product ) ? wizard_url( $product->get_id() ) : '';
-		}
-	} );
-} );
 
 add_filter( 'woocommerce_loop_add_to_cart_link', static function ( string $html, \WC_Product $product ): string {
 	if ( ! is_plan( $product ) || ! $product->is_in_stock() ) {
