@@ -48,14 +48,22 @@ lines. A distinct independent reviewer passed archive/source checks, bootstrap
 14 scenarios, package 5 cases and release 14 stub cases. Checkout 43, independence
 63, migration 40, documentation checks and recovery rehearsal also passed.
 
-A private 1.0.0 backup and staged candidate are prepared. Pre-install homepage and
-account HTTP/UI checks passed. Actual live installation is pending final reviewed
-script execution. The current outcome and evidence are maintained in
+Core **1.0.1 is installed and active** on artnovo.ir. All 28 installed files match
+the verified package. The briefly owned maintenance flag was removed. Origin and
+public homepage/account checks returned 200 with expected Core UI; account
+responses retain private/no-store protection and www redirects to the apex.
+Activation, wp-config and Bridge hashes are unchanged. A root-private source backup,
+reviewed scripts and exact candidate ZIP are retained outside the web root/Git.
+The installation outcome is recorded in
 [installation verification](evidence/2026-11-15-core-1.0.1-install/verification.md).
 
 The unchanged runtime fixes and their earlier review are documented in
 [PR #2 verification](evidence/2026-11-15-bridge-isolation/verification.md).
 Published v1.0.0 tag/assets remain unchanged. No public v1.0.1 release is claimed.
+The source/version/install record is [PR #3](https://github.com/vahid162/Artnovo-Core/pull/3).
+Its live merge outcome and [checks](https://github.com/vahid162/Artnovo-Core/pull/3/checks)
+own repository delivery status; the installation artifact is bound by the checksum
+above, independently of later evidence-only commits.
 
 ## Independent Bridge follow-up
 
