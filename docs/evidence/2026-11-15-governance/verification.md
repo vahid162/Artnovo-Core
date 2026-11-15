@@ -104,6 +104,25 @@ access, protections, visibility or spending. Feature-branch publication is scope
 to read-only validation; main's old release workflow remains active until merge.
 
 Selected merge method: **squash**, for one coherent, reversibly scoped adoption.
-Merge, tag, release and deployment still require separate owner authorization.
+At the initial delivery, merge, tag, release and deployment required separate
+owner authorization.
 Production server/CDN work requested in the earlier conversation is an independent
 operational task and is not evidence of deploying this repository branch.
+
+## Subsequent owner-authorized merge
+
+On 2026-11-15, the owner explicitly requested merging PR #1 and checking the final
+repository state. Preflight observed base
+`547a7dd6a13c423a75d51160920cac57516d3163` and head
+`e4e793cd2b9c41b83b351ca29c651d170e0a3a92`, with no conflicts, no unresolved review
+threads, and successful [push](https://github.com/vahid162/Artnovo-Core/actions/runs/43688562986)
+and [PR](https://github.com/vahid162/Artnovo-Core/actions/runs/43688567426) validation.
+This current-state receipt changes documentation only and requires fresh checks
+on its own submitted head before the merge. The runtime and policy implementation
+remain at the reviewed file identities above.
+
+The final merge commit/result is recorded by
+[PR #1](https://github.com/vahid162/Artnovo-Core/pull/1); its resulting `main` check
+is recorded in [Actions](https://github.com/vahid162/Artnovo-Core/actions/workflows/validate.yml?query=branch%3Amain).
+Those live records determine whether the operation completed. The owner did not
+authorize a release, deployment or general permission to merge other PRs.

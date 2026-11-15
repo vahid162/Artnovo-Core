@@ -28,10 +28,12 @@ isolated recovery to the baseline; and hosted validation on the submitted revisi
 3. Run selected checks/recovery and an independent review; publish only a branch/PR.
 4. Record actual evidence and remaining limits here before handoff.
 
-The owner's standardization request authorizes this scoped development and PR.
-No merge, tag, release, production deployment, access change or paid service is
-authorized by this mission. Select **squash** for this coherent change if merge is
-later authorized. Keep released `v1.0.0` and its assets unchanged.
+The initial standardization request authorized scoped development and a PR.
+On **2026-11-15**, the owner subsequently instructed: "PR شماره ۱ رو مرج کن و وضعیت
+نهایی ریپو رو بررسی کن." This authorizes merging **PR #1** and verifying the final
+repository state. Use **squash** for this coherent change. It grants no standing
+authority for other PRs, tags, releases, production deployment, access changes or
+paid services. Keep released `v1.0.0` and its assets unchanged.
 
 ## Baseline and compatibility
 
@@ -42,9 +44,10 @@ later authorized. Keep released `v1.0.0` and its assets unchanged.
   Spec Kit metadata is 1.3.2. Neither is being upgraded or reinitialized.
 - The initial GitHub read returned no repository rulesets. Classic branch-protection
   inspection returned **403**; enforcement and plan eligibility remain unverified.
-- The original release workflow publishes on pushes to `main`. Until this PR is
-  merged, that default-branch workflow still applies; a feature-branch push/PR does
-  not match that release trigger. Do not dispatch publication for this mission.
+- The pre-adoption release workflow published on pushes to `main`. PR #1 replaces
+  that trigger with explicitly confirmed manual publication. Its resulting `main`
+  tree runs read-only validation on push; it does not publish or deploy on merge.
+  Do not dispatch publication for this mission.
 
 ## Verification and delivery
 
@@ -68,10 +71,13 @@ changes are current-state/evidence only and must be checked separately.
   These URLs identify that tested revision, not a later receipt commit. The latest
   head and its checks are owned by [PR #1](https://github.com/vahid162/Artnovo-Core/pull/1/checks);
   recheck them after any subsequent commit before calling delivery ready.
-- Delivery branch is published and [PR #1](https://github.com/vahid162/Artnovo-Core/pull/1)
-  is open. Its draft/readiness state is maintained in GitHub after exact-head checks.
-- No merge, tag, release or repository deployment has occurred. The development ZIP
-  is unpublished; existing v1.0.0 assets remain unchanged.
+- Delivery branch is published. The current merge outcome and merge commit are
+  owned by [PR #1](https://github.com/vahid162/Artnovo-Core/pull/1), and final `main`
+  validation by [GitHub Actions](https://github.com/vahid162/Artnovo-Core/actions/workflows/validate.yml?query=branch%3Amain).
+  Check those live records for completion instead of treating this pre-merge
+  receipt as proof that the operation succeeded.
+- The development ZIP is unpublished; existing v1.0.0 assets remain unchanged.
+  Tagging, release publication and repository deployment are outside the merge request.
 
 Integration/payment/browser tests are not applicable to unchanged runtime in this
 mission; no production acceptance result is inferred from that exclusion.
@@ -83,7 +89,8 @@ plans, missing OTP boundary regression cases and incomplete public SEO/content.
 These are separate tasks, not fixed by governance setup. Bridge wallet qualification
 and server/CDN operations belong to their independent operational scope.
 
-Next safe step: recheck the latest PR head/checks and retain the reviewed source
-identity. Merge/publication remain pending separate owner authority, regardless
-of CI results. If merge is authorized, re-read main's current automatic effects
-and the readiness gates before executing it.
+The authorized handoff checks the exact PR base/head, conflicts, current checks,
+independent review and workflow effects immediately before squash merge; then it
+verifies the resulting `main` tree, hosted validation and clean local checkout.
+Retain source/evidence recovery identities. After `main` validation, continue only
+newly scoped development; publication and deployment need their own authorization.
