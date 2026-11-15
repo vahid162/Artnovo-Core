@@ -79,3 +79,14 @@ Bridge's missing-wallet handling is reviewed separately. Fresh BACS purchasing
 must remain available when configured, and already-verified subscriptions should
 remain accessible; unresolved wallet payments must not be retried or silently
 converted into another charge. This installation does not change Bridge.
+
+## Governance v1.2 delivery alignment
+
+The local policy now follows AI Development Governance source 1.2.0 for
+informed approvals, versioned delivery order, artifact identity and separate
+delivery stages. This is a policy-only update. Core code, its version, existing
+WordPress installation, private recovery artifacts and GitHub Releases are not
+changed by this mission. The historical Core 1.0.1 installation and its missing
+public v1.0.1 Release remain separate facts, not a new publication grant.
+Future releases/installations require the specific owner authority described in
+the local policy. The policy PR and its CI are the evidence for this edit.
