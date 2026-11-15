@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Adopt repository-specific AI Development Governance instructions, document
+  ownership, risk/review gates and a canonical current-state record.
+- Add read-only PHP 8.5 pull-request validation and separate explicitly confirmed
+  manual publication from development pushes.
+- Check documentation links and package exclusion, reproducibility and rejection
+  boundaries with isolated fixtures. Plugin runtime and version remain unchanged.
+
 ## 1.0.0 — 2026-11-11
 
 - Combine ArtNovo's custom home wizard, checkout, account panel, order confirmation,
