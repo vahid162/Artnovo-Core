@@ -38,7 +38,7 @@ triggers the private-backup guard; the guard and expectations were not weakened.
 | `python3 tools/package.py` | Development build | passed, 28 entries | Development ZIP SHA-256 below; no upload/install. |
 | `git diff --check` | Structural | passed | Reviewed diff whitespace. |
 | Temporary local clone, `git revert --no-edit d8d20896e699ea51d1d8bae4fd7efec269d8bd73`, rebuild | Recovery | passed | Restored exact baseline tree and published artifact bytes; no live-state revert. |
-| Hosted GitHub validation | Hosted execution | pending at this receipt | Must observe exact submitted head before calling the PR ready; current result is linked from project state. |
+| Hosted GitHub validation | Hosted execution | passed on `9180c7965e2ff3a91af23662ed875dc0637040f5` | Both [push](https://github.com/vahid162/Artnovo-Core/actions/runs/43688348059) and [PR](https://github.com/vahid162/Artnovo-Core/actions/runs/43688436323) runs succeeded. Later receipt commits require their own exact-head observation; latest status is linked from project state. |
 | Runtime WordPress/browser/payment checks | Integration | not applicable to unchanged runtime | Not run or represented as current production acceptance. |
 | Actual publication or merge | Live effects | not run | Not authorized for this mission. |
 

@@ -61,8 +61,15 @@ changes are current-state/evidence only and must be checked separately.
   was fixed; isolated source revert and exact baseline ZIP reconstruction.
 - Passed at **decision-only** scope: 16 isolated Codex policy scenarios. Full upstream
   fixture implementations and ChatGPT activation were not run; no such claim is made.
-- Hosted validation: pending submission/observation of the exact remote candidate.
-  PR creation is next; this receipt does not claim an existing PR or completed CI.
+- Hosted validation: push and PR runs passed on
+  `9180c7965e2ff3a91af23662ed875dc0637040f5`:
+  [push run](https://github.com/vahid162/Artnovo-Core/actions/runs/43688348059) and
+  [PR run](https://github.com/vahid162/Artnovo-Core/actions/runs/43688436323).
+  These URLs identify that tested revision, not a later receipt commit. The latest
+  head and its checks are owned by [PR #1](https://github.com/vahid162/Artnovo-Core/pull/1/checks);
+  recheck them after any subsequent commit before calling delivery ready.
+- Delivery branch is published and [PR #1](https://github.com/vahid162/Artnovo-Core/pull/1)
+  is open. Its draft/readiness state is maintained in GitHub after exact-head checks.
 - No merge, tag, release or repository deployment has occurred. The development ZIP
   is unpublished; existing v1.0.0 assets remain unchanged.
 
@@ -76,6 +83,7 @@ plans, missing OTP boundary regression cases and incomplete public SEO/content.
 These are separate tasks, not fixed by governance setup. Bridge wallet qualification
 and server/CDN operations belong to their independent operational scope.
 
-Next safe step: complete the selected verification and independent review, then push
-the working branch and open the scoped PR. Merge/publication remain pending separate
-owner authority, regardless of CI results.
+Next safe step: recheck the latest PR head/checks and retain the reviewed source
+identity. Merge/publication remain pending separate owner authority, regardless
+of CI results. If merge is authorized, re-read main's current automatic effects
+and the readiness gates before executing it.
