@@ -55,9 +55,18 @@ fallback regression and then reported no actionable findings. Isolated source
 recovery reproduced the baseline tree exactly. See the source-bound
 [verification](evidence/2026-11-15-bridge-isolation/verification.md).
 
-Next delivery step: publish only this branch and open a **draft PR**, then verify
-hosted checks on its exact head. Controlled WordPress/browser acceptance has not
-run, so draft delivery remains conditional. Earlier PR #1 checks do not cover it.
+Published as [draft PR #2](https://github.com/vahid162/Artnovo-Core/pull/2).
+Implementation local commit `274d2d30798c65d556916cd1efff1b5706dfa2ce` maps to
+GitHub commit `e3e7e86149cfb1a00ef9484dbc0579e03bd50d22`; both have source tree
+`50baebce2ae99c4a338d463b0b8ebff063a189df`. This later receipt changes only state
+and evidence. Exact current-head hosted results are owned by
+[PR #2 checks](https://github.com/vahid162/Artnovo-Core/pull/2/checks); verify that
+live record rather than treating an earlier head's run as evidence for this one.
+
+Controlled WordPress/browser acceptance has not run, so the PR remains draft and
+conditional. Next safe step: validate the same candidate in controlled staging,
+then seek separately scoped merge/release/installation authority. No production
+acceptance is inferred from synthetic tests or hosted CI.
 
 The plugin remains version **1.0.0** during development. Runtime changes need an
 appropriate new version before a separately authorized release. Published tag,

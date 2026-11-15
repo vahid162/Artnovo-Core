@@ -9,7 +9,13 @@ Risk: high (payment context and optional dependency activation).
 [source-manifest.json](source-manifest.json) binds each changed implementation,
 test and stable-document file by SHA-256. Current-state and evidence receipts are
 excluded from that manifest to avoid self-reference; their final commit is verified
-separately. Remote/local commit and hosted-check identities are recorded at delivery.
+separately. Implementation local commit `274d2d30798c65d556916cd1efff1b5706dfa2ce` and GitHub
+commit `e3e7e86149cfb1a00ef9484dbc0579e03bd50d22` have identical Git tree
+`50baebce2ae99c4a338d463b0b8ebff063a189df`. The connector authored an equivalent
+commit because shell Git credentials were unavailable; it did not change source.
+Delivery: [draft PR #2](https://github.com/vahid162/Artnovo-Core/pull/2).
+Later delivery receipts change only current-state/evidence files; current-head
+hosted results are owned by [PR checks](https://github.com/vahid162/Artnovo-Core/pull/2/checks).
 
 Bridge source, production WordPress, plugin activation state, customer records,
 provider/payment state and published v1.0.0 assets were not changed. Core's stricter
