@@ -15,6 +15,11 @@ serve this explicitly requested installation; no new feature behavior is added.
 No Bridge change, public GitHub release/tag, plugin deactivation, activation-set
 change, migration, real payment, email or provider issuance is requested.
 The [governance policy](development-governance.md) owns stable delivery rules.
+After installation, automatic authorization review rejected merging PR #3 because
+the installation instruction alone did not explicitly authorize changing main.
+The owner then directly answered “بله، PR شمارهٔ ۳ را مرج کن”. This separately
+authorizes PR #3 squash merge after current-head checks pass; it grants no public
+release/tag or unrelated repository authority.
 
 ## Plan, risk and recovery
 

@@ -56,3 +56,12 @@ Not run: staging/browser checkout, actual debit, receipt approval or provider
 issuance. No such outcome is inferred from source tests or HTTP health checks.
 No Bridge change, real payment, migration, public GitHub tag/release or plugin
 activation/deactivation is part of the requested installation.
+
+## Repository merge authority
+
+An initial PR #3 merge attempt was rejected by automatic authorization review:
+the installation request alone did not explicitly cover main. No merge or main
+write occurred. The owner subsequently answered “بله، PR شمارهٔ ۳ را مرج کن” to
+the explicit PR #3 question. Recheck the exact current base/head and green CI
+before the separately authorized squash merge. Public release/tag authority is
+not inferred from that answer.
