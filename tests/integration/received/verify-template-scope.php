@@ -5,6 +5,7 @@ if ( function_exists( '\Artnovo\AccountUI\received_order' ) ) {
 	WP_CLI::error( 'Core and legacy custom plugins must be skipped; this test requires candidate code.' );
 }
 require __DIR__ . '/qa-bootstrap.php';
+require_once artnovo_fixture_root() . '/artnovo-core.php';
 require artnovo_fixture_root() . '/modules/order-received/received.php';
 
 class Artnovo_Received_QA_Template_Store extends Artnovo_Received_QA_Order_Store {

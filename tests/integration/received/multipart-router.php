@@ -131,6 +131,7 @@ $query->queried_object_id = wc_get_page_id( 'checkout' );
 $query->query_vars['order-received'] = '2147000082';
 $GLOBALS['wp_query'] = $query;
 $GLOBALS['wp']->query_vars['order-received'] = '2147000082';
+require_once artnovo_fixture_root() . '/artnovo-core.php';
 require artnovo_fixture_root() . '/modules/order-received/received.php';
 
 if ( 'GET' === $_SERVER['REQUEST_METHOD'] ) {

@@ -1,0 +1,20 @@
+{
+  "base": "28ed9a877ac10969cf4f08592f81c2ebea604880",
+  "files": {
+    ".github/workflows/validate.yml": "f6303900e0ae94d4c3ec3a036ca0bfe70f1ccd4e55739dc3121ebb1902b6813c",
+    "AGENTS.md": "43ed3e4af21252540adead831c93275529e2558f4f26343c63e795425834a42b",
+    "CHANGELOG.md": "d4ffec255e2d5813caf04771986529ca40d3b905e8e9d6c5d587900f08ece713",
+    "README.md": "ca4146918005c038d3c901e607afbd5c97fca202acb131148c3d6be3bc0a8662",
+    "artnovo-core.php": "8a370d25999577024ab6b7a6cb209ebf2e1b665fe4faf3bfeed7fbbd4218db68",
+    "modules/account/artnovo-account-ui.php": "cc8b4adafcae41ea518a7c5dd794e6a1afb630b53a0532c83349efbbf9de0f52",
+    "modules/auth/account-auth.php": "6bc86f54346f83dafef6ae6d261f4575cc7129e0d59c29b48006032a4a6e7542",
+    "modules/checkout/artnovo-plan-checkout.php": "c5c4e93f99d438589ddcf7019bc9baa1490f952c36d3b7e8a582a95a284afb80",
+    "modules/order-received/received.php": "2a12e0634b4b9160882cbd88d3b3b3fff93f42d0381a54ffa9cf1c8e23186c61",
+    "tests/bootstrap.php": "c1f71c1e63f8c2fed7a407f557f00e4d2c58993c18234c636271be52a6a3b730",
+    "tests/checkout-context.php": "b45d6c78438c4134653b2d044f3b6294bb1c07dcc096cf28ee4761bcdb5717aa",
+    "tests/independence.php": "fc2d991d58ac5c3cbb5a356241433564e6e55763b755e35c2fb5f544be3d57a2",
+    "tests/integration/README.md": "493e82ba6b3edbd9f93e27e91e915fce4557fa5ee4783c9f5ab58f3761b67afd",
+    "tests/integration/received/multipart-router.php": "2f95eaca35509ad81e63a9d7e537980e46fd036154f3f7f179c2331f149766ef",
+    "tests/integration/received/verify-template-scope.php": "8dc0c26816acbf26321e02802ed66bf5568c389f06e8a9080253561a7185f3b1"
+  }
+}

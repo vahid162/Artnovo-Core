@@ -7,12 +7,21 @@ confirmation, receipt form, header behavior and default sender into one package.
 ## Requirements
 
 - WordPress 7.0+, PHP 8.5.x and WooCommerce 11.2.1+.
-- The site's existing Elementor, Pinova and independently installed WP VPN Bridge.
+- The site's existing Elementor and Pinova.
+- Independently installed WP VPN Bridge for service purchasing, receipts and delivery.
 - Keep Elementor Pro and TeraWallet installed where the current site uses them.
 
 Core preserves the existing routes, Elementor identifiers, nonce actions, options,
 session keys, payment/receipt authorization and script dependencies. The bridge
 continues to own service issuance, encrypted receipt storage and private delivery.
+
+In the development source, Bridge is an optional integration: without it, Core's
+header and email sign-in remain loaded, signed-in accounts use native WooCommerce,
+and service purchases/payments stop safely. Ordinary WooCommerce checkout stays
+available. This behavior is pending a new release; the published 1.0.0 ZIP is unchanged.
+Removing Core leaves Bridge's native WooCommerce routes and backend independent,
+but removes Core's wizard and Elementor dynamic tags. A page designed around those
+tags needs replacement purchase links before Core is permanently removed.
 
 ## Install and update
 
@@ -73,6 +82,8 @@ sender filter does not change SMTP credentials or delivery routing.
 python3 tools/check.py
 python3 tests/governance.py
 php tests/bootstrap.php
+php tests/checkout-context.php
+php tests/independence.php
 php tests/migration.php
 python3 tests/release.py
 python3 tests/package.py

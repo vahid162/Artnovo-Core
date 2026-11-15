@@ -17,13 +17,19 @@ function account_view(): string {
 }
 
 function account_url( string $view = 'subscriptions' ): string {
-	return 'subscriptions' === $view ? wc_get_account_endpoint_url( 'vpn-subscriptions' )
+	return 'subscriptions' === $view ? ( \Artnovo\Core\bridge_available() ? wc_get_account_endpoint_url( 'vpn-subscriptions' ) : wc_get_page_permalink( 'myaccount' ) )
 		: add_query_arg( 'artnovo_view', $view, wc_get_page_permalink( 'myaccount' ) );
+}
+
+function custom_account_page(): bool {
+	return function_exists( 'is_account_page' ) && is_account_page() && ! is_wc_endpoint_url( 'customer-logout' )
+		&& ( \Artnovo\Core\bridge_available() || ! is_user_logged_in()
+			|| ( ! is_wc_endpoint_url() && isset( $_GET['artnovo_view'] ) && 'subscriptions' !== account_view() ) );
 }
 
 add_action( 'template_redirect', static function (): void {
 	global $wp;
-	if ( function_exists( 'is_checkout' ) && is_checkout() && ! is_user_logged_in()
+	if ( \Artnovo\Core\bridge_available() && function_exists( 'is_checkout' ) && is_checkout() && ! is_user_logged_in()
 		&& ( is_wc_endpoint_url( 'order-pay' ) || is_wc_endpoint_url( 'order-received' ) ) ) {
 		nocache_headers();
 		$request = is_string( $_SERVER['REQUEST_URI'] ?? null ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
@@ -43,14 +49,14 @@ add_action( 'template_redirect', static function (): void {
 	}
 	nocache_headers();
 	header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0' );
-	if ( class_exists( '\Pinova\Pinova' ) ) {
+	if ( custom_account_page() && class_exists( '\Pinova\Pinova' ) ) {
 		remove_action( 'template_redirect', [ \Pinova\Pinova::instance(), 'handle_urls' ] );
 	}
 	if ( is_wc_endpoint_url( 'customer-logout' ) ) {
 		return;
 	}
 	$endpoint = WC()->query->get_current_endpoint();
-	if ( is_user_logged_in() && ! isset( $_POST['artnovo_account_action'] ) && 'subscriptions' === account_view()
+	if ( \Artnovo\Core\bridge_available() && is_user_logged_in() && ! isset( $_POST['artnovo_account_action'] ) && 'subscriptions' === account_view()
 		&& in_array( $endpoint, [ '', 'dashboard', 'orders', 'downloads', 'edit-address', 'payment-methods', 'lost-password' ], true ) ) {
 		wp_safe_redirect( account_url() );
 		exit;
@@ -58,12 +64,11 @@ add_action( 'template_redirect', static function (): void {
 }, 4 );
 
 add_filter( 'template_include', static function ( string $template ): string {
-	return function_exists( 'is_account_page' ) && is_account_page() && ! is_wc_endpoint_url( 'customer-logout' )
-		? __DIR__ . '/account-page.php' : $template;
+	return custom_account_page() ? __DIR__ . '/account-page.php' : $template;
 }, 99 );
 
 add_filter( 'body_class', static function ( array $classes ): array {
-	if ( function_exists( 'is_account_page' ) && ( is_account_page() || received_page() ) ) {
+	if ( custom_account_page() || received_page() ) {
 		$classes[] = 'artnovo-account-page';
 	}
 	return $classes;
@@ -78,7 +83,7 @@ add_filter( 'wp_robots', static function ( array $robots ): array {
 } );
 
 add_action( 'wp_enqueue_scripts', static function (): void {
-	if ( ! function_exists( 'is_account_page' ) || ( ! is_account_page() && ! received_page() ) ) {
+	if ( ! custom_account_page() && ! received_page() ) {
 		return;
 	}
 	wp_enqueue_style( 'artnovo-account-ui', plugins_url( 'artnovo-account.css', __FILE__ ), [], (string) filemtime( __DIR__ . '/artnovo-account.css' ) );

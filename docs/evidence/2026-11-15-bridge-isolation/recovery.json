@@ -1,0 +1,7 @@
+{
+  "baseline_tree": "eac99391741192d2188650d22720f72722e2db36",
+  "recovered_tree": "eac99391741192d2188650d22720f72722e2db36",
+  "identical": true,
+  "effect": "isolated git revert only; no WordPress or live state",
+  "manifest_sha256": "f76d3728e0a467c753be2c5b908ffa8a16fa48c97fa60f9ff160ea9e746a41f3"
+}

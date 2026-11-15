@@ -25,6 +25,8 @@ Use PHP **8.5.x** and Python **3.10+**. These commands use isolated local fixtur
 python3 tools/check.py
 python3 tests/governance.py
 php tests/bootstrap.php
+php tests/checkout-context.php
+php tests/independence.php
 php tests/migration.php
 python3 tests/release.py
 python3 tests/package.py
