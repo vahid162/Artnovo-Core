@@ -1,86 +1,68 @@
 # Current project state
 
-## Mission and authority
+## Current mission and authority
 
-On **2026-11-15**, the owner requested fixes to Core's confirmed payment issue,
-a short handoff for Bridge's receipt-policy issue, and safe independence when
-either plugin is removed. Base: `28ed9a877ac10969cf4f08592f81c2ebea604880` (merged
-PR #1). Branch: `work/fix-core-bridge-isolation`.
+On **2026-11-15**, the owner explicitly requested installing the new Core on
+**artnovo.ir**, plus a short handoff for Bridge's optional-wallet behavior.
+This follows merged [PR #2](https://github.com/vahid162/Artnovo-Core/pull/2),
+commit `f93c10049109e21673b474824f8c3aa290af033b`, whose main validation passed.
+The owner previously waived staging as a delivery gate; no staging pass is claimed.
 
-The [governance policy](development-governance.md) owns delivery rules. The initial request authorized Core development, tests, documentation and a
-branch/PR. The owner subsequently annotated the staging gate: “نیازی به تست روی
-محیط ازمایشی نیست. اگه تست های ریپو کامل شده مراحل بعدی رو انجام بده”. This
-current instruction waives staging as a merge prerequisite and authorizes the next
-PR #2 delivery steps: mark ready and squash-merge after current repository checks
-pass. It does not grant authority to modify Bridge or publish/install a new release.
-The separate role-boundary request is read-only analysis.
+Scope: prepare the merged Core fixes as **1.0.1**, verify the versioned package,
+record/review its source through a separate PR, and install it on the existing
+active Core path with private recovery. Version metadata and source integration
+serve this explicitly requested installation; no new feature behavior is added.
+No Bridge change, public GitHub release/tag, plugin deactivation, activation-set
+change, migration, real payment, email or provider issuance is requested.
+The [governance policy](development-governance.md) owns stable delivery rules.
 
-## Plan and risk
+## Plan, risk and recovery
 
-**High risk:** payment context and dependency activation change. Preserve owner/key,
-OTP, receipt, refund, snapshot and upstream gateway checks. Before implementation,
-select isolated regressions for request scoping, nested/error cleanup, missing
-Bridge, ordinary-store fallback, old-service payment denial, recovery and a distinct
-independent review. Do not exercise real customer payments or deactivate live plugins.
+**High risk:** production installation of previously reviewed auth/payment code.
+Keep Core active at its existing plugin basename. Preserve the current source and
+activation/configuration identity privately outside the web root and Git. Before
+any live exchange: verify package/source identity, all repository checks, distinct
+independent review and a successful isolated recovery rehearsal.
 
-1. Limit the cart-based gateway guard to cart checkout, preserving gateways already
-   authorized for payment of an existing order.
-2. Make Bridge optional for general Core features. Keep service purchasing/payment
-   unavailable without its payment/issuance owner; preserve native WooCommerce.
-3. Verify synthetic denial/fallback/recovery cases, review independently, and open
-   one PR with read-only CI. Leave production and published 1.0.0 unchanged.
+1. Bump only header/runtime version to 1.0.1; keep modules byte-identical to merged
+   PR #2. Preserve all prior release artifacts and fix the package negative fixture
+   so a future version cannot turn its mismatch mutation into a no-op.
+2. Stage the verified ZIP on the same filesystem; snapshot the existing 1.0.0 and
+   rehearse atomic exchange/restore using private copies.
+3. Use briefly owned native WordPress maintenance, drain active FPM requests, then
+   atomically exchange whole directories. Invalidate Core PHP through FPM, clear
+   only this site's FastCGI cache and verify HTTP/UI/version/source identity.
+4. On failed acceptance, reacquire maintenance and drain before restoring the old
+   source. Never overwrite another operator's maintenance flag or changed source.
 
-## Behavior and limits
+Code recovery does not undo orders, payments or provider effects after traffic
+resumes. This installation invokes no activation/deactivation or data migration.
+No real payment or customer account is used to test it.
 
-- Selecting a new plan still replaces the eligible hidden cart; it does not delete
-  previously created WooCommerce orders. Existing wallet-submission and rollback
-  protections remain in place.
-- Without Bridge, Core keeps general modules/email-login helpers, uses native
-  WooCommerce for signed-in ordinary accounts and checkout, and blocks identifiable
-  service orders before payment. Retained order/item snapshots identify old service
-  orders even if their product was deleted. No billing or issuance code is copied.
-- Bridge has no Core code dependency and retains its native WooCommerce backend,
-  account and receipt routes when Core is removed. Core's wizard, header and
-  Elementor dynamic tags belong to Core; the existing home design needs replacement
-  links before permanently removing it. Identical site presentation after deleting
-  the plugin that owns it is not promised.
-- Core's stricter receipt policy is preserved. Bridge's native receipt upload/render
-  policy must be reviewed/fixed in its own project, without introducing a Core
-  dependency. No shared eligibility API exists yet.
+## Verification and current status
 
-## Verification and delivery
+The 28-entry **1.0.1** package SHA-256 is
+`2ecb78de61483b693e5805057a3a09ab59d474ebb9363b7b728cd89e59bd5193`.
+Its modules equal merged main; its entrypoint differs only in the two version
+lines. A distinct independent reviewer passed archive/source checks, bootstrap
+14 scenarios, package 5 cases and release 14 stub cases. Checkout 43, independence
+63, migration 40, documentation checks and recovery rehearsal also passed.
 
-Implementation and local verification are complete. Passed: 14 bootstrap scenarios,
-43 checkout and 63 independence assertions, 40 migration assertions, 29 PHP lints,
-6 documentation regressions, 14 release-stub cases, 5 package cases and 6 external
-synthetic hidden-cart checks. A distinct independent review found/fixed one guest
-fallback regression and then reported no actionable findings. Isolated source
-recovery reproduced the baseline tree exactly. See the source-bound
-[verification](evidence/2026-11-15-bridge-isolation/verification.md).
+A private 1.0.0 backup and staged candidate are prepared. Pre-install homepage and
+account HTTP/UI checks passed. Actual live installation is pending final reviewed
+script execution. The current outcome and evidence are maintained in
+[installation verification](evidence/2026-11-15-core-1.0.1-install/verification.md).
 
-Published as [draft PR #2](https://github.com/vahid162/Artnovo-Core/pull/2).
-Implementation local commit `274d2d30798c65d556916cd1efff1b5706dfa2ce` maps to
-GitHub commit `e3e7e86149cfb1a00ef9484dbc0579e03bd50d22`; both have source tree
-`50baebce2ae99c4a338d463b0b8ebff063a189df`. This later receipt changes only state
-and evidence. Exact current-head hosted results are owned by
-[PR #2 checks](https://github.com/vahid162/Artnovo-Core/pull/2/checks); verify that
-live record rather than treating an earlier head's run as evidence for this one.
+The unchanged runtime fixes and their earlier review are documented in
+[PR #2 verification](evidence/2026-11-15-bridge-isolation/verification.md).
+Published v1.0.0 tag/assets remain unchanged. No public v1.0.1 release is claimed.
 
-Controlled WordPress/browser acceptance has not run. The owner explicitly waived
-it as a delivery gate; it is not relabelled as passed. The existing repository
-checks and distinct independent implementation review remain required. Recheck
-current base/head, all hosted results and unchanged runtime/test hashes immediately
-before marking PR #2 ready and squash-merging. Squash keeps one scoped recovery
-commit for this coherent fix. No production acceptance is inferred from this waiver.
-Actual merge outcome is owned by [PR #2](https://github.com/vahid162/Artnovo-Core/pull/2),
-and final main validation by
-[main CI](https://github.com/vahid162/Artnovo-Core/actions/workflows/validate.yml?query=branch%3Amain).
+## Independent Bridge follow-up
 
-The plugin remains version **1.0.0** during development. Runtime changes need an
-appropriate new version before a separately authorized release. Published tag,
-assets and installed source remain unchanged. No live deactivation, real payment,
-provider call, migration, customer write or production acceptance is claimed.
-
-Repository enforcement observations from PR #1 remain unchanged: rulesets returned
-an empty list and classic branch-protection inspection returned 403. Procedural
-review/check gates apply; enforcement is not inferred from that response.
+Core owns the site's purchase experience, login and presentation; WooCommerce owns
+products/orders, Bridge owns financial authorization and provisioning, TeraWallet
+owns its balance/transaction ledger, and PasarGuard owns the actual service.
+Bridge's missing-wallet handling is reviewed separately. Fresh BACS purchasing
+must remain available when configured, and already-verified subscriptions should
+remain accessible; unresolved wallet payments must not be retried or silently
+converted into another charge. This installation does not change Bridge.

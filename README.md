@@ -1,6 +1,6 @@
 # Artnovo Core
 
-The site-specific WordPress plugin for ArtNovo. Version 1.0.0 brings the existing
+The site-specific WordPress plugin for ArtNovo. Version 1.0.1 includes the existing
 purchase wizard, hidden-cart checkout, email-code entry, customer panel, order
 confirmation, receipt form, header behavior and default sender into one package.
 
@@ -15,17 +15,18 @@ Core preserves the existing routes, Elementor identifiers, nonce actions, option
 session keys, payment/receipt authorization and script dependencies. The bridge
 continues to own service issuance, encrypted receipt storage and private delivery.
 
-In the development source, Bridge is an optional integration: without it, Core's
+Bridge is an optional integration: without it, Core's
 header and email sign-in remain loaded, signed-in accounts use native WooCommerce,
 and service purchases/payments stop safely. Ordinary WooCommerce checkout stays
-available. This behavior is pending a new release; the published 1.0.0 ZIP is unchanged.
+available.
 Removing Core leaves Bridge's native WooCommerce routes and backend independent,
 but removes Core's wizard and Elementor dynamic tags. A page designed around those
 tags needs replacement purchase links before Core is permanently removed.
 
 ## Install and update
 
-Download `artnovo-core-1.0.0.zip` from the GitHub release. It contains an
+Install the verified `artnovo-core-1.0.1.zip` package, supplied for installation or
+built with the command below. It contains an
 `artnovo-core/` plugin directory; GitHub's automatic source archives contain the
 development project and are not the WordPress installation package.
 

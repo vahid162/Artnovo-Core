@@ -1,0 +1,12 @@
+{
+  "base": "f93c10049109e21673b474824f8c3aa290af033b",
+  "version": "1.0.1",
+  "package_sha256": "2ecb78de61483b693e5805057a3a09ab59d474ebb9363b7b728cd89e59bd5193",
+  "files": {
+    "artnovo-core.php": "23f2a29bd97eb69a3f3500543302f2466f82ec000277fd8c2aad4c0210f04c04",
+    "README.md": "5d1d4da78a22498ae92d3c47b23bc8dfb370d3806b38919ae53d6a6ac962b7e3",
+    "CHANGELOG.md": "22c04d372a32ee409644f9a5f4cc91d04f1f34d56897179829b249d359a43107",
+    "tests/bootstrap.php": "33e9411734d061f8176f4c76fe6264fe61aa65948519004df6f5410b94239872",
+    "tests/package.py": "9af4c48805ba725a0ab40725601ce1d353d32eff1d15f73c37dc97a7bab8c8ba"
+  }
+}
