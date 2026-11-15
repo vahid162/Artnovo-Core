@@ -47,7 +47,10 @@ class PackageChecks(unittest.TestCase):
 
     def test_mismatched_runtime_version_is_rejected(self):
         path = self.root / "artnovo-core.php"
-        path.write_text(path.read_text().replace("const VERSION = '1.0.0';", "const VERSION = '9.9.9';"))
+        changed, count = re.subn(r"^const VERSION = '[^']+';$",
+                                 "const VERSION = '9.9.9';", path.read_text(), flags=re.M)
+        self.assertEqual(1, count, "Fixture must change the authoritative runtime version")
+        path.write_text(changed)
         with self.assertRaisesRegex(ValueError, "version must agree"):
             builder.build(self.root)
 

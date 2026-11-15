@@ -1,0 +1,34 @@
+{
+  "version": "1.0.1",
+  "installed": true,
+  "active": true,
+  "runtime_files_verified": 28,
+  "maintenance": false,
+  "private_backup_retained": true,
+  "activation_unchanged": true,
+  "wp_config_unchanged": true,
+  "bridge_unchanged": true,
+  "recovery_rehearsal": "passed",
+  "fpm_core_scripts_invalidated": 15,
+  "cache_files_purged": 3,
+  "origin_health": {
+    "/": {
+      "http": 200,
+      "expected_ui": true,
+      "ok": true
+    },
+    "/my-account/": {
+      "http": 200,
+      "expected_ui": true,
+      "ok": true
+    }
+  },
+  "public_home_http": 200,
+  "public_account_http": 200,
+  "account_private_no_store": true,
+  "www_http": 301,
+  "www_destination": "https://artnovo.ir/",
+  "package_sha256": "2ecb78de61483b693e5805057a3a09ab59d474ebb9363b7b728cd89e59bd5193",
+  "installer_sha256": "4fab9d13c2857a38649cd2b9fa14fb33e3518a1bfb21fbf80ebf40cfac64df61",
+  "helper_sha256": "04c6dd5209ce2d1e9eb683e920e58b019c99a77804eee51e21854c0fb681046f"
+}
