@@ -1,6 +1,6 @@
 # Development governance
 
-This repository adopts AI Development Governance **1.1.0** for the owner's
+This repository adopts AI Development Governance **1.2.0** for the owner's
 2026-11-15 standardization request. The owner defines the product result; the
 implementing agent chooses technical tools, makes scoped changes, verifies them,
 maintains documentation and prepares the reviewable delivery.
@@ -32,6 +32,40 @@ scope and automatic effects. The validation workflow is read-only. The release
 workflow is manual-only on `main`, requires explicit publication confirmation,
 and publishes a tag and GitHub assets; it does not install the plugin on WordPress.
 Do not dispatch it merely to test development changes.
+
+## Informed versioned delivery
+
+Before asking the owner to install a new production version, check and explain the
+actual states of development/tests, PR, merge into `main`, version, tag, formal
+GitHub Release, approved artifact and deployment. Report unknown or incomplete
+stages honestly. Do not expect the non-technical owner to infer that a verified
+ZIP or successful installation is not yet a published release.
+
+For this versioned WordPress plugin, default to verified branch/PR → authorized
+merge → successful `main` validation → separately authorized GitHub tag/release
+→ installation of that exact approved artifact → scoped site verification.
+Inspect actual CI/CD effects; publication or deployment may be automatic in a
+different repository. An explicitly approved exception can change the order,
+but must identify missing stages before approval and record what remains undone.
+
+Prefer one concise request that identifies all still-unauthorized effects,
+including merge target, release/tag, destination, release artifact, automatic
+effects and recovery. Valid prior grants are reused; installation permission
+alone never grants merge, tag, GitHub Release, access changes or new spending.
+Stop only the affected unauthorized action.
+
+Verify immutable source commit/tree, tag target, release asset/checksum,
+approved package and installed-file manifest. Match installed payload files to
+the approved ZIP's file manifest; package bytes and extracted files need not
+have identical hashes. An active plugin or matching version label alone is not
+proof of identical bytes.
+
+Report **developed, merged, released, installed, verified** separately.
+Only declare complete delivery after the project's required stages and
+checks are complete. For a deliberately approved exceptional install, say
+“installed but not released” before requesting approval and retain that
+limitation until release is separately authorized and completed. No release
+ceremony is required for ordinary coding, documentation or non-delivery fixes.
 
 ## Risk and required checks
 
