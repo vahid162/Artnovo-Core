@@ -131,3 +131,30 @@ local text/binding/role/ARIA relation/invalid state. Five asset contracts and an
 independent scoped review passed. Fresh patch-wide checks again passed59/59 and
 all7 native integrations passed357 assertions with the original write/mail/HTTP
 guards. No backend/payment/receipt helper or other plugin source changed.
+
+
+## Published and verified1.5.1
+
+PR13 merge/tag target `496583cc1fa6c62304d43a51ed51fe33b13a2dcc`, tree
+`f4cc27e1651cb8df1c33e105c1bf30bc8f022368`. PR/main/publication runs
+43944577362 /43944697736 /43944826163 all succeeded. Official1.5.1 release
+published2026-11-16T19:58:28Z; ZIP SHA256
+`ef8ede79b1421ff4c76718c78e98f24c9ba24f6506dc5da4d098d2871639bc9b` equals
+the frozen candidate and all35 installed files. Recovery receipt:
+`/var/backups/artnovo-core/20261116T195916Z-lnu19tps`. Atomic exchange/drain,18
+opcode invalidations, zero cached failures, home/account health200 and all
+Bridge/Wallet/Pinova/activation/wp-config protection checks passed. No maintenance
+remains. The earlier1.5.0 asset was neither replaced nor retagged.
+
+Live Chrome test on native account login reproduced the old hidden field error.
+After exact1.5.1 install, a browser-only synthetic invalid field stayed visible
+initially and after5.1s, retaining binding/ARIA relation/invalid state. A simultaneous
+Notyf-shaped temporary message became a toast and expired; the page had no overflow.
+The test used actual focused/visible browser state; every resulting check was true.
+No OTP, signup, email/SMS, order or provider action occurred. Test DOM was removed.
+The exact review thread PRRT_kwDOVqm1Ws64Gdel is resolved after the merged fix.
+
+The patch's private synthetic staging was removed and its isolated browser/profile
+closed/removed after QA; aggregate red/green observations remain outside Git. Native
+design references are unchanged and mapped to the installed1.5.1 artifact. Final
+delivery notes alter no runtime byte and need no new tag, asset or installation.
