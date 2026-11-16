@@ -111,3 +111,41 @@ At source review, GitHub publication and installation of 1.3.0 remain pending.
 Before deployment, verify CI, the exact merged tree, tag, official ZIP/checksum,
 installed payload and unchanged Bridge/Wallet/Pinova manifests. Preserve the prior
 1.2.0 artifact and rehearse recovery before exchanging live plugin directories.
+
+## Published 1.3.0 and price-alignment follow-up
+
+PR #7 merged as `bc9c9209c4f973965b2be63b3c3ede5443f2c45b`; full tree
+`cbcf418d82dfbbc72afe6c7b8213c95ddfbc014a`. PR CI 43891442876, main CI
+43891848175 and publication 43892107942 passed. The official 1.3.0 ZIP SHA-256 is
+`dfe4df55d0bbe47f6e0b8eb14fb79956d5ce5a5d0acf270cf0463c22b4863d14`; all 32
+installed payload files match. Other-plugin manifests are unchanged. Recovery was
+rehearsed and backup is `/var/backups/artnovo-core/20261116T150623Z-0u3kp0hn`.
+The initial CI asset-list mismatch was corrected without dropping required assets.
+
+Post-install HTTPS verification passed 14 checks with real native sign-in and
+product 26 preserved through native checkout, without creating another order.
+Published login at 320px has no overflow and a diffuse focus indicator; the plan
+anchor has 124px scroll margin and its heading remains below the sticky progress.
+Private checkout at 320px confirmed zero email fields, a one-column coupon form,
+distinct secondary/main buttons and an unchecked 22px circular native checkbox.
+
+The final live price measurement exposed a native styling gap: a 292px card starts
+at x14 with 16px padding, but its price begins at x192. The native excerpt saved
+`text-align:end`, yet generated loop widget IDs differ from source IDs and the
+rendered price wrapper still computes `text-align:start`. Currency order/gap is
+correct. The inspected legacy wrapper schema cannot express an alternative layout
+control. A single Core CSS rule targets only direct legacy price widgets inside
+wizard product cards, using their price-content class rather than generated IDs.
+
+This requires patch 1.3.1 because 1.3.0 is already published; no existing tag/asset
+is replaced. Independent review confirmed all module PHP/JS bytes match 1.3.0, so
+its auth/payment evidence is reused with that exact mapping. New QA is price
+geometry, currency spacing and overflow on mobile/desktop plus mandatory gates.
+
+Fresh price QA passed: four one-month cards at 320px, six two-month cards at
+480px and four one-month cards at 1206px. Every measured price aligns with its
+card's left content edge and currency remains to the left with a positive gap.
+At 320/480px the measured price left is x30 (card x14 + 16px padding). No horizontal
+overflow occurred. The first 320px observation ran before cards rendered and is
+not counted; the settled four-card observation replaces it. All mandatory patch
+checks passed. No new auth/payment implementation or provider test is introduced.

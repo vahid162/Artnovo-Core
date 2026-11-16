@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.3.1 — 2026-11-16
+
+- Align plan prices to the physical left in dynamic Elementor cards. The saved
+  legacy excerpt alignment does not follow the generated widget IDs in loop output;
+  a scoped presentation fallback preserves product queries and native card identities.
+
 ## 1.3.0 — 2026-11-16
 
 - Reuse Pinova's native sign-in component in a minimal account/login screen, with
