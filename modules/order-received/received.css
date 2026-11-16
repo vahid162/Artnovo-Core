@@ -3,10 +3,40 @@ body.artnovo-received-page {
 	color: #f0f9f7;
 }
 
+.artnovo-account.artnovo-received {
+	max-width: 38rem;
+	padding: 1.5rem 1rem 3rem;
+}
+
+.artnovo-received .artnovo-account-card {
+	border: 1px solid #a9cfce1c;
+	border-radius: 1.25rem;
+	box-shadow: none;
+}
+
+.artnovo-received :is(h1, h2, h3, p, a) {
+	overflow-wrap: anywhere;
+}
+
+.artnovo-received h1 {
+	font-size: clamp(1.25rem, 4vw, 1.5rem);
+	line-height: 1.7;
+}
+
+.artnovo-received h2 {
+	font-size: 1rem;
+	line-height: 1.7;
+}
+
 .artnovo-received-header {
 	display: grid;
 	gap: .625rem;
 	margin-block-end: 1.25rem;
+}
+
+.artnovo-received-header > .artnovo-account-muted {
+	font-size: .8125rem;
+	text-align: center;
 }
 
 .artnovo-received-header > :last-child {
@@ -71,7 +101,9 @@ body.artnovo-received-page {
 	border-radius: 1.125rem;
 	background: var(--received-state-background);
 	color: var(--received-state-text);
-	box-shadow: 0 .5rem 1.75rem #0003;
+	box-shadow: none;
+	font-size: .875rem;
+	line-height: 1.9;
 }
 
 .artnovo-received .artnovo-received-status :is(h1, h2, h3, p, strong) {
@@ -100,42 +132,79 @@ body.artnovo-received-page {
 
 .artnovo-received .artnovo-received-progress li {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
-	gap: .5rem;
+	justify-content: center;
+	gap: .375rem;
 	min-width: 0;
-	min-height: 3.25rem;
-	padding: .625rem;
+	min-height: 3.75rem;
+	padding: .375rem .125rem;
 	border: 0;
 	border-radius: .75rem;
-	background: var(--account-surface);
+	background: transparent;
 	color: var(--account-muted);
-	font-size: .8125rem;
+	font-size: .6875rem;
 	line-height: 1.6;
+	text-align: center;
 }
 
 .artnovo-received .artnovo-received-progress li::before {
 	counter-increment: artnovo-received-step;
 	content: counter(artnovo-received-step);
 	display: inline-grid;
-	flex: 0 0 1.75rem;
+	flex: 0 0 1.5rem;
 	place-items: center;
-	width: 1.75rem;
-	height: 1.75rem;
+	width: 1.5rem;
+	height: 1.5rem;
 	border-radius: 50%;
-	background: var(--account-navy);
+	background: var(--account-surface);
 	color: inherit;
 	font-variant-numeric: tabular-nums;
 }
 
 .artnovo-received .artnovo-received-progress li[data-complete="true"] {
-	background: #173b3c;
+	background: transparent;
 	color: #b8f4db;
 }
 
 .artnovo-received .artnovo-received-progress li[aria-current="step"] {
-	background: #203c49;
-	color: var(--account-focus);
+	background: transparent;
+	color: var(--account-emerald);
 	font-weight: 700;
+}
+
+.artnovo-received .artnovo-received-progress li[aria-current="step"]::before {
+	background: var(--account-emerald);
+	color: var(--account-ink);
+}
+
+.artnovo-received .artnovo-account-actions {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: .625rem;
+}
+
+.artnovo-received .artnovo-account-actions > .artnovo-account-button-secondary {
+	background: transparent;
+	font-size: .8125rem;
+	font-weight: 400;
+}
+
+.artnovo-received .artnovo-account-actions > a:not(.artnovo-account-button) {
+	padding-block: .375rem;
+	font-size: .8125rem;
+	text-align: center;
+}
+
+.artnovo-received .artnovo-received-details > summary {
+	min-height: 2.75rem;
+	color: var(--account-focus);
+	font-size: .8125rem;
+	cursor: pointer;
+}
+
+.artnovo-received .artnovo-received-summary {
+	font-size: .8125rem;
 }
 
 .artnovo-received :is(.artnovo-received-summary dl, .artnovo-received-details dl) {
@@ -252,20 +321,7 @@ body.artnovo-received-page {
 	margin-block-end: .75rem;
 }
 
-@media (min-width: 900px) {
-	.artnovo-received-layout {
-		grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
-		grid-template-areas: "main summary";
-		gap: 1.25rem;
-	}
-}
-
 @media (max-width: 600px) {
-	.artnovo-received .artnovo-received-progress,
-	.artnovo-received .artnovo-received-progress ol {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-
 	.artnovo-received .artnovo-account-actions > :is(button, .button, .artnovo-account-button) {
 		width: 100%;
 	}

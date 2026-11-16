@@ -41,13 +41,15 @@ discovery honestly; do not claim always-on activation or host-wide support.
 
 ## Development checks
 
-Use PHP **8.5.x** and Python **3.10+**. These commands use isolated local fixtures:
+Use PHP **8.5.x**, Python **3.10+** and Node.js **20+** (for the isolated authentication adapter test). These commands use isolated local fixtures:
 
 ```sh
 python3 tools/check.py
 python3 tests/governance.py
 php tests/bootstrap.php
 php tests/checkout-context.php
+node tests/compact-auth.js
+node tests/compact-checkout.js
 php tests/independence.php
 php tests/migration.php
 python3 tests/release.py

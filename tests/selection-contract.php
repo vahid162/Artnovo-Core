@@ -28,6 +28,8 @@ $failures = $assertions = 0;
 $reject_add = $throw_add = $lock_busy = false;
 $db_owner = 'selection-request';
 $locks = $lock_events = [];
+$private_headers = 0;
+$cookie_events = [];
 class WP_Error {
 	public array $errors = [];
 	public function __construct( public string $code = '', public string $message = '', public mixed $data = null ) {}
@@ -44,14 +46,19 @@ function apply_filters( string $hook, mixed $value, ...$args ): mixed {
 }
 function do_action( string $hook, ...$args ): void {
 	$priorities = $GLOBALS['hooks'][$hook] ?? []; ksort( $priorities );
-	foreach ( $priorities as $callbacks ) { foreach ( $callbacks as [$callback, $accepted] ) { $callback( ...array_slice( $args, 0, $accepted ) ); } }
+	foreach ( array_keys( $priorities ) as $priority ) { foreach ( $GLOBALS['hooks'][$hook][$priority] ?? [] as [$callback, $accepted] ) { $callback( ...array_slice( $args, 0, $accepted ) ); } }
 }
 function remove_action(string $name,callable $callback,int $priority=10):void{foreach($GLOBALS['hooks'][$name][$priority]??[] as $i=>$hook){if($hook[0]===$callback)unset($GLOBALS['hooks'][$name][$priority][$i]);}}
-function wp_verify_nonce( string $nonce, string $action ): bool { return ('valid-checkout' === $nonce && 'woocommerce-process_checkout' === $action)||('valid-review'===$nonce&&'update-order-review'===$action); }
+function wp_verify_nonce( string $nonce, string $action ): bool { return ('valid-checkout' === $nonce && 'woocommerce-process_checkout' === $action)||('valid-review'===$nonce&&'update-order-review'===$action)||('valid-wizard'===$nonce&&'artnovo_wizard_checkout'===$action); }
 class SyntheticResponse extends RuntimeException { public function __construct(public array $payload){parent::__construct('Synthetic response');} }
 function wp_send_json(array $payload):never{throw new SyntheticResponse($payload);}
-function wp_safe_redirect(string $url,int $status=302):void{throw new SyntheticResponse(['redirect'=>$url]);}
-function wc_nocache_headers():void{}
+function wp_send_json_error(array $data,int $status=200):never{throw new SyntheticResponse(['success'=>false,'data'=>$data,'status'=>$status]);}
+function wp_send_json_success(array $data,int $status=200):never{throw new SyntheticResponse(['success'=>true,'data'=>$data,'status'=>$status]);}
+function wp_die(string $message,string $title='',array $args=[]):never{throw new SyntheticResponse(['die'=>$message,'status'=>$args['response']??500]);}
+function wp_safe_redirect(string $url,int $status=302):void{throw new SyntheticResponse(['redirect'=>$url,'status'=>$status]);}
+function wc_nocache_headers():void{++$GLOBALS['private_headers'];}
+function wp_parse_url(string $url):array{return parse_url($url);}
+function get_http_origin():string{return $GLOBALS['origin']??'https://example.test';}
 function is_preview():bool{return false;}
 function is_account_page():bool{return false;}
 function is_page(int $id):bool{return false;}
@@ -69,7 +76,7 @@ function maybe_unserialize( mixed $value ): mixed { return $value; }
 function wc_coupons_enabled(): bool { return false; }
 function wc_tax_enabled(): bool { return false; }
 function is_email( string $value ): bool { return false !== filter_var( $value, FILTER_VALIDATE_EMAIL ); }
-function post_password_required( int $id ): bool { return false; }
+function post_password_required( int $id ): bool { return in_array($id,$GLOBALS['password_products']??[],true); }
 function home_url( string $path ): string { return 'https://example.test' . $path; }
 function wc_get_page_permalink( string $name ): string { return 'https://example.test/my-account/'; }
 function add_query_arg( array|string $key, mixed $value, ?string $url = null ): string { return (is_array($key)?$value:$url) . '?' . http_build_query(is_array($key)?$key:[$key=>$value]); }
@@ -87,6 +94,7 @@ class WC_Product {
 	public function __construct( private int $id ) {}
 	public function is_type( string $type ): bool { return 'simple' === $type; }
 	public function get_id(): int { return $this->id; }
+	public function get_status(): string { return $GLOBALS['product_status'][$this->id]??'publish'; }
 	public function is_virtual(): bool { return true; }
 	public function is_in_stock(): bool { return true; }
 	public function is_purchasable(): bool { return true; }
@@ -94,7 +102,14 @@ class WC_Product {
 }
 function wc_get_product( int $id ): WC_Product|false { return in_array($id,[25,26,99],true)?new WC_Product($id):false; }
 class WC_Session_Handler {
-	public function __construct( public array $data = [] ) { $GLOBALS['hooks']['shutdown'][20]=[[[$this,'save_data'],0]]; }
+	public bool $cookie = false;
+	public bool $browser_cookie = false;
+	public function __construct( public array $data = [] ) {
+		$GLOBALS['hooks']['shutdown'][20]=[[[$this,'save_data'],0]];
+		$GLOBALS['hooks']['template_redirect'][999]=[[[$this,'destroy_session_if_empty'],0]];
+	}
+	public function set_customer_session_cookie(bool $set):void{$this->cookie=$set;$GLOBALS['cookie_events'][]='set';}
+	public function destroy_session_if_empty():void{if($this->browser_cookie&&$this->cookie&&!$this->data&&!is_user_logged_in()){$this->cookie=false;$GLOBALS['cookie_events'][]='destroy';}}
 	public function get_customer_id(): string { return 'synthetic-customer'; }
 	public function get( string $key, mixed $default = null ): mixed { return $this->data[$key]??$default; }
 	public function set( string $key, mixed $value ): void { if(null===$value){unset($this->data[$key]);}else{$this->data[$key]=$value;} }
@@ -281,6 +296,75 @@ check('old checkout GET follows B before rendering an auto-prepare form',str_con
 unset($_GET['artnovo_checkout']);$return=[];
 try{foreach($hooks['template_redirect'][9] as [$callback])$callback();}catch(SyntheticResponse $response){$return=$response->payload;}
 check('fresh explicit card GET remains available for a different plan',[]===$return);
+
+// These fixtures verify hook order and state boundaries, not real HTTP headers.
+$current_user=0;$wizard_page=true;$_POST=[];$_GET=['artnovo_plan'=>'25'];
+foreach(['GET','HEAD'] as $method){
+	$_SERVER['REQUEST_METHOD']=$method;$persisted=[];WC()->session=new WC_Session_Handler();WC()->cart->items=[];
+	WC()->session->browser_cookie=true;WC()->session->cookie=true;$cookie_events=[];$private_headers=0;
+	do_action('template_redirect');
+	check("$method purchase page establishes its guest cookie before output and keeps an empty native session",['set']===$cookie_events&&WC()->session->cookie&&$private_headers>0);
+}
+$wizard_page=false;$_SERVER['REQUEST_METHOD']='GET';WC()->session=new WC_Session_Handler();WC()->session->browser_cookie=true;WC()->session->cookie=true;$cookie_events=[];
+do_action('template_redirect');
+check('ordinary pages retain native empty-session cleanup',['destroy']===$cookie_events&&!WC()->session->cookie);
+$wizard_page=true;$_SERVER['REQUEST_METHOD']='POST';WC()->session=new WC_Session_Handler();WC()->session->browser_cookie=true;WC()->session->cookie=true;$cookie_events=[];
+do_action('template_redirect');
+check('purchase POST without its form is not initialized as a guest GET',['destroy']===$cookie_events&&!WC()->session->cookie);
+
+function wizard_post(array $post):array{
+	$_SERVER['REQUEST_METHOD']='POST';$_POST=$post;
+	try{foreach($GLOBALS['hooks']['template_redirect'][7] as [$callback])$callback();}catch(SyntheticResponse $response){return $response->payload;}
+	return [];
+}
+$persisted=$snapshot_b;WC()->session=new WC_Session_Handler($snapshot_a);WC()->cart->items=$snapshot_a['cart'];$before_events=count($lock_events);
+$stale_post=['artnovo_wizard_nonce'=>'expired','artnovo_product'=>'25','artnovo_quantity'=>'1','artnovo_selection_revision'=>$token_a,'artnovo_login_method'=>'pinova'];
+$response=wizard_post($stale_post);
+check('expired normal POST redirects to a fresh GET of current B',303===($response['status']??0)&&str_contains($response['redirect']??'','artnovo_plan=26')&&!str_contains($response['redirect']??'','artnovo_checkout'));
+check('invalid nonce cannot mutate the loaded cart, authenticate, acquire a selection lock or reach an order boundary',WC()->session->data===$snapshot_a&&WC()->cart->items===$snapshot_a['cart']&&0===$current_user&&$before_events===count($lock_events)&&1===$native_creates&&1===$native_charges);
+finish_request();
+check('an expired POST cannot persist its old A snapshot over B',$persisted===$snapshot_b);
+$persisted=$snapshot_b;WC()->session=new WC_Session_Handler($snapshot_a);WC()->cart->items=$snapshot_a['cart'];
+$stale_post['artnovo_wizard_ajax']='1';$response=wizard_post($stale_post);$repeat=wizard_post($stale_post);
+check('expired AJAX POST returns an error with a safe fresh-GET recovery destination',false===($response['success']??null)&&403===($response['status']??0)&&true===($response['data']['refresh_required']??false)&&str_contains($response['data']['redirect']??'','artnovo_plan=26')&&!empty($response['data']['message']));
+check('replaying an expired AJAX POST never advances selection or payment',$response===$repeat&&$persisted===$snapshot_b&&1===$native_creates&&1===$native_charges);
+finish_request();
+foreach([
+	'public fallback'=>[[],26,[],'artnovo_plan=26'],
+	'expired draft fallback'=>[[Artnovo\PlanCheckout\WIZARD_DRAFT=>array_replace($snapshot_b[Artnovo\PlanCheckout\WIZARD_DRAFT],['expires'=>time()-1])],25,[],'artnovo_plan=25'],
+	'private product'=>[[],25,[25],'#artnovo-categories'],
+	'ordinary product'=>[[],99,[],'#artnovo-categories'],
+	'nonexistent product'=>[[],888,[],'#artnovo-categories'],
+] as $name=>[$stored,$product,$protected,$destination]){
+	$persisted=$stored;WC()->session=new WC_Session_Handler($stored);WC()->cart->items=[];$password_products=$protected;
+	$response=wizard_post(['artnovo_wizard_nonce'=>'expired','artnovo_product'=>(string)$product]);
+	check("recovery $name is a read-only safe GET",303===($response['status']??0)&&str_contains($response['redirect']??'',$destination)&&$stored===$persisted&&WC()->session->data===$stored&&[]===WC()->cart->items);
+}
+$password_products=[];$product_status[25]='draft';$persisted=[];WC()->session=new WC_Session_Handler();
+$response=wizard_post(['artnovo_wizard_nonce'=>'expired','artnovo_product'=>'25']);
+check('recovery does not expose an unpublished submitted product',str_contains($response['redirect']??'','#artnovo-categories'));
+$product_status=[];
+
+// Only explicit native sign-in preparation may use the guest AJAX selection seam.
+$persisted=[];WC()->session=new WC_Session_Handler();WC()->cart->items=[];
+$prepare=['artnovo_wizard_nonce'=>'valid-wizard','artnovo_wizard_ajax'=>'1','artnovo_login_method'=>'pinova','artnovo_product'=>'26','artnovo_quantity'=>'2','artnovo_selection_revision'=>Artnovo\PlanCheckout\wizard_selection_revision()];
+$response=wizard_post($prepare);$native_draft=$persisted[Artnovo\PlanCheckout\WIZARD_DRAFT]??[];
+check('native guest AJAX preparation persists only a validated selection and its current revision',true===($response['success']??false)&&str_starts_with($response['data']['redirect']??'','https://example.test/login?')&&26===($native_draft['product']??0)&&2===($native_draft['quantity']??0)&&($response['data']['selection_revision']??'')===($native_draft['revision']??null)&&[]===WC()->cart->items&&0===$current_user);
+$before=$persisted;$response=wizard_post($prepare);
+check('replaying an older guest preparation cannot replace its newer draft',true===($response['data']['selection_changed']??false)&&$before===$persisted&&[]===WC()->cart->items);
+$prepare['artnovo_selection_revision']=Artnovo\PlanCheckout\wizard_selection_revision();$response=wizard_post($prepare);
+check('current native guest preparation can resume without rotating the same selection',true===($response['success']??false)&&($response['data']['selection_revision']??null)===$native_draft['revision']&&[]===WC()->cart->items);
+foreach(['artnovo_product'=>'99','artnovo_quantity'=>'11','artnovo_payment'=>'unknown','artnovo_login_method'=>'unknown'] as $field=>$value){
+	$before=$persisted;$invalid_prepare=array_replace($prepare,[$field=>$value]);$response=wizard_post($invalid_prepare);
+	check("native guest preparation still validates $field",false===($response['success']??null)&&409===($response['status']??0)&&$before===$persisted&&[]===WC()->cart->items&&0===$current_user);
+}
+$persisted=[];WC()->session=new WC_Session_Handler();$prepare['artnovo_selection_revision']=Artnovo\PlanCheckout\wizard_selection_revision();unset($prepare['artnovo_login_method']);$response=wizard_post($prepare);
+check('ordinary guest AJAX quantity requests cannot prepare a selection',true===($response['data']['selection_changed']??false)&&!isset($persisted[Artnovo\PlanCheckout\WIZARD_DRAFT])&&[]===WC()->cart->items);
+$prepare['artnovo_login_method']='pinova';unset($prepare['artnovo_wizard_ajax']);$_POST=$prepare;
+$without_flag=Artnovo\PlanCheckout\wizard_update_selection(true,'');
+check('guest native AJAX exception requires its explicit AJAX marker',true===($without_flag['selection_changed']??false)&&!isset($persisted[Artnovo\PlanCheckout\WIZARD_DRAFT]));
+$prepare['artnovo_wizard_ajax']='1';$origin='https://foreign.example';$before=$persisted;$before_events=count($lock_events);$response=wizard_post($prepare);$origin='https://example.test';
+check('native guest AJAX preparation rejects a foreign origin before selection writes',false===($response['success']??null)&&403===($response['status']??0)&&$persisted===$before&&$before_events===count($lock_events));
 echo "{$assertions} selection assertions, {$failures} failures\n";
 exit($failures?1:0);
 }

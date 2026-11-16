@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 1.2.0 — 2026-11-16
+
+- Present purchase completion in one responsive compact card, with the selected
+  plan, quantity, native WooCommerce total and a single active authentication action.
+- Accept email, mobile and username in the same form: retain Core email-code
+  signup/login and delegate native mobile/password proof to Pinova without a new
+  authentication engine or dependency among Core, Bridge and Wallet.
+- Establish guest sessions before page output and recover expired forms with a
+  fresh GET, preserving the latest valid selection without replaying a stale cart.
+- Preserve native checkout, coupon, payment, receipt-owner and delivery boundaries;
+  bank-transfer orders remain awaiting review until their provider confirms them.
+
 ## 1.1.0 — 2026-11-16
 
 - Make native Pinova sign-in available from the purchase flow while preserving

@@ -22,7 +22,7 @@ if ( ! isset( $argv[1] ) ) {
 			exit( 1 );
 		}
 	}
-	foreach ( [ 'auth-contract.php', 'selection-contract.php' ] as $fixture ) {
+	foreach ( [ 'auth-contract.php', 'selection-contract.php', 'compact-auth.php' ] as $fixture ) {
 		$process = proc_open( [ PHP_BINARY, __DIR__ . '/' . $fixture ], [ 0 => STDIN, 1 => STDOUT, 2 => STDERR ], $pipes );
 		if ( ! is_resource( $process ) || 0 !== proc_close( $process ) ) {
 			exit( 1 );
@@ -67,6 +67,7 @@ function __return_empty_string(): string { return ''; }
 function is_wc_endpoint_url( $endpoint = false ): bool { return $GLOBALS['classic_pay']; }
 function has_term( ...$args ): bool { return $GLOBALS['cart_plan']; }
 function is_preview(): bool { return false; }
+function is_user_logged_in(): bool { return true; }
 function is_page( $id ): bool { return 20 === $id; }
 function wc_get_page_id( $name ): int { return 'cart' === $name ? 10 : 20; }
 function home_url( $path ): string { return 'https://example.invalid' . $path; }
