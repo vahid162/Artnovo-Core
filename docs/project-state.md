@@ -55,6 +55,24 @@ that helper only for guests and keeps native Woo checkout for authenticated user
 No-JavaScript fallback uses the native sign-in route. Existing endpoint, receipt,
 account-owner and payment fences remain intact.
 
+## Current progress
+
+Core **1.2.0** is implemented on `work/compact-checkout-session`; runtime changes
+and review fixes are committed through `3101fb2`. Required standalone checks,
+PHP lint, both Node behavioral tests and real private HTTP/browser acceptance
+passed. Dedicated review `20261116-113452-6dff1fc4` completed; its three findings
+were fixed and independently closed. The final 320px guest/checkout/receipt views
+and auth-busy/Back recovery were rechecked. Detailed observations and the two
+pre-existing site-fixture limits are in [compact checkout evidence](evidence/2026-11-16-compact-checkout.md).
+
+The live site remains on 1.1.0 until authorized GitHub publication succeeds.
+Next: publish the scoped PR, wait for exact-head CI and available automated review,
+merge, run main validation, publish v1.2.0, verify the official asset identity and
+install that exact ZIP with the existing atomic recovery procedure. Controlled
+order 157 is labelled and cancelled, its temporary coupon 156 was deleted and
+customer 13 test sessions were revoked after browser acceptance. No real payment
+or financial approval was performed.
+
 ## Verification and release boundary
 
 High risk: authentication, purchase state and production deployment. Prove new
