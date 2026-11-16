@@ -27,7 +27,7 @@ const MARKERS = [
 ];
 
 function is_page(): bool {
-	return PAGE_ID === get_queried_object_id();
+	return \is_page( PAGE_ID );
 }
 
 function catalog(): array {

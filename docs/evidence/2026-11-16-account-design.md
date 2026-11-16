@@ -87,3 +87,61 @@ cart/root fixture replay passed35 cases and the complete fixture aggregate remai
 and measured46px actions. Header prototype centering matched half the actual client
 width (including desktop/mobile scrollbar differences). The exact installed/native
 readback is a later delivery fact, not inferred from these prototypes.
+
+
+## Published and installed 1.4.0
+
+PR10 merged as `c2988d59b7085c544dbfef8e4d104a507a8de085`, tree
+`f6047eb9c3b2efc62c8123aa984e345c2c3304cf`. PR/main/publication runs
+43925235125 /43925745160 /43925900948 passed. Tag v1.4.0 targets that commit;
+formal release published2026-11-16T18:10:06Z. Official ZIP SHA-256
+`5c99394c330ac2ffdc4428df290ead1d0143d30a8d1d530b95cf5753fc761064` equals
+the candidate and installed32-file payload. Private backup/rehearsal receipt:
+`/var/backups/artnovo-core/20261116T181215Z-tjuu2j0o`. Atomic exchange/drain passed,
+17 FPM scripts invalidated with no cached failures, no maintenance left, and origin
+home/account health passed. Bridge/Wallet/Pinova manifests and activation/config
+checks passed unchanged. No live plugin source was edited.
+
+Only after release/install were the recorded native operations applied through
+supported Elementor tools and published. All non-target IDs/content/links/styles
+were preserved; the three legal documents changed only root tag to main. Native
+undo revision IDs: header75=168, terms132=147, privacy134=148, refunds136=149,
+product35=108. Twenty fresh public Chrome cases on home/category1/category2/guest
+purchase/login/shop/product/three legal documents at1206/320px passed no overflow,
+exactly one main and valid skip target. Logo centers match actual client width,
+with menu right/account left, and native login remains present.
+
+The live product read showed a selector mismatch in the first placeholder-only
+collapse: Woo's gallery uses `woocommerce-product-gallery__image--placeholder` on
+a DIV; only the catalog uses the IMG placeholder class. The follow-up native
+selector correction is recorded in GitHub before application. The display-only
+Woo option `woocommerce_currency_pos` is also proposed from right to right_space;
+this supplies real separator whitespace to plain price strings as well as HTML.
+Neither proposal changes plugin code, currency or monetary values. Current
+observed source/settings and proposed operations remain explicitly distinct.
+
+
+## Post-publication display refinements and page-type regression
+
+PR11 commit `66f1251415411f485e5e9bc78dfe16cb9f723c1e` recorded the corrected
+placeholder wrapper and right_space proposal before application. Supported native
+update/publish succeeded (undo174), WordPress option changed with expected-old
+guard, and fresh readback matched. Product placeholder height is0, grid width
+1112/292 at1206/320px without overflow; currency and product25 price unchanged.
+The observed product reference and display-setting manifest now match these facts.
+
+PR10 review4589577964 correctly identified ID-only routing: a category/author with
+ID61 could enter a retired page redirect. Both page61 and wizard68 helpers now use
+qualified native `\is_page(PAGE_ID)`. The regression was reproduced before the fix
+(bootstrap ready failed on category61) and passed afterward. Fourteen bootstrap
+scenarios and72 new real WP_Query type-collision checks cover page/home, category,
+tag, product taxonomy, author and post/CPT contexts and render/asset/checkout callers.
+Native WordPress source confirms static front-page queries keep is_page=true and
+send_headers runs after query setup. No payment/auth/cart guard was weakened.
+
+Patch1.4.1 passes49/49 standalone/lint commands and7/7 synthetic integration commands
+with301 assertions (auth25,cart107,account83,received59,receipt20,template5,multipart2).
+These use the existing unchanged SQL/mail/outbound guards. No real records were
+saved. GitHub CI, formal1.4.1 publication and exact installed asset are pending.
+The separate1.4.1 native contract proposes the final product-detail price alignment
+after release/install; it has not yet been applied.

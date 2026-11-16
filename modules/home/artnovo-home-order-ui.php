@@ -58,7 +58,7 @@ add_filter( 'pre_kses', static function ( string $content ): string {
 } );
 
 function on_workflow_page(): bool {
-	return PAGE_ID === get_queried_object_id();
+	return \is_page( PAGE_ID );
 }
 
 function selected_plan(): ?\WC_Product {

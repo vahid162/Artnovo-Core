@@ -18,9 +18,12 @@ assignments, active header/footer conditions and SHA-256 of the public reference
 
 [The 1.4.0 native operation contract](planned-1.4.0.json) records the proposed
 header desktop alignment, product-template presentation and main landmarks, including supported inverse
-settings/styles. At proposal time these operations are **not applied**; the
-manifest remains a reference to the observed installed baseline. Native completion
-and fresh readback are recorded separately in the delivery evidence.
+settings/styles. The initial operations are now published after the official Core install. The
+manifest records observed source; the contract separately marks any proposed
+post-publication refinement until its supported readback is complete. The placeholder
+wrapper correction and currency-spacing setting are published and verified.
+[The 1.4.1 contract](planned-1.4.1.json) proposes left-aligned product-detail prices
+with currency on their left; it remains unapplied pending official patch delivery.
 
 Snapshots preserve native IDs, hierarchy, content/dynamic bindings, local styles
 and interactions from the supported read. Generated default styles and tool editor
