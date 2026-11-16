@@ -1,0 +1,18 @@
+{
+  "main_base": "05edd7888c566019788d4cf2f1dff5ec482ab071",
+  "prior_pr_head": "2725701d17b9287e7f4caa8cb3da4207c608f3aa",
+  "governance_version": "1.4.0",
+  "contract_files": {
+    "AGENTS.md": "293babd0cff7d26c89cb9257c326e7842a06a607db2d8722543d8e4ab0b0f96c",
+    "docs/development-governance.md": "0525660ad3f08fdaec68acacf2aebfb4e61cbd96b28dc083e72f877f4b95e474",
+    "CHANGELOG.md": "f35cb7aaaf69619070b0925f6e24356403117dfdec3f9c5f62de7d8c95fb4e4d"
+  },
+  "selected_central_sources": {
+    "SKILL.md": "2d9c9d7eade3ed623be96bad8519ca96458d43bd7fca191519e561075d4650f8",
+    "references/operational-policy.md": "db8b8d2a1f6887c6093f495974073763b8fe8b994328589c8886e5b65459f909",
+    "references/technology-profiles.md": "d6d3462328e290dd2e734ef34dfc0ac9d7fad25fc64def64af0142e88e984849",
+    "references/acceptance-cases.json": "a6a86c9d9d2cad73d5dafdea6644d6289606d505a38dc38b1398bf44c001cf9f",
+    "references/templates.md": "7d35d13727fca5789fc8adbc235cc0c9b4f3d508b996b524dac30bbd65aca8b8"
+  },
+  "receipt_scope": "Current-state and evidence receipts are excluded to avoid self-reference; exact committed/hosted tree is verified separately."
+}
