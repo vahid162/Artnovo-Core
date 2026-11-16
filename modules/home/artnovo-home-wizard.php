@@ -133,6 +133,9 @@ function checkout_coupon_form(): void {
 
 function checkout_account_hint(): void {
 	echo '<p class="artnovo-order-hint artnovo-order-account">با حساب خود وارد شده‌اید. اطلاعات سفارش به ایمیل زیر ارسال می‌شود.</p>';
+	if ( '' === wp_get_current_user()->user_email ) {
+		printf( '<p class="artnovo-order-hint"><a href="%s">برای دریافت اعلان آماده‌شدن اشتراک، ایمیل همین حساب را تأیید کنید.</a> ایمیل سفارش را نیز در فرم زیر وارد کنید.</p>', esc_url( \Artnovo\AccountUI\account_url( 'profile' ) ) );
+	}
 }
 
 function checkout_payment_heading(): void {
@@ -145,6 +148,10 @@ function render_order( ?\WC_Product $plan ): string {
 	$currency = $woocommerce ? html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ) : '';
 	$checkout = function_exists( '\\Artnovo\\PlanCheckout\\wizard_checkout_active' );
 	$review = $checkout && $plan && PlanCheckout\wizard_checkout_active();
+	if ( $checkout && WC()->session ) {
+		WC()->session->set_customer_session_cookie( true );
+	}
+	$selection_revision = $checkout && WC()->session ? PlanCheckout\wizard_selection_revision() : '';
 	$draft = $checkout ? PlanCheckout\wizard_draft() : [];
 	$prices = [];
 	$limits = [];
@@ -208,6 +215,7 @@ function render_order( ?\WC_Product $plan ): string {
 		<?php if ( $checkout && $login ) : ?>
 			<form method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>" data-artnovo-prepare hidden>
 				<?php wp_nonce_field( 'artnovo_wizard_checkout', 'artnovo_wizard_nonce', false ); ?>
+				<input type="hidden" name="artnovo_selection_revision" value="<?php echo esc_attr( $selection_revision ); ?>">
 				<input type="hidden" name="artnovo_product" value="<?php echo esc_attr( (string) $plan_id ); ?>">
 				<input type="hidden" name="artnovo_quantity" value="<?php echo esc_attr( (string) $quantity ); ?>">
 			</form>
@@ -282,6 +290,7 @@ function render_order( ?\WC_Product $plan ): string {
 					<noscript>
 						<form method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>">
 							<?php wp_nonce_field( 'artnovo_wizard_checkout', 'artnovo_wizard_nonce', false ); ?>
+							<input type="hidden" name="artnovo_selection_revision" value="<?php echo esc_attr( $selection_revision ); ?>">
 							<input type="hidden" name="artnovo_product" value="<?php echo esc_attr( (string) $plan_id ); ?>">
 							<input type="hidden" name="artnovo_quantity" value="<?php echo esc_attr( (string) $quantity ); ?>">
 							<button type="submit" <?php disabled( ! $can_checkout ); ?>>باز کردن فرم ثبت سفارش</button>
@@ -291,6 +300,7 @@ function render_order( ?\WC_Product $plan ): string {
 			<?php else : ?>
 			<form class="artnovo-order-form" method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>" aria-label="اطلاعات سفارش" aria-describedby="artnovo-order-status" <?php if ( $email_otp ) : ?>data-artnovo-email-otp data-artnovo-otp-expires="<?php echo esc_attr( (string) $otp_expires ); ?>"<?php endif; ?>>
 				<?php wp_nonce_field( 'artnovo_wizard_checkout', 'artnovo_wizard_nonce', false ); ?>
+				<input type="hidden" name="artnovo_selection_revision" value="<?php echo esc_attr( $selection_revision ); ?>">
 				<input type="hidden" name="artnovo_product" value="<?php echo esc_attr( (string) $plan_id ); ?>">
 				<input type="hidden" name="artnovo_quantity" value="<?php echo esc_attr( (string) $quantity ); ?>">
 				<section class="artnovo-order-panel" aria-labelledby="artnovo-order-contact-heading">
@@ -313,6 +323,8 @@ function render_order( ?\WC_Product $plan ): string {
 					<div class="artnovo-order-actions">
 						<p id="artnovo-order-status" class="artnovo-order-hint" data-artnovo-status-ready="<?php echo esc_attr( $checkout_hint ); ?>"><?php echo esc_html( $can_checkout ? $checkout_hint : 'خرید این پلن هنوز در دسترس نیست.' ); ?></p>
 						<button type="submit" class="artnovo-order-submit" <?php disabled( ! $can_checkout ); ?>><?php echo $email_otp ? ( $otp_expires ? 'تأیید و ادامهٔ خرید' : 'ارسال کد تأیید' ) : 'ورود و ادامهٔ خرید'; ?></button>
+						<button type="submit" name="artnovo_login_method" value="pinova" formnovalidate class="artnovo-order-submit" <?php disabled( ! $can_checkout ); ?>>ورود با موبایل، ایمیل یا نام کاربری</button>
+						<button type="submit" name="artnovo_login_method" value="email" formnovalidate>ورود ایمیلی از صفحهٔ حساب</button>
 					</div>
 				</section>
 				<section class="artnovo-order-panel" aria-labelledby="artnovo-order-payment-heading">

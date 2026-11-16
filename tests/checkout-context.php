@@ -22,6 +22,12 @@ if ( ! isset( $argv[1] ) ) {
 			exit( 1 );
 		}
 	}
+	foreach ( [ 'auth-contract.php', 'selection-contract.php' ] as $fixture ) {
+		$process = proc_open( [ PHP_BINARY, __DIR__ . '/' . $fixture ], [ 0 => STDIN, 1 => STDOUT, 2 => STDERR ], $pipes );
+		if ( ! is_resource( $process ) || 0 !== proc_close( $process ) ) {
+			exit( 1 );
+		}
+	}
 	exit;
 }
 
@@ -29,6 +35,7 @@ define( 'ABSPATH', __DIR__ . '/unused-wordpress/' );
 $hooks = [];
 $classic_pay = false;
 $bridge_ready = 'missing-bridge' !== $argv[1];
+$cart_plan = true;
 $failures = 0;
 function add_filter( $hook, $callback, $priority = 10, $accepted = 1 ): void {
 	$GLOBALS['hooks'][ $hook ][ $priority ][] = [ $callback, $accepted ];
@@ -58,7 +65,7 @@ function do_action( $hook, ...$args ): void {
 function __return_false(): bool { return false; }
 function __return_empty_string(): string { return ''; }
 function is_wc_endpoint_url( $endpoint = false ): bool { return $GLOBALS['classic_pay']; }
-function has_term( ...$args ): bool { return true; }
+function has_term( ...$args ): bool { return $GLOBALS['cart_plan']; }
 function is_preview(): bool { return false; }
 function is_page( $id ): bool { return 20 === $id; }
 function wc_get_page_id( $name ): int { return 'cart' === $name ? 10 : 20; }
@@ -201,6 +208,18 @@ end_request( $batch );
 check( 'before-callback tracking preserves a permission error', $error === begin_request( $outer, $error ) );
 end_request( $outer, $error );
 check( 'permission-error cleanup restores ordinary checkout guard', [] === gateways( $allowed ) );
+
+$cart_plan = false;
+check( 'ordinary product or wallet top-up retains upstream gateways', $allowed === gateways( $allowed ) );
+check( 'ordinary product or wallet top-up retains persistent carts', true === apply_filters( 'woocommerce_persistent_cart_enabled', true ) );
+check( 'ordinary product or wallet top-up retains cart notices', 'Added' === apply_filters( 'wc_add_to_cart_message_html', 'Added' ) );
+$_SERVER['REQUEST_METHOD'] = 'GET';
+try {
+	do_action( 'template_redirect' );
+	check( 'ordinary product or wallet top-up retains native checkout', true );
+} catch ( CheckoutContextRedirect ) {
+	check( 'ordinary product or wallet top-up retains native checkout', false );
+}
 
 exit( $failures ? 1 : 0 );
 }

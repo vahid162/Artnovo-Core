@@ -16,9 +16,32 @@ function account_email_login_ready(): bool {
 		&& Checkout\wizard_email_otp_enabled() && function_exists( 'WC' ) && WC()->session;
 }
 
-function account_auth_key(): string {
-	return Checkout\wizard_otp_key( 'account-challenge', WC()->session->get_customer_id() );
+function account_auth_key( bool $complete = false ): string {
+	$scope = $complete ? 'account-email-' . get_current_user_id() : 'account-challenge';
+	return Checkout\wizard_otp_key( $scope, WC()->session->get_customer_id() );
 }
+
+function account_wizard_return(): string {
+	if ( ! \Artnovo\Core\bridge_available() || ! function_exists( '\\Artnovo\\PlanCheckout\\wizard_draft' ) ) {
+		return '';
+	}
+	$draft = Checkout\wizard_draft();
+	return is_int( $draft['product'] ?? null ) && $draft['product'] > 0
+		&& is_int( $draft['quantity'] ?? null ) && $draft['quantity'] > 0
+		? Checkout\wizard_url( $draft['product'] ) : '';
+}
+
+function account_native_login_url( string $destination = '' ): string {
+	$return = account_auth_destination( $destination );
+	return is_callable( [ '\\Pinova\\Pinova', 'get_login_url' ] )
+		? \Pinova\Pinova::get_login_url( $return ) : add_query_arg( 'artnovo_redirect', $return, wc_get_page_permalink( 'myaccount' ) );
+}
+
+add_filter( 'pinova/login_back_url', static function ( string $destination ): string {
+	// Leave admin and third-party return destinations owned by Pinova.
+	$resume = add_query_arg( 'artnovo_resume', '1', wc_get_page_permalink( 'myaccount' ) );
+	return $destination === $resume ? account_auth_destination( $destination ) : $destination;
+} );
 
 function account_auth_destination( string $requested = '' ): string {
 	$fallback = account_url();
@@ -64,6 +87,9 @@ function account_auth_destination( string $requested = '' ): string {
 	}
 	$endpoint = explode( '/', trim( substr( $path, strlen( $base ) ), '/' ) )[0];
 	if ( '' === $endpoint ) {
+		if ( [ 'artnovo_resume' => '1' ] === $query && '' !== account_wizard_return() ) {
+			return add_query_arg( 'artnovo_resume', '1', wc_get_page_permalink( 'myaccount' ) );
+		}
 		$view = $query['artnovo_view'] ?? null;
 		if ( ! is_string( $view ) || ! in_array( $view, [ 'help', 'support', 'profile' ], true ) ) {
 			return $fallback;
@@ -84,15 +110,16 @@ function account_auth_destination( string $requested = '' ): string {
 	return in_array( $endpoint, $allowed, true ) ? esc_url_raw( $destination ) : $fallback;
 }
 
-function account_auth_state(): array {
+function account_auth_state( bool $complete = false ): array {
 	$state = account_email_login_ready() ? WC()->session->get( ACCOUNT_AUTH_STATE, [] ) : [];
-	if ( ! is_array( $state ) || ( $state['until'] ?? 0 ) < time() ) {
+	if ( ! is_array( $state ) || ( $state['until'] ?? 0 ) < time()
+		|| ( $state['customer'] ?? 0 ) !== ( $complete ? get_current_user_id() : 0 ) ) {
 		$state = [];
 	}
 	$email = $state['email'] ?? '';
 	return [
 		'email' => $email,
-		'expires' => $email && account_email_login_ready() ? Checkout\wizard_email_otp_expiry( $email, account_auth_key() ) : 0,
+		'expires' => $email && account_email_login_ready() ? Checkout\wizard_email_otp_expiry( $email, account_auth_key( $complete ) ) : 0,
 		'message' => $state['message'] ?? '',
 		'error' => (bool) ( $state['error'] ?? false ),
 		'redirect' => account_auth_destination( $state['redirect'] ?? '' ),
@@ -123,7 +150,8 @@ function account_auth_reply( array|\WP_Error $result, bool $ajax ): never {
 		}
 		wp_send_json_success( $result );
 	}
-	wp_safe_redirect( wc_get_page_permalink( 'myaccount' ) . '#artnovo-account-login', 303 );
+	$destination = ! empty( $state['customer'] ) ? account_url( 'profile' ) : wc_get_page_permalink( 'myaccount' );
+	wp_safe_redirect( $destination . '#artnovo-account-login', 303 );
 	exit;
 }
 
@@ -133,6 +161,16 @@ add_action( 'template_redirect', static function (): void {
 	}
 	wc_nocache_headers();
 	$ajax = '1' === ( $_POST['artnovo_account_ajax'] ?? null );
+	if ( \Artnovo\Core\bridge_available() && function_exists( '\\Artnovo\\PlanCheckout\\wizard_preserve_login_selection' ) ) {
+		$selection = Checkout\wizard_preserve_login_selection();
+		if ( is_wp_error( $selection ) ) {
+			// Do not dirty a stale session when another request owns the selection.
+			if ( $ajax ) {
+				wp_send_json_error( [ 'message' => $selection->get_error_message() ], 409 );
+			}
+			wp_die( $selection->get_error_message(), '', [ 'response' => 409 ] );
+		}
+	}
 	if ( ! account_email_login_ready() ) {
 		account_auth_reply( new \WP_Error( 'artnovo_auth_unavailable', 'ورود با ایمیل موقتاً در دسترس نیست. کمی بعد دوباره تلاش کنید.', 503 ), $ajax );
 	}
@@ -142,7 +180,8 @@ add_action( 'template_redirect', static function (): void {
 		account_auth_reply( new \WP_Error( 'artnovo_auth_request', 'نشست ورود معتبر نیست. صفحه را تازه کنید و دوباره تلاش کنید.', 403 ), $ajax );
 	}
 	$redirect = account_auth_destination( Checkout\checkout_post_value( 'artnovo_redirect' ) );
-	if ( is_user_logged_in() ) {
+	$complete = '1' === Checkout\checkout_post_value( 'artnovo_complete_email' ) && is_user_logged_in();
+	if ( is_user_logged_in() && ! $complete ) {
 		account_auth_reply( [ 'redirect' => $redirect ], $ajax );
 	}
 	WC()->session->set_customer_session_cookie( true );
@@ -155,19 +194,22 @@ add_action( 'template_redirect', static function (): void {
 		if ( ! $ip || FirewallService::is_blocked( $ip ) || FirewallService::is_blocked( $email ) ) {
 			account_auth_reply( new \WP_Error( 'artnovo_auth_blocked', 'در حال حاضر امکان دریافت یا تأیید کد وجود ندارد.', 403 ), $ajax );
 		}
-		$key = account_auth_key();
-		WC()->session->set( ACCOUNT_AUTH_STATE, [ 'email' => $email, 'redirect' => $redirect ] );
-		$process = static function () use ( $action, $email, $ip, $key, $redirect ) {
+		$key = account_auth_key( $complete );
+		$customer_id = $complete ? get_current_user_id() : 0;
+		WC()->session->set( ACCOUNT_AUTH_STATE, [ 'email' => $email, 'redirect' => $redirect, 'customer' => $customer_id ] );
+		$process = static function () use ( $action, $email, $ip, $key, $redirect, $customer_id ) {
 			if ( 'send' === $action ) {
 				return Checkout\wizard_otp_send( $key, $email, $ip );
 			}
-			$user = Checkout\wizard_otp_verify( $key, $email, $ip );
+			$user = $customer_id ? Checkout\wizard_otp_complete_email( $key, $email, $ip, $customer_id ) : Checkout\wizard_otp_verify( $key, $email, $ip );
 			if ( is_wp_error( $user ) ) {
 				return $user;
 			}
 			WC()->session->__unset( ACCOUNT_AUTH_STATE );
 			WC()->session->save_data();
-			UserService::login( $user->ID, 'otp' );
+			if ( ! $customer_id ) {
+				UserService::login( $user->ID, 'otp' );
+			}
 			return [ 'redirect' => $redirect ];
 		};
 		$result = Checkout\wizard_otp_locked(

@@ -3,7 +3,6 @@
 namespace Artnovo\AccountUI;
 
 use WPVPNBridge\Commerce\Receipts;
-use WPVPNBridge\Commerce\Orders;
 use WPVPNBridge\Persistence\Store;
 
 defined( 'ABSPATH' ) || exit;
@@ -16,13 +15,15 @@ function received_receipt_exists( \WC_Order $order ): bool {
 
 function received_receipt_can_upload( \WC_Order $order ): bool {
 	$user = get_current_user_id();
-	$snapshot = $order->get_meta( '_wpvpn_snapshot', true );
-	return $user > 0 && $user === $order->get_customer_id() && 'bacs' === $order->get_payment_method()
-		&& $order->has_status( [ 'pending', 'on-hold' ] )
-		&& 0.0 === (float) $order->get_total_refunded() && is_array( $snapshot )
-		&& class_exists( Orders::class ) && Orders::matches_purchase( $order, $snapshot )
-		&& class_exists( Store::class ) && class_exists( Receipts::class )
-		&& null === ( new Store() )->get_by_order( $order->get_id() );
+	if ( $user < 1 || $user !== $order->get_customer_id() || ! class_exists( Store::class )
+		|| ! class_exists( Receipts::class ) || ! method_exists( Receipts::class, 'can_upload' ) ) {
+		return false;
+	}
+	try {
+		return ( new Receipts( new Store() ) )->can_upload( $order->get_id() );
+	} catch ( \Throwable ) {
+		return false;
+	}
 }
 
 function render_received_receipt( \WC_Order $order ): void {

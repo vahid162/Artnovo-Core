@@ -45,6 +45,7 @@ function add_query_arg( $key, $value, $url = null ): string {
 	return $base . '?' . http_build_query( $args );
 }
 function wp_parse_url( string $url, int $component = -1 ): mixed { return parse_url( $url, $component ); }
+function esc_url_raw( string $url ): string { return $url; }
 function wp_validate_redirect( string $url, string $fallback ): string {
 	return str_starts_with( $url, 'https://example.test/' ) ? $url : $fallback;
 }
@@ -215,7 +216,7 @@ class_alias( IndependenceBridgeOrders::class, 'WPVPNBridge\\Commerce\\Orders' );
 $user = 7;
 $account_page = true;
 $received_page = false;
-$endpoint = 'orders';
+$endpoint = '';
 check( 'Bridge account link retains its registered endpoint', wc_get_account_endpoint_url( 'vpn-subscriptions' ) === Artnovo\AccountUI\account_url() );
 check( 'Bridge email-code return retains its registered endpoint', wc_get_account_endpoint_url( 'vpn-subscriptions' ) === Artnovo\AccountUI\account_auth_destination() );
 check( 'Bridge account retains the Core template', dirname( __DIR__ ) . '/modules/account/account-page.php' === apply_filters( 'template_include', '/native.php' ) );
@@ -227,12 +228,61 @@ try {
 } catch ( RedirectAttempt $redirect ) {
 	check( 'healthy Bridge retains the subscriptions redirect', wc_get_account_endpoint_url( 'vpn-subscriptions' ) === $redirect->getMessage() );
 }
+foreach ( [ 'orders', 'view-order', 'edit-account', 'woo-wallet', 'wallet-transactions', 'add-payment-method' ] as $endpoint ) {
+	check( 'other plugins retain the native template with Bridge: ' . $endpoint, '/native.php' === apply_filters( 'template_include', '/native.php' ) );
+	try {
+		foreach ( $hooks['template_redirect'][4] ?? [] as [ $callback ] ) {
+			$callback();
+		}
+		check( 'Core does not redirect native endpoint: ' . $endpoint, true );
+	} catch ( RedirectAttempt ) {
+		check( 'Core does not redirect native endpoint: ' . $endpoint, false );
+	}
+}
+$user = 0;
+$endpoint = 'view-order';
+$_SERVER['REQUEST_URI'] = '/my-account/view-order/123/';
+try {
+	foreach ( $hooks['template_redirect'][4] ?? [] as [ $callback ] ) { $callback(); }
+	check( 'guest order sign-in retains its safe native order return', false );
+} catch ( RedirectAttempt $redirect ) {
+	check( 'guest order sign-in retains its safe native order return', add_query_arg( 'artnovo_redirect', 'https://example.test/my-account/view-order/123/', wc_get_page_permalink( 'myaccount' ) ) === $redirect->getMessage() );
+}
+$account_page = false;
+$wp->request = 'login';
+$user = 0;
+try {
+	foreach ( $hooks['template_redirect'][4] ?? [] as [ $callback ] ) {
+		$callback();
+	}
+	check( 'Pinova retains its native login route', true );
+} catch ( RedirectAttempt ) {
+	check( 'Pinova retains its native login route', false );
+}
+$user = 7;
+$wp->request = 'my-account';
 $account_page = false;
 $received_page = true;
 $endpoint = 'order-received';
 $_GET['key'] = 'synthetic-key';
 $order = $ordinary;
 check( 'ordinary received page remains native with Bridge too', '/native.php' === apply_filters( 'template_include', '/native.php' ) );
+
+class IndependenceReceiptStore {}
+class IndependenceReceipts {
+	public static bool $allowed = false;
+	public static array $calls = [];
+	public function __construct( IndependenceReceiptStore $store ) {}
+	public function can_upload( int $id ): bool { self::$calls[] = $id; return self::$allowed; }
+}
+class_alias( IndependenceReceiptStore::class, 'WPVPNBridge\\Persistence\\Store' );
+class_alias( IndependenceReceipts::class, 'WPVPNBridge\\Commerce\\Receipts' );
+$user = 7;
+check( 'Core respects a denied native Bridge receipt policy', ! Artnovo\AccountUI\received_receipt_can_upload( $service ) && [123] === IndependenceReceipts::$calls );
+IndependenceReceipts::$allowed = true;
+check( 'Core delegates receipt eligibility to the native Bridge policy', Artnovo\AccountUI\received_receipt_can_upload( $service ) && [123,123] === IndependenceReceipts::$calls );
+$user = 8;
+check( 'Core still denies another customer before invoking receipt policy', ! Artnovo\AccountUI\received_receipt_can_upload( $service ) && [123,123] === IndependenceReceipts::$calls );
 
 echo "{$assertions} independence assertions, {$failures} failures\n";
 exit( $failures ? 1 : 0 );

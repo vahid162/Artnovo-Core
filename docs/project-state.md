@@ -2,82 +2,89 @@
 
 ## Mission and authority
 
-The owner requested updating `vahid162/Artnovo-Core` with the newly available
-AI Development Governance on **2026-11-16**. The adopted local baseline and stable
-rules are owned by [development governance](development-governance.md).
+The owner subsequently explicitly authorized finalizing PR #5, publishing the
+formal GitHub release **1.1.0**, installing that exact release on **artnovo.ir**,
+and running a short post-install smoke test. This supersedes the earlier hold on
+those effects for this Core release. It does not authorize changing Bridge/Wallet
+code or making a real customer payment. The delivery preparation below predates
+the merge/release/install; their immutable results belong to the delivery record.
 
-Continue the related, unmerged [PR #4](https://github.com/vahid162/Artnovo-Core/pull/4)
-on `work/align-governance-1.2-delivery`, rather than opening a competing policy PR.
-Main starts at `05edd7888c566019788d4cf2f1dff5ec482ab071`; the existing PR starts
-at `2725701d17b9287e7f4caa8cb3da4207c608f3aa`. Its informed-delivery work is retained
-and extended after a compatibility assessment of the new central contract.
+On 2026-11-16 the owner requested implementing the purchase-sign-in correction in
+`vahid162/Artnovo-Core`, with independent operation and no duplicated responsibilities
+between Core, WP VPN Bridge and TeraWallet. Repository work starts from
+`be084b8aa2c9ca5953ab39c13d2361bb32363497` on
+`work/pinova-auth-independent-accounts`. The earlier Governance PR #4 is merged;
+its detailed evidence remains in the dated record.
 
-This scoped update authorizes repository development/checks, commits and updating
-that PR. It does not authorize merging it, publishing a release/tag, changing the
-installed Core, Bridge, account permissions, CI activation or server configuration.
-Earlier permissions named PRs #1–#3 and the specific Core installation; they are
-not standing authority for this mission.
+The owner explicitly prohibits direct changes to custom plugin code on WordPress.
+Develop and verify the repository change, prepare its reviewable PR and versioned
+delivery. Production must receive an approved published package, never edited
+source files or a site snippet. Merge, release and installation remain distinct
+effects under the repository's [development governance](development-governance.md).
+Full purchase testing on the live site waits for coordinated plugin reports.
 
-## Plan, risk and acceptance
+Separately, the owner explicitly authorized enabling Bridge's two delivery emails
+through WooCommerce settings. That settings-only operation was completed and read
+back with `enabled=yes` and valid generation IDs. Hashes of installed PHP, JS and
+CSS files in Core, Bridge and Wallet remained unchanged; no test email was sent.
+This operation does not authorize replacing their source or changing their ledger.
 
-**High risk** because agent continuity, authority and delivery rules govern future
-actions, even though plugin runtime is unchanged. Preserve the existing stricter
-checks and effect-specific authority; do not silently import a new central policy.
+## Acceptance and boundaries
 
-1. Reuse AGENTS, this state document and the existing policy. Add self-contained
-   fresh-agent reconstruction, all-current-document discovery, adaptive work,
-   canonical-owner/branch reuse and repeat-setup no-op behavior.
-2. Retain informed approval, immutable source/artifact/installation identity and
-   separate development/merge/release/install/acceptance stages. Ordinary coding
-   remains a development handoff rather than a mandatory release ceremony.
-3. Run repository checks, 16 current-source decision exercises and five actual
-   Bootstrap/continuity scenarios in disposable fixtures. Preserve older evidence;
-   distinguish decisions, fixture actions and unverified host activation.
-4. Obtain distinct independent review, demonstrate isolated source recovery, and
-   update the same PR with exact-head read-only CI. Leave merge/live effects pending.
+This is high risk because sign-in, customer identity and purchase context are
+affected. Use focused negative/replay/missing-dependency regressions and a distinct
+independent technical review; retain nonce, rate-limit, ownership and payment fences.
 
-No PHP/module, runtime version, packaging code, workflow, constitution or completed
-feature-specification change is intended. Existing source, published history and
-concurrent changes must remain intact. The compatibility change does not grant
-always-on plugin activation or cross-host instruction support.
+- Expose native Pinova mobile/email/username sign-in and preserve Core's existing
+  new-email registration and usable server-rendered email fallback.
+- Preserve plan, quantity and a validated internal return destination. Billing
+  email must not select, merge or transfer account/order ownership.
+- Keep the three plugins independently installable: no new mandatory dependency
+  among them, no second wallet ledger or service issuer in Core. An unavailable
+  optional provider disables only the capability that actually requires it.
+- Leave third-party account endpoints and non-plan carts/funding to their native
+  handlers. Core must not intercept them through its template or redirects.
+- Preserve the hidden-cart service journey: selecting plan B replaces unpaid plan
+  A silently, with the new quantity, without notices or a visible cart. Browser
+  return, sign-in or a stale request must not revive an older selection; existing
+  orders, submitted payment attempts and payment evidence are not deleted.
+- Keep receipt authorization in Bridge's public API, with safe compatibility and
+  missing-provider behavior. Do not open payment/receipt guards for independence.
+- Preserve the published Elementor policy pages and their footer links/settings.
+  These CMS changes are independent of the plugin release.
 
 ## Verification and delivery
 
-Implementation and source-bound local verification are complete. All repository
-checks passed: 29 PHP lints, bootstrap 14, checkout 43, independence 63, migration
-40, six document regressions, 14 release stubs, five package cases and build.
-A fresh 16-case decision batch and five actual Bootstrap/continuity scenarios ran
-in disposable fixtures, including two no-history re-entry sessions, exact dirty-work
-preservation, no-op repeat setup and genuine denied/unavailable controls.
-Distinct independent implementation/evidence review found no blocker; source
-recovery restored both original PR and main trees in isolated repositories.
-Current observations, required limits and review are recorded in
-[verification](evidence/2026-11-16-governance-1.4/verification.md). Git/PR/CI retain
-source and hosted results; historical evidence is not relabelled as a new run.
-Instruction discovery in this session was **explicit file reads**; automatic
-loading and ChatGPT activation were not established.
+The 1.1.0 candidate is implemented locally. Proof-first regressions captured eight
+account/login ownership failures, three ordinary-cart failures, and four final
+login-session/error-persistence failures before their production fixes. Integrated
+standalone checks passed: document/governance, bootstrap, checkout context,
+authentication (33 assertions), selection/replay/login (42 assertions), independence
+(80 assertions), migration, release policy, packaging and PHP lint (31 files).
+Migration used a private temporary directory outside Git; no WordPress fixture ran.
+The initial version assertion was advanced with the runtime version; no behavioral
+assertion or payment guard was weakened.
 
-Push/PR validation is read-only. Publication remains a separately confirmed manual
-workflow on main; it creates a tag/assets and does not install WordPress. No hook or
-workflow change is part of this mission. Unknown effects would hold only the affected
-operation. Delivery uses the existing [PR #4](https://github.com/vahid162/Artnovo-Core/pull/4)
-and its [exact-head checks](https://github.com/vahid162/Artnovo-Core/pull/4/checks),
-which own the current remote outcome rather than a copied earlier check result.
-Recheck lease/base/source identity when updating it; a separate current instruction
-is needed to merge. The next authorized step is this PR handoff, not publication
-or installation. GitHub enforcement is not asserted by this update.
+Independent review completed eight risk-based lenses and validated five findings.
+The fixes protect native review and denied-checkout persistence, redirect stale
+checkout URLs, prevent competing login submits, and exercise the actual account
+completion callback. A fresh independent resolution review closed all five with
+no remaining blockers for a **draft PR**. Actual WordPress/browser acceptance is
+still pending. See the [candidate verification](evidence/2026-11-16-pinova-auth-independence/verification.md).
 
-## Existing product delivery, separate from this update
+Three behavior-preserving simplification lenses found no worthwhile changes in
+the submitted module/test diff. The final login-session edge was then closed with
+focused failing/passing regressions and remains included in the technical review.
 
-Core remains **1.0.1**. The [installation record](evidence/2026-11-15-core-1.0.1-install/verification.md)
-and [PR #3](https://github.com/vahid162/Artnovo-Core/pull/3) record its 2026-11-15
-installation and scoped checks against ZIP SHA-256
-`2ecb78de61483b693e5805057a3a09ab59d474ebb9363b7b728cd89e59bd5193`.
-Those are dated observations, not a new production test for this policy update.
+No new runtime code is installed, no release/tag is published and no real customer
+purchase is executed by this mission so far. Browser and live purchase acceptance
+must be recorded as unavailable/not run until actually observed. Repository push/PR
+automation was inspected: validation is read-only; publication is manual-only on
+main and does not install WordPress.
 
-The GitHub release list was checked on 2026-11-16: published
-[v1.0.0](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.0.0) exists;
-no public v1.0.1 release was present. Keep **installed** and **formally released**
-separate. This mission neither repairs that historical release gap nor grants
-publication authority. A changed development ZIP at the same runtime version is
-not the approved installed artifact and must not replace it.
+## Prior delivery facts
+
+Installed Core remains 1.0.1; the dated [installation record](evidence/2026-11-15-core-1.0.1-install/verification.md)
+identifies its approved package. The [Governance 1.4 evidence](evidence/2026-11-16-governance-1.4/verification.md)
+belongs to the earlier policy change and is not new authentication evidence.
+Keep installed, developed, published and product-accepted facts separate.

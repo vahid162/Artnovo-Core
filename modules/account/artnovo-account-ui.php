@@ -22,9 +22,16 @@ function account_url( string $view = 'subscriptions' ): string {
 }
 
 function custom_account_page(): bool {
-	return function_exists( 'is_account_page' ) && is_account_page() && ! is_wc_endpoint_url( 'customer-logout' )
-		&& ( \Artnovo\Core\bridge_available() || ! is_user_logged_in()
-			|| ( ! is_wc_endpoint_url() && isset( $_GET['artnovo_view'] ) && 'subscriptions' !== account_view() ) );
+	if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
+		return false;
+	}
+	$endpoint = WC()->query->get_current_endpoint();
+	// Other plugins and WooCommerce own their registered account endpoints.
+	if ( ! in_array( $endpoint, [ '', 'dashboard', 'vpn-subscriptions' ], true ) ) {
+		return false;
+	}
+	return ! is_user_logged_in() || \Artnovo\Core\bridge_available()
+		|| ( '' === $endpoint && isset( $_GET['artnovo_view'] ) && 'subscriptions' !== account_view() );
 }
 
 add_action( 'template_redirect', static function (): void {
@@ -37,15 +44,14 @@ add_action( 'template_redirect', static function (): void {
 		wp_safe_redirect( add_query_arg( 'artnovo_redirect', $return, wc_get_page_permalink( 'myaccount' ) ) );
 		exit;
 	}
-	if ( 'login' === ( $wp->request ?? '' ) && function_exists( 'wc_get_page_permalink' ) ) {
-		nocache_headers();
-		$return = isset( $_GET['back_url'] ) && is_string( $_GET['back_url'] )
-			? account_auth_destination( wp_unslash( $_GET['back_url'] ) ) : account_url();
-		wp_safe_redirect( is_user_logged_in() ? $return : add_query_arg( 'artnovo_redirect', $return, wc_get_page_permalink( 'myaccount' ) ) );
-		exit;
-	}
 	if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
 		return;
+	}
+	if ( ! is_user_logged_in() && is_wc_endpoint_url( 'view-order' ) ) {
+		$request = is_string( $_SERVER['REQUEST_URI'] ?? null ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		$return = account_auth_destination( home_url( $request ) );
+		wp_safe_redirect( add_query_arg( 'artnovo_redirect', $return, wc_get_page_permalink( 'myaccount' ) ) );
+		exit;
 	}
 	nocache_headers();
 	header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0' );
@@ -56,8 +62,13 @@ add_action( 'template_redirect', static function (): void {
 		return;
 	}
 	$endpoint = WC()->query->get_current_endpoint();
+	if ( is_user_logged_in() && ! is_wc_endpoint_url() && '1' === ( $_GET['artnovo_resume'] ?? null )
+		&& '' !== ( $return = account_wizard_return() ) ) {
+		wp_safe_redirect( $return );
+		exit;
+	}
 	if ( \Artnovo\Core\bridge_available() && is_user_logged_in() && ! isset( $_POST['artnovo_account_action'] ) && 'subscriptions' === account_view()
-		&& in_array( $endpoint, [ '', 'dashboard', 'orders', 'downloads', 'edit-address', 'payment-methods', 'lost-password' ], true ) ) {
+		&& in_array( $endpoint, [ '', 'dashboard' ], true ) ) {
 		wp_safe_redirect( account_url() );
 		exit;
 	}

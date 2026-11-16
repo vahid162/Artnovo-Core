@@ -1,6 +1,6 @@
 # Artnovo Core
 
-The site-specific WordPress plugin for ArtNovo. Version 1.0.1 includes the existing
+The site-specific WordPress plugin for ArtNovo. Version 1.1.0 includes the
 purchase wizard, hidden-cart checkout, email-code entry, customer panel, order
 confirmation, receipt form, header behavior and default sender into one package.
 
@@ -23,10 +23,44 @@ Removing Core leaves Bridge's native WooCommerce routes and backend independent,
 but removes Core's wizard and Elementor dynamic tags. A page designed around those
 tags needs replacement purchase links before Core is permanently removed.
 
+## Optional integrations and sign-in
+
+Core, WP VPN Bridge and TeraWallet remain independently installed and released.
+No one of these three is a required plugin dependency of another. Their common
+WooCommerce dependency and Core's existing Elementor/Pinova requirements remain.
+
+| Owner | Responsibility | When the optional integration is absent |
+| --- | --- | --- |
+| Core | Purchase presentation, Pinova entry, email-code fallback and account views | Bridge and Wallet keep their native WooCommerce screens and backend. Pages using Core dynamic tags need native replacement links when Core is removed. |
+| Bridge | Service purchase terms, payment authorization, receipt policy, issuance and service notifications | Core's general sign-in/account and ordinary WooCommerce checkout stay available; service payments stop safely without an issuer. |
+| TeraWallet | Balance, funding and transaction ledger | Bank-transfer service purchases remain available; the optional wallet payment method is unavailable. |
+
+The purchase wizard offers native Pinova sign-in without taking over Pinova's
+login route. Mobile registration and existing email/username sign-in use Pinova;
+Core retains new-email registration and its server-rendered email-code fallback.
+Pinova 1.3 does not register a new customer from an email identifier alone, and a
+username is not an OTP destination. The chosen plan and quantity survive sign-in.
+
+An order email is separate from the sign-in identifier. An email address must not
+silently merge accounts or change their owner. Bridge's ready notification uses
+the customer's account email, so entering a billing address alone must not be
+treated as verified account-email completion.
+
+Core owns only its account views and plan-checkout context. Other account
+endpoints, including wallet funding and transactions, and ordinary product carts
+remain with their native WooCommerce/extension handlers. Core does not maintain a
+second wallet balance or issue services; receipt eligibility belongs to Bridge.
+
+Service shopping keeps one current plan without a customer-facing cart. Selecting
+another eligible plan silently replaces the previous unpaid selection, including
+its quantity; sign-in and browser return must not resurrect a stale selection.
+This never deletes an existing order, a submitted wallet attempt or payment evidence.
+
 ## Install and update
 
-Install the verified `artnovo-core-1.0.1.zip` package, supplied for installation or
-built with the command below. It contains an
+After release approval, install the verified `artnovo-core-1.1.0.zip` package from
+the published release. The command below builds a local candidate; a successful
+build alone does not authorize installation. The package contains an
 `artnovo-core/` plugin directory; GitHub's automatic source archives contain the
 development project and are not the WordPress installation package.
 
