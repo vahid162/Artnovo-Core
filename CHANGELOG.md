@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Make native Pinova sign-in available from the purchase flow while preserving
+  email-code entry and new-email registration.
+- Keep third-party account endpoints, ordinary carts and wallet funding with their
+  native handlers; confine Core's cart behavior to its own plan purchase flow.
+- Preserve silent replacement of the current unpaid plan without exposing a cart.
+- Keep receipt-eligibility policy in Bridge instead of duplicating it in Core.
+
 - Upgrade the project contract to AI Development Governance 1.4.0: adaptive work,
   fresh-agent continuity, repeat setup without duplicate changes, and informed
   delivery with immutable source/artifact identity. Plugin runtime is unchanged.

@@ -58,8 +58,19 @@ if ( ! \Artnovo\Core\bridge_available() ) {
 	return;
 }
 
-add_filter( 'woocommerce_persistent_cart_enabled', '__return_false' );
-add_filter( 'wc_add_to_cart_message_html', '__return_empty_string' );
+add_filter( 'woocommerce_persistent_cart_enabled', static function ( bool $enabled ): bool {
+	return wizard_cart_context() ? false : $enabled;
+} );
+add_filter( 'wc_add_to_cart_message_html', static function ( string $message ): string {
+	return cart_has_plan() ? '' : $message;
+} );
+add_action( 'pinova/user_logged_in', static function (): void {
+	// Pinova migrates WooCommerce's guest session at priority 20.
+	$result = wizard_preserve_login_selection();
+	if ( is_wp_error( $result ) ) {
+		wp_die( $result->get_error_message(), '', [ 'response' => 409 ] );
+	}
+}, 5 );
 
 function is_plan( $product ): bool {
 	if ( ! $product instanceof \WC_Product ) {
@@ -150,6 +161,23 @@ function cart_has_plan(): bool {
 
 function cart_items(): array {
 	return function_exists( 'WC' ) ? ( WC()->cart?->get_cart() ?? array() ) : array();
+}
+
+function wizard_cart_context(): bool {
+	$items = cart_items();
+	if ( $items ) {
+		return cart_has_plan();
+	}
+	$stored = function_exists( 'WC' ) ? WC()->session?->get( 'cart', [] ) : [];
+	if ( is_array( $stored ) && $stored ) {
+		foreach ( $stored as $item ) {
+			if ( is_array( $item ) && is_plan( wc_get_product( (int) ( $item['product_id'] ?? 0 ) ) ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+	return [] !== wizard_draft();
 }
 
 function cart_selection( int $id, int $quantity = 1 ): string {
@@ -295,6 +323,24 @@ add_filter( 'woocommerce_checkout_update_customer_data', static function ( bool 
 }, PHP_INT_MAX );
 
 add_action( 'woocommerce_checkout_update_order_review', static function ( $posted ): void {
+	if ( ! is_string( $posted ) || ! wp_verify_nonce( checkout_post_value( 'security' ), 'update-order-review' ) ) {
+		return;
+	}
+	parse_str( $posted, $fields );
+	if ( ! isset( $fields['artnovo_wizard_cart'] ) || ! function_exists( 'WC' ) || ! WC()->session || ! WC()->cart ) {
+		return;
+	}
+	$result = wizard_selection_locked( static function () use ( $fields ) {
+		return wizard_refresh_selection_session() && is_string( $fields['artnovo_selection_revision'] ?? null )
+			&& hash_equals( wizard_selection_revision(), $fields['artnovo_selection_revision'] );
+	}, true );
+	if ( true !== $result ) {
+		// Stop before native review code can apply stale fields or save its old cart.
+		wp_send_json( [ 'result' => 'failure', 'reload' => true ] );
+	}
+}, 1 );
+
+add_action( 'woocommerce_checkout_update_order_review', static function ( $posted ): void {
 	$marker = wizard_email_checkout_marker();
 	if ( '' === $marker || ! is_string( $posted ) || ! wp_verify_nonce( checkout_post_value( 'security' ), 'update-order-review' ) ) {
 		return;
@@ -320,10 +366,9 @@ function wizard_reply( int $product_id, bool $ajax, string $error = '' ): never 
 			WC()->session->save_data();
 		}
 		$quantity = wizard_draft()['quantity'];
-		wp_send_json_success( [ 'quantity' => $quantity, 'cart_identity' => $product_id . ':' . $quantity, 'redirect' => $url ] );
+		wp_send_json_success( [ 'quantity' => $quantity, 'cart_identity' => $product_id . ':' . $quantity, 'redirect' => $url, 'selection_revision' => wizard_selection_revision() ] );
 	}
 	if ( '' !== $error ) {
-		wc_add_notice( $error, 'error' );
 		$url = add_query_arg( 'artnovo_prepare_failed', '1', $url );
 	}
 	wp_safe_redirect( $url, 303 );
@@ -334,7 +379,7 @@ function prepare_wizard_cart( int $product_id, int $quantity, array $methods, st
 	$cart         = WC()->cart;
 	$items        = $cart->get_cart();
 	$key          = array_key_first( $items );
-	$item         = $items[ $key ] ?? [];
+	$item         = null !== $key ? ( $items[ $key ] ?? [] ) : [];
 	$same_product = 1 === count( $items ) && $product_id === (int) ( $item['product_id'] ?? 0 );
 	$changed      = ! $same_product || (float) $quantity !== (float) ( $item['quantity'] ?? 0 );
 	$coupons      = $cart->get_applied_coupons();
@@ -349,26 +394,31 @@ function prepare_wizard_cart( int $product_id, int $quantity, array $methods, st
 			return new \WP_Error( 'artnovo_pending_wallet', 'پرداخت قبلی هنوز در حال بررسی است. برای پیگیری با پشتیبانی تماس بگیرید.' );
 		}
 	}
-	if ( $same_product ) {
-		$prepared = ! $changed || ( apply_filters( 'woocommerce_update_cart_validation', true, $key, $item, $quantity )
-			&& $cart->set_quantity( $key, $quantity ) );
-	} else {
-		// The VPN bridge requires an empty cart for add validation. Keep the old selection for rollback.
-		$cart->set_cart_contents( [] );
-		$prepared = apply_filters( 'woocommerce_add_to_cart_validation', true, $product_id, $quantity )
-			&& $cart->add_to_cart( $product_id, $quantity );
-		if ( $prepared && $coupons ) {
-			$discounts = new \WC_Discounts( $cart );
-			$valid_coupons = array_values( array_filter( $coupons, static fn( string $code ): bool =>
-				true === $discounts->is_coupon_valid( new \WC_Coupon( $code ) ) ) );
-			if ( $valid_coupons !== $coupons ) {
-				$cart->set_applied_coupons( $valid_coupons );
-				$cart->calculate_totals();
+	try {
+		if ( $same_product ) {
+			$prepared = ! $changed || ( apply_filters( 'woocommerce_update_cart_validation', true, $key, $item, $quantity )
+				&& $cart->set_quantity( $key, $quantity ) );
+		} else {
+			// The VPN bridge requires an empty cart for add validation. Keep the old selection for rollback.
+			$cart->set_cart_contents( [] );
+			$prepared = apply_filters( 'woocommerce_add_to_cart_validation', true, $product_id, $quantity )
+				&& $cart->add_to_cart( $product_id, $quantity );
+			if ( $prepared && $coupons ) {
+				$discounts = new \WC_Discounts( $cart );
+				$valid_coupons = array_values( array_filter( $coupons, static fn( string $code ): bool =>
+					true === $discounts->is_coupon_valid( new \WC_Coupon( $code ) ) ) );
+				if ( $valid_coupons !== $coupons ) {
+					$cart->set_applied_coupons( $valid_coupons );
+					$cart->calculate_totals();
+				}
 			}
 		}
+
+		$available = $prepared ? WC()->payment_gateways()->get_available_payment_gateways() : [];
+	} catch ( \Throwable ) {
+		$available = [];
 	}
 
-	$available = $prepared ? WC()->payment_gateways()->get_available_payment_gateways() : [];
 	if ( ! array_intersect( $methods, array_keys( $available ) ) || ( '' !== $requested_method && ! isset( $available[ $requested_method ] ) ) || 'same' !== cart_selection( $product_id, $quantity ) ) {
 		$cart->set_cart_contents( $items );
 		$cart->set_applied_coupons( $coupons );
@@ -380,6 +430,153 @@ function prepare_wizard_cart( int $product_id, int $quantity, array $methods, st
 		WC()->session->__unset( 'store_api_draft_order' );
 	}
 	return true;
+}
+
+function wizard_selection_revision(): string {
+	$draft = wizard_draft();
+	$revision = $draft['revision'] ?? '';
+	return is_string( $revision ) && 1 === preg_match( '/\A[a-f0-9]{64}\z/', $revision ) ? $revision
+		: hash_hmac( 'sha256', 'selection:' . WC()->session->get_customer_id() . ':' . ( $draft['product'] ?? 0 ) . ':' . ( $draft['quantity'] ?? 0 ), wp_salt( 'nonce' ) );
+}
+
+function wizard_current_selection_url(): string {
+	$draft = wizard_draft();
+	return is_int( $draft['product'] ?? null ) && $draft['product'] > 0 ? wizard_url( $draft['product'] ) : home_url( '/#artnovo-categories' );
+}
+
+function wizard_refresh_selection_session(): bool {
+	$session = WC()->session;
+	if ( ! $session instanceof \WC_Session_Handler || ! class_exists( '\WC_Cart_Session' ) ) {
+		return false;
+	}
+	// A request may have loaded its cart before another tab finished its selection.
+	wp_cache_delete( \WC_Cache_Helper::get_cache_prefix( WC_SESSION_CACHE_GROUP ) . $session->get_customer_id(), WC_SESSION_CACHE_GROUP );
+	$fresh = $session->get_session_data();
+	$keys = array_unique( array_merge( array_keys( $fresh ), [ WIZARD_DRAFT, 'cart', 'cart_totals', 'applied_coupons',
+		'coupon_discount_totals', 'coupon_discount_tax_totals', 'removed_cart_contents', 'order_awaiting_payment', 'store_api_draft_order' ] ) );
+	foreach ( $keys as $key ) {
+		$session->set( $key, isset( $fresh[ $key ] ) ? maybe_unserialize( $fresh[ $key ] ) : null );
+	}
+	( new \WC_Cart_Session( WC()->cart ) )->get_cart_from_session();
+	return true;
+}
+
+function wizard_selection_locked( callable $callback, bool $until_shutdown = false ): mixed {
+	$result = wizard_otp_locked( wizard_otp_key( 'purchase-selection', WC()->session->get_customer_id() ), $callback, $until_shutdown );
+	if ( is_wp_error( $result ) && 'artnovo_otp_busy' === $result->get_error_code() ) {
+		// A denied request must never persist the snapshot it loaded before the winner.
+		remove_action( 'shutdown', [ WC()->session, 'save_data' ], 20 );
+	}
+	return $result;
+}
+
+function wizard_preserve_login_selection(): true|\WP_Error {
+	if ( ! function_exists( 'WC' ) || ! WC()->session || ! WC()->cart || ! wizard_cart_context() ) {
+		return true;
+	}
+	return wizard_selection_locked( static function () {
+		return wizard_refresh_selection_session() ? true
+			: new \WP_Error( 'artnovo_selection_session', 'ادامهٔ خرید آماده نشد. صفحه را تازه کنید و دوباره تلاش کنید.', 503 );
+	}, true );
+}
+
+add_action( 'woocommerce_checkout_process', static function (): void {
+	if ( ! isset( $_POST['artnovo_wizard_cart'] ) || ! function_exists( 'WC' ) || ! WC()->session || ! WC()->cart
+		|| ! wp_verify_nonce( checkout_post_value( 'woocommerce-process-checkout-nonce' ), 'woocommerce-process_checkout' ) ) {
+		return;
+	}
+	$result = wizard_selection_locked( static function () {
+		if ( ! wizard_refresh_selection_session() ) {
+			return new \WP_Error( 'artnovo_selection_session', 'ادامهٔ خرید آماده نشد. صفحه را تازه کنید و دوباره تلاش کنید.' );
+		}
+		return hash_equals( wizard_selection_revision(), checkout_post_value( 'artnovo_selection_revision' ) ) ? true
+			: new \WP_Error( 'artnovo_selection_changed', 'برای ادامهٔ خرید، انتخاب تازهٔ خود را باز کنید.' );
+	}, true );
+	if ( is_wp_error( $result ) ) {
+		wc_add_notice( $result->get_error_message(), 'error' );
+	}
+}, 1 );
+
+function wizard_process_selection( bool $ajax, string $otp_action ): array {
+	$product_id       = filter_var( checkout_post_value( 'artnovo_product' ), FILTER_VALIDATE_INT, [ 'options' => [ 'min_range' => 1 ] ] );
+	$quantity         = filter_var( checkout_post_value( 'artnovo_quantity' ), FILTER_VALIDATE_INT, [ 'options' => [ 'min_range' => 1 ] ] );
+	$requested_method = checkout_post_value( 'artnovo_payment' );
+	$product          = $product_id ? wc_get_product( $product_id ) : false;
+	if ( ! is_plan( $product ) || post_password_required( $product_id ) || ! $product->is_in_stock() || ! $product->is_purchasable() ) {
+		return [ 'product' => $product_id ?: 0, 'error' => 'این پلن در حال حاضر قابل خرید نیست.' ];
+	}
+	$methods = $quantity ? payment_methods( $product, $quantity ) : [];
+	if ( ! $quantity || $quantity > quantity_limit( $product ) || ! $methods || ( '' !== $requested_method && ! in_array( $requested_method, $methods, true ) ) ) {
+		return [ 'product' => $product_id, 'error' => 'تعداد یا روش پرداخت انتخاب‌شده در دسترس نیست.' ];
+	}
+
+	$previous = wizard_draft();
+	if ( $ajax && '' === $otp_action ) {
+		$previous_quantity = $previous['quantity'] ?? 0;
+		$marker            = checkout_post_value( 'artnovo_wizard_cart' );
+		if ( ! is_user_logged_in() || $product_id !== ( $previous['product'] ?? null )
+			|| 'same' !== cart_selection( $product_id, $previous_quantity )
+			|| ( $marker !== $product_id . ':' . $previous_quantity && $quantity !== $previous_quantity ) ) {
+			return [ 'redirect' => wizard_current_selection_url(), 'selection_changed' => true ];
+		}
+	}
+	$login_method = checkout_post_value( 'artnovo_login_method' );
+	if ( ! in_array( $login_method, [ '', 'pinova', 'email' ], true ) ) {
+		return [ 'product' => $product_id, 'error' => 'روش ورود معتبر نیست.' ];
+	}
+	$email  = 'pinova' === $login_method ? '' : ( isset( $_POST['artnovo_email'] ) ? checkout_post_value( 'artnovo_email' ) : ( $previous['billing_email'] ?? '' ) );
+	$coupon = isset( $_POST['artnovo_coupon'] ) ? sanitize_text_field( checkout_post_value( 'artnovo_coupon' ) ) : ( $previous['coupon'] ?? '' );
+	if ( strlen( $email ) > 254 || strlen( $coupon ) > 200 || ( '' !== $email && ! is_email( $email ) ) ) {
+		return [ 'product' => $product_id, 'error' => 'ایمیل یا کد تخفیف را بررسی کنید.' ];
+	}
+	$draft = [
+		'product' => $product_id, 'quantity' => $quantity, 'billing_email' => sanitize_email( $email ),
+		'coupon' => $coupon, 'expires' => time() + 30 * MINUTE_IN_SECONDS,
+		'revision' => ( $previous['product'] ?? null ) === $product_id && ( $previous['quantity'] ?? null ) === $quantity
+			? wizard_selection_revision() : bin2hex( random_bytes( 32 ) ),
+	];
+	if ( '' !== $otp_action ) {
+		return [ 'otp' => wizard_email_otp_request( $otp_action, $draft ) ];
+	}
+	if ( ! is_user_logged_in() ) {
+		WC()->session->set( WIZARD_DRAFT, $draft );
+		WC()->session->save_data();
+		$resume = add_query_arg( 'artnovo_resume', '1', wc_get_page_permalink( 'myaccount' ) );
+		$destination = 'pinova' === $login_method ? \Artnovo\AccountUI\account_native_login_url( $resume ) : $resume;
+		return [ 'redirect' => $destination ];
+	}
+
+	$prepared = prepare_wizard_cart( $product_id, $quantity, $methods, $requested_method );
+	if ( is_wp_error( $prepared ) ) {
+		return [ 'product' => $product_id, 'error' => $prepared->get_error_message() ];
+	}
+	unset( $draft['coupon'] );
+	WC()->session->set( WIZARD_DRAFT, $draft );
+	if ( '' !== $requested_method ) {
+		WC()->session->set( 'chosen_payment_method', $requested_method );
+	}
+	if ( '' !== $coupon && wc_coupons_enabled() && ! WC()->cart->has_discount( $coupon ) ) {
+		WC()->cart->apply_coupon( $coupon );
+	}
+	return [ 'product' => $product_id ];
+}
+
+function wizard_update_selection( bool $ajax, string $otp_action ): array|\WP_Error {
+	return wizard_selection_locked( static function () use ( $ajax, $otp_action ) {
+		if ( ! wizard_refresh_selection_session() ) {
+			return new \WP_Error( 'artnovo_selection_session', 'ادامهٔ خرید آماده نشد. صفحه را تازه کنید و دوباره تلاش کنید.', 503 );
+		}
+		if ( ! hash_equals( wizard_selection_revision(), checkout_post_value( 'artnovo_selection_revision' ) ) ) {
+			$result = [ 'redirect' => wizard_current_selection_url(), 'selection_changed' => true ];
+		} else {
+			$result = wizard_process_selection( $ajax, $otp_action );
+		}
+		if ( ! $ajax && ! empty( $result['error'] ) ) {
+			wc_add_notice( $result['error'], 'error' );
+		}
+		WC()->session->save_data();
+		return $result;
+	} );
 }
 
 add_action( 'template_redirect', static function (): void {
@@ -401,62 +598,28 @@ add_action( 'template_redirect', static function (): void {
 	WC()->session->set_customer_session_cookie( true );
 	wc_nocache_headers();
 
-	$product_id       = filter_var( checkout_post_value( 'artnovo_product' ), FILTER_VALIDATE_INT, [ 'options' => [ 'min_range' => 1 ] ] );
-	$quantity         = filter_var( checkout_post_value( 'artnovo_quantity' ), FILTER_VALIDATE_INT, [ 'options' => [ 'min_range' => 1 ] ] );
-	$requested_method = checkout_post_value( 'artnovo_payment' );
-	$product          = $product_id ? wc_get_product( $product_id ) : false;
-	if ( ! is_plan( $product ) || post_password_required( $product_id ) || ! $product->is_in_stock() || ! $product->is_purchasable() ) {
-		wizard_reply( $product_id ?: 0, $ajax, 'این پلن در حال حاضر قابل خرید نیست.' );
-	}
-	$methods = $quantity ? payment_methods( $product, $quantity ) : [];
-	if ( ! $quantity || $quantity > quantity_limit( $product ) || ! $methods || ( '' !== $requested_method && ! in_array( $requested_method, $methods, true ) ) ) {
-		wizard_reply( $product_id, $ajax, 'تعداد یا روش پرداخت انتخاب‌شده در دسترس نیست.' );
-	}
-
-	$previous = wizard_draft();
-	if ( $ajax && '' === $otp_action ) {
-		$previous_quantity = $previous['quantity'] ?? 0;
-		$marker            = checkout_post_value( 'artnovo_wizard_cart' );
-		if ( ! is_user_logged_in() || $product_id !== ( $previous['product'] ?? null )
-			|| 'same' !== cart_selection( $product_id, $previous_quantity )
-			|| ( $marker !== $product_id . ':' . $previous_quantity && $quantity !== $previous_quantity ) ) {
-			wizard_reply( $product_id, true, 'انتخاب سفارش تغییر کرده است. صفحه را دوباره باز کنید.' );
+	$result = wizard_update_selection( $ajax, $otp_action );
+	if ( is_wp_error( $result ) ) {
+		if ( $ajax ) {
+			wp_send_json_error( [ 'message' => $result->get_error_message() ], 409 );
 		}
+		wp_die( $result->get_error_message(), '', [ 'response' => 409 ] );
 	}
-	$email  = isset( $_POST['artnovo_email'] ) ? checkout_post_value( 'artnovo_email' ) : ( $previous['billing_email'] ?? '' );
-	$coupon = isset( $_POST['artnovo_coupon'] ) ? sanitize_text_field( checkout_post_value( 'artnovo_coupon' ) ) : ( $previous['coupon'] ?? '' );
-	if ( strlen( $email ) > 254 || strlen( $coupon ) > 200 || ( '' !== $email && ! is_email( $email ) ) ) {
-		wizard_reply( $product_id, $ajax, 'ایمیل یا کد تخفیف را بررسی کنید.' );
-	}
-	$draft = [
-		'product' => $product_id, 'quantity' => $quantity, 'billing_email' => sanitize_email( $email ),
-		'coupon' => $coupon, 'expires' => time() + 30 * MINUTE_IN_SECONDS,
-	];
-	if ( '' !== $otp_action ) {
-		wizard_email_otp_request( $otp_action, $draft );
-	}
-	if ( ! is_user_logged_in() ) {
-		if ( wizard_email_otp_enabled() ) {
-			wizard_reply( $product_id, $ajax, 'برای ادامه، کد تأیید ایمیل را از همین مرحله دریافت کنید.' );
+	if ( isset( $result['otp'] ) ) {
+		$otp = $result['otp'];
+		if ( is_wp_error( $otp ) ) {
+			wp_send_json_error( [ 'message' => $otp->get_error_message() ], $otp->get_error_data() );
 		}
-		WC()->session->set( WIZARD_DRAFT, $draft );
-		wp_safe_redirect( add_query_arg( 'artnovo_resume', '1', wc_get_page_permalink( 'myaccount' ) ), 303 );
+		wp_send_json_success( $otp );
+	}
+	if ( isset( $result['redirect'] ) ) {
+		if ( $ajax ) {
+			wp_send_json_success( $result );
+		}
+		wp_safe_redirect( $result['redirect'], 303 );
 		exit;
 	}
-
-	$prepared = prepare_wizard_cart( $product_id, $quantity, $methods, $requested_method );
-	if ( is_wp_error( $prepared ) ) {
-		wizard_reply( $product_id, $ajax, $prepared->get_error_message() );
-	}
-	unset( $draft['coupon'] );
-	WC()->session->set( WIZARD_DRAFT, $draft );
-	if ( '' !== $requested_method ) {
-		WC()->session->set( 'chosen_payment_method', $requested_method );
-	}
-	if ( '' !== $coupon && wc_coupons_enabled() && ! WC()->cart->has_discount( $coupon ) ) {
-		WC()->cart->apply_coupon( $coupon );
-	}
-	wizard_reply( $product_id, $ajax );
+	wizard_reply( $result['product'], $ajax, $result['error'] ?? '' );
 }, 7 );
 
 function wizard_login_return( string $redirect ): string {
@@ -481,7 +644,7 @@ add_filter( 'woocommerce_checkout_get_value', static function ( $value, string $
 add_action( 'woocommerce_checkout_after_order_review', static function (): void {
 	if ( wizard_checkout_active() ) {
 		$draft = wizard_draft();
-		printf( '<input type="hidden" name="artnovo_wizard_cart" value="%s">', esc_attr( $draft['product'] . ':' . $draft['quantity'] ) );
+		printf( '<input type="hidden" name="artnovo_wizard_cart" value="%s"><input type="hidden" name="artnovo_selection_revision" value="%s">', esc_attr( $draft['product'] . ':' . $draft['quantity'] ), esc_attr( wizard_selection_revision() ) );
 	}
 } );
 
@@ -493,6 +656,10 @@ add_action( 'woocommerce_after_checkout_validation', static function ( array $da
 		return;
 	}
 	$draft = wizard_draft();
+	if ( ! hash_equals( wizard_selection_revision(), checkout_post_value( 'artnovo_selection_revision' ) ) ) {
+		$errors->add( 'artnovo_selection_changed', 'برای ادامهٔ خرید، انتخاب تازهٔ خود را باز کنید.' );
+		return;
+	}
 	$product = isset( $draft['product'] ) ? wc_get_product( $draft['product'] ) : false;
 	if ( ! $product instanceof \WC_Product || ! isset( $draft['quantity'] )
 		|| checkout_post_value( 'artnovo_wizard_cart' ) !== $draft['product'] . ':' . $draft['quantity']
@@ -524,6 +691,12 @@ add_action( 'template_redirect', static function (): void {
 		return;
 	}
 	$read = in_array( $_SERVER['REQUEST_METHOD'] ?? '', [ 'GET', 'HEAD' ], true );
+	if ( $read && wizard_page() && '1' === ( $_GET['artnovo_checkout'] ?? null )
+		&& (string) ( wizard_draft()['product'] ?? '' ) !== ( $_GET['artnovo_plan'] ?? null ) ) {
+		wc_nocache_headers();
+		wp_safe_redirect( wizard_current_selection_url(), 302 );
+		exit;
+	}
 	$product = selected_plan();
 	$nonce = $_POST['artnovo_plan_nonce'] ?? null;
 	if ( $product && ( $read || ( is_user_logged_in() && is_string( $nonce )
@@ -536,6 +709,9 @@ add_action( 'template_redirect', static function (): void {
 	$cart_page = is_page( wc_get_page_id( 'cart' ) );
 	$checkout_page = is_page( wc_get_page_id( 'checkout' ) );
 	if ( ! $cart_page && ( ! $checkout_page || ! $read || is_wc_endpoint_url() ) ) {
+		return;
+	}
+	if ( ! cart_has_plan() && ( cart_items() || ! wizard_draft() ) ) {
 		return;
 	}
 

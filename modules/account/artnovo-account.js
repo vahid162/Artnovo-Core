@@ -127,6 +127,7 @@
 		const endpoint = new URL(loginForm.action, location.href);
 		const accountPath = endpoint.pathname.replace(/\/?$/, '/');
 		const approvedReturn = localUrl(loginForm.elements.namedItem('artnovo_redirect')?.value, endpoint);
+		const completingEmail = loginForm.elements.namedItem('artnovo_complete_email')?.value === '1';
 		const secondsFormat = new Intl.NumberFormat('fa-IR');
 		const unavailable = submit.disabled;
 		let expires = Number(loginForm.dataset.artnovoExpires) || 0;
@@ -148,7 +149,7 @@
 			code.required = active && !expired;
 			code.readOnly = pending;
 			submit.disabled = unavailable || pending || expired;
-			submit.textContent = active ? 'تأیید و ورود به پنل' : 'ارسال کد تأیید';
+			submit.textContent = active ? (completingEmail ? 'تأیید و ثبت ایمیل' : 'تأیید و ورود به پنل') : 'ارسال کد تأیید';
 			edit.disabled = pending;
 			resend.disabled = unavailable || pending || active && !expired;
 			loginForm.setAttribute('aria-busy', String(pending));

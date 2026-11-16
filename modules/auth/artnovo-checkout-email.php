@@ -44,7 +44,7 @@ function wizard_email_otp_expiry( string $email, ?string $key = null ): int {
 		&& ( $challenge['expires'] ?? 0 ) > time() ? $challenge['expires'] : 0;
 }
 
-function wizard_otp_locked( string $key, callable $callback ): mixed {
+function wizard_otp_locked( string $key, callable $callback, bool $until_shutdown = false ): mixed {
 	global $wpdb;
 	if ( '1' !== (string) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 0)', $key ) ) ) {
 		return new \WP_Error( 'artnovo_otp_busy', 'درخواست دیگری در حال بررسی است. کمی بعد دوباره تلاش کنید.', 429 );
@@ -52,7 +52,13 @@ function wizard_otp_locked( string $key, callable $callback ): mixed {
 	try {
 		return $callback();
 	} finally {
-		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $key ) );
+		$release = static fn() => $wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $key ) );
+		if ( $until_shutdown ) {
+			// Checkout may exit in a gateway; release after WooCommerce persists its session.
+			add_action( 'shutdown', $release, PHP_INT_MAX );
+		} else {
+			$release();
+		}
 	}
 }
 
@@ -111,7 +117,7 @@ function wizard_otp_send( string $key, string $email, string $ip ): array|\WP_Er
 	return [ 'message' => 'کد تأیید به ایمیل شما ارسال شد.', 'expires' => $expires ];
 }
 
-function wizard_otp_verify( string $key, string $email, string $ip ): \WP_User|\WP_Error {
+function wizard_otp_consume( string $key, string $email, string $ip ): true|\WP_Error {
 	$challenge = get_transient( $key );
 	$remaining = ( $challenge['expires'] ?? 0 ) - time();
 	if ( $remaining <= 0 || $challenge['ip'] !== $ip || $challenge['email'] !== wizard_otp_key( 'address', $email ) ) {
@@ -134,30 +140,62 @@ function wizard_otp_verify( string $key, string $email, string $ip ): \WP_User|\
 	if ( ! delete_transient( $key ) ) {
 		return new \WP_Error( 'artnovo_otp_used', 'این کد دیگر قابل استفاده نیست. دوباره کد بگیرید.', 400 );
 	}
+	return true;
+}
 
+function wizard_customer_allowed( \WP_User $user ): bool {
+	return $user->roles && ! array_diff( $user->roles, [ 'customer', 'subscriber' ] )
+		&& ! is_super_admin( $user->ID ) && ! array_diff_key( array_filter( $user->caps ), array_flip( $user->roles ) );
+}
+
+function wizard_otp_verify( string $key, string $email, string $ip ): \WP_User|\WP_Error {
+	$verified = wizard_otp_consume( $key, $email, $ip );
+	if ( is_wp_error( $verified ) ) {
+		return $verified;
+	}
 	$user = get_user_by( 'email', $email );
 	if ( ! $user && Pinova::users_can_register() ) {
 		$id = wc_create_new_customer( $email, '', wp_generate_password( 32 ) );
 		$user = is_wp_error( $id ) ? get_user_by( 'email', $email ) : get_user_by( 'id', $id );
 	}
 	if ( ! $user || 0 !== strcasecmp( $user->user_email, $email )
-		|| ! $user->roles || array_diff( $user->roles, [ 'customer', 'subscriber' ] )
-		|| is_super_admin( $user->ID ) || array_diff_key( array_filter( $user->caps ), array_flip( $user->roles ) ) ) {
+		|| ! wizard_customer_allowed( $user ) ) {
 		return new \WP_Error( 'artnovo_otp_account', 'ورود به حساب مشتری با این ایمیل امکان‌پذیر نشد.', 403 );
 	}
 	return $user;
 }
 
-function wizard_email_otp_request( string $action, array $draft ): never {
+function wizard_otp_complete_email( string $key, string $email, string $ip, int $customer_id ): \WP_User|\WP_Error {
+	$verified = wizard_otp_consume( $key, $email, $ip );
+	if ( is_wp_error( $verified ) ) {
+		return $verified;
+	}
+	clean_user_cache( $customer_id );
+	$user = get_user_by( 'id', $customer_id );
+	$owner = get_user_by( 'email', $email );
+	if ( $customer_id < 1 || get_current_user_id() !== $customer_id || ! $user || ! wizard_customer_allowed( $user )
+		|| '' !== $user->user_email || ( $owner && $owner->ID !== $customer_id ) ) {
+		return new \WP_Error( 'artnovo_email_account', 'این ایمیل به حساب شما متصل نشد. از ایمیل دیگری استفاده کنید یا با پشتیبانی تماس بگیرید.', 403 );
+	}
+	$updated = wp_update_user( [ 'ID' => $customer_id, 'user_email' => $email ] );
+	if ( is_wp_error( $updated ) ) {
+		return new \WP_Error( 'artnovo_email_update', 'ثبت ایمیل انجام نشد. دوباره تلاش کنید.', 503 );
+	}
+	$updated_user = get_user_by( 'id', $customer_id );
+	return $updated_user && 0 === strcasecmp( $updated_user->user_email, $email ) ? $updated_user
+		: new \WP_Error( 'artnovo_email_update', 'ثبت ایمیل انجام نشد. دوباره تلاش کنید.', 503 );
+}
+
+function wizard_email_otp_request( string $action, array $draft ): array|\WP_Error {
 	$email = strtolower( $draft['billing_email'] );
 	$ip = IP::get();
 	if ( ! is_email( $email ) || strlen( $email ) > 100 ) {
-		wp_send_json_error( [ 'message' => 'ایمیل معتبر وارد کنید.' ], 400 );
+		return new \WP_Error( 'artnovo_otp_email', 'ایمیل معتبر وارد کنید.', 400 );
 	}
 
 	try {
 		if ( ! $ip || FirewallService::is_blocked( $ip ) || FirewallService::is_blocked( $email ) ) {
-			wp_send_json_error( [ 'message' => 'در حال حاضر امکان دریافت یا تأیید کد وجود ندارد.' ], 403 );
+			return new \WP_Error( 'artnovo_otp_blocked', 'در حال حاضر امکان دریافت یا تأیید کد وجود ندارد.', 403 );
 		}
 		$key = wizard_otp_challenge_key();
 		$draft['billing_email'] = $email;
@@ -188,10 +226,11 @@ function wizard_email_otp_request( string $action, array $draft ): never {
 		);
 	} catch ( \Throwable $exception ) {
 		error_log( 'Artnovo checkout email OTP failed: ' . get_class( $exception ) );
-		wp_send_json_error( [ 'message' => 'ورود با ایمیل موقتاً در دسترس نیست. دوباره تلاش کنید.' ], 503 );
+		return new \WP_Error( 'artnovo_otp_unavailable', 'ورود با ایمیل موقتاً در دسترس نیست. دوباره تلاش کنید.', 503 );
 	}
 	if ( is_wp_error( $result ) ) {
-		wp_send_json_error( [ 'message' => $result->get_error_message() ], $result->get_error_data() );
+		return $result;
 	}
-	wp_send_json_success( $result );
+	$result['selection_revision'] = wizard_selection_revision();
+	return $result;
 }
