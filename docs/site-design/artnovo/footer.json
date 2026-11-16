@@ -1,0 +1,338 @@
+{
+  "format": "artnovo.elementor-reference.v1",
+  "site": "https://artnovo.ir",
+  "post_id": 86,
+  "root_id": "42e566cc",
+  "source": "elementor/get-page-structure",
+  "elements": [
+    {
+      "id": "42e566cc",
+      "elType": "e-flexbox",
+      "title": "فوتر آرت‌نوو",
+      "elements": [
+        {
+          "id": "20d7dc57",
+          "elType": "e-flexbox",
+          "title": "ردیف برند و دسترسی",
+          "elements": [
+            {
+              "id": "49ed591e",
+              "elType": "e-flexbox",
+              "title": "برند آرت‌نوو",
+              "elements": [
+                {
+                  "id": "bd20546",
+                  "elType": "widget",
+                  "widgetType": "e-image",
+                  "title": "لوگوی کوچک پانتکس",
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "لوگوی کوچک پانتکس"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-1cf1983e-7178"
+                    ],
+                    "image": {
+                      "src": {
+                        "id": 73,
+                        "url": null,
+                        "alt": null
+                      },
+                      "size": "thumbnail"
+                    },
+                    "link": {
+                      "destination": "https://artnovo.ir/",
+                      "isTargetBlank": null,
+                      "tag": "a"
+                    }
+                  },
+                  "styles": {
+                    "__style_id": "e-1cf1983e-7178",
+                    "css": "width: 36px; height: 36px; border-radius: 7px; display: block; flex: 0 0 auto;"
+                  },
+                  "tag": "img"
+                },
+                {
+                  "id": "47951550",
+                  "elType": "widget",
+                  "widgetType": "e-paragraph",
+                  "title": "نام آرت‌نوو",
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "نام آرت‌نوو"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-119e0c5c-cc5d"
+                    ],
+                    "paragraph": "آرت‌نوو"
+                  },
+                  "styles": {
+                    "__style_id": "e-119e0c5c-cc5d",
+                    "css": "font-weight: 700; font-size: 15px; color: #F0F9F7; line-height: 1.5;"
+                  },
+                  "tag": "p"
+                }
+              ],
+              "interactions": [],
+              "editor_settings": {
+                "name": "برند آرت‌نوو"
+              },
+              "settings": {
+                "classes": [
+                  "e-58cc891a-a16b"
+                ],
+                "tag": "div"
+              },
+              "styles": {
+                "__style_id": "e-58cc891a-a16b",
+                "css": "width: auto; padding: 0px; display: flex; flex-direction: row; gap: 9px; align-items: center;"
+              },
+              "tag": "div"
+            },
+            {
+              "id": "39117484",
+              "elType": "e-flexbox",
+              "title": "پیوندهای دسترسی",
+              "elements": [
+                {
+                  "id": "2a4ea989",
+                  "elType": "widget",
+                  "widgetType": "e-button",
+                  "title": "پیوند خرید اشتراک",
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "پیوند خرید اشتراک"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-1a896587-440a"
+                    ],
+                    "text": "خرید اشتراک",
+                    "link": {
+                      "destination": "https://artnovo.ir/#artnovo-categories",
+                      "isTargetBlank": null,
+                      "tag": "a"
+                    },
+                    "tag": "a"
+                  },
+                  "styles": {
+                    "__style_id": "e-1a896587-440a",
+                    "css": "&:hover { color: #9ADAF0; background-color: #0C1723; } min-height: 44px; font-weight: 700; font-size: 14px; color: #46D7A6; line-height: 1.5; padding-block-start: 8px; padding-block-end: 8px; padding-inline-start: 11px; padding-inline-end: 11px; border-radius: 9px; border-width: 0px; background-color: transparent; display: flex; justify-content: center; align-items: center;"
+                  },
+                  "tag": "a"
+                },
+                {
+                  "id": "7e9e7cc7",
+                  "elType": "widget",
+                  "widgetType": "e-button",
+                  "title": "پیوند حساب من",
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "پیوند حساب من"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-188c6be6-555f"
+                    ],
+                    "text": "حساب من",
+                    "link": {
+                      "destination": "https://artnovo.ir/my-account/",
+                      "isTargetBlank": null,
+                      "tag": "a"
+                    },
+                    "tag": "a"
+                  },
+                  "styles": {
+                    "__style_id": "e-188c6be6-555f",
+                    "css": "&:hover { color: #9ADAF0; background-color: #0C1723; } min-height: 44px; font-weight: 600; font-size: 14px; color: #46D7A6; line-height: 1.5; padding-block-start: 8px; padding-block-end: 8px; padding-inline-start: 11px; padding-inline-end: 11px; border-radius: 9px; border-width: 0px; background-color: transparent; display: flex; justify-content: center; align-items: center;"
+                  },
+                  "tag": "a"
+                }
+              ],
+              "interactions": [],
+              "editor_settings": {
+                "name": "پیوندهای دسترسی"
+              },
+              "settings": {
+                "classes": [
+                  "e-181383b0-e2b8"
+                ],
+                "tag": "div"
+              },
+              "styles": {
+                "__style_id": "e-181383b0-e2b8",
+                "css": "width: auto; min-width: 0px; padding: 0px; display: flex; flex-direction: row; gap: 8px; flex-wrap: wrap; align-items: center;\n@media(--mobile) { justify-content: center; }"
+              },
+              "tag": "div"
+            }
+          ],
+          "interactions": [],
+          "editor_settings": {
+            "name": "ردیف برند و دسترسی"
+          },
+          "settings": {
+            "classes": [
+              "e-3bf83bd2-4884"
+            ],
+            "tag": "div"
+          },
+          "styles": {
+            "__style_id": "e-3bf83bd2-4884",
+            "css": "padding: 0px; display: flex; flex-direction: row; gap: 16px; justify-content: space-between; align-items: center;\n@media(--mobile) { flex-direction: column; gap: 12px; align-items: center; }"
+          },
+          "tag": "div"
+        },
+        {
+          "id": "5a07105b",
+          "elType": "e-div-block",
+          "title": "پیوندهای راهنمای خرید",
+          "elements": [
+            {
+              "id": "dbb1ea9",
+              "elType": "widget",
+              "widgetType": "e-button",
+              "title": "فوتر شرایط خرید و استفاده",
+              "interactions": [],
+              "editor_settings": {
+                "name": "فوتر شرایط خرید و استفاده"
+              },
+              "settings": {
+                "classes": [
+                  "e-7d15160e-3363"
+                ],
+                "text": "شرایط خرید و استفاده",
+                "link": {
+                  "destination": {
+                    "id": 132,
+                    "label": null
+                  },
+                  "isTargetBlank": false,
+                  "tag": "a"
+                },
+                "tag": "a"
+              },
+              "styles": {
+                "__style_id": "e-7d15160e-3363",
+                "css": "&:hover { color: #46D7A6; background-color: #0C1723; } width: auto; min-height: 44px; max-width: 100%; font-weight: 500; font-size: 13px; color: #BDD1D0; line-height: 1.8; padding-block-start: 8px; padding-block-end: 8px; padding-inline-start: 11px; padding-inline-end: 11px; border-radius: 9px; border-width: 0px; background-color: transparent; display: inline-block; text-align: right; &:focus-visible { box-shadow: 0px 0px 0px 3px rgba(70, 215, 166, 0.35); }"
+              },
+              "tag": "a"
+            },
+            {
+              "id": "59843db1",
+              "elType": "widget",
+              "widgetType": "e-button",
+              "title": "فوتر حریم خصوصی",
+              "interactions": [],
+              "editor_settings": {
+                "name": "فوتر حریم خصوصی"
+              },
+              "settings": {
+                "classes": [
+                  "e-775c5011-d441"
+                ],
+                "text": "حریم خصوصی",
+                "link": {
+                  "destination": {
+                    "id": 134,
+                    "label": null
+                  },
+                  "isTargetBlank": false,
+                  "tag": "a"
+                },
+                "tag": "a"
+              },
+              "styles": {
+                "__style_id": "e-775c5011-d441",
+                "css": "&:hover { color: #46D7A6; background-color: #0C1723; } width: auto; min-height: 44px; max-width: 100%; font-weight: 500; font-size: 13px; color: #BDD1D0; line-height: 1.8; padding-block-start: 8px; padding-block-end: 8px; padding-inline-start: 11px; padding-inline-end: 11px; border-radius: 9px; border-width: 0px; background-color: transparent; display: inline-block; text-align: right; &:focus-visible { box-shadow: 0px 0px 0px 3px rgba(70, 215, 166, 0.35); }"
+              },
+              "tag": "a"
+            },
+            {
+              "id": "5dcc9dd6",
+              "elType": "widget",
+              "widgetType": "e-button",
+              "title": "فوتر بازپرداخت و رسیدگی به مشکلات",
+              "interactions": [],
+              "editor_settings": {
+                "name": "فوتر بازپرداخت و رسیدگی به مشکلات"
+              },
+              "settings": {
+                "classes": [
+                  "e-7a5afc93-ddab"
+                ],
+                "text": "بازپرداخت",
+                "link": {
+                  "destination": {
+                    "id": 136,
+                    "label": null
+                  },
+                  "isTargetBlank": false,
+                  "tag": "a"
+                },
+                "tag": "a"
+              },
+              "styles": {
+                "__style_id": "e-7a5afc93-ddab",
+                "css": "&:hover { color: #46D7A6; background-color: #0C1723; } width: auto; min-height: 44px; max-width: 100%; font-weight: 500; font-size: 13px; color: #BDD1D0; line-height: 1.8; padding-block-start: 8px; padding-block-end: 8px; padding-inline-start: 11px; padding-inline-end: 11px; border-radius: 9px; border-width: 0px; background-color: transparent; display: inline-block; text-align: right; &:focus-visible { box-shadow: 0px 0px 0px 3px rgba(70, 215, 166, 0.35); }"
+              },
+              "tag": "a"
+            }
+          ],
+          "interactions": [],
+          "editor_settings": {
+            "name": "پیوندهای راهنمای خرید"
+          },
+          "settings": {
+            "classes": [
+              "e-36bdcefc-9670"
+            ],
+            "tag": "nav"
+          },
+          "styles": {
+            "__style_id": "e-36bdcefc-9670",
+            "css": "width: 100%; min-width: 0px; padding: 0px; display: flex; flex-direction: row; gap: 4px; flex-wrap: wrap; justify-content: center;\n@media(--mobile) { justify-content: center; }"
+          },
+          "tag": "nav"
+        },
+        {
+          "id": "41cc58ef",
+          "elType": "widget",
+          "widgetType": "e-paragraph",
+          "title": "حقوق سایت",
+          "interactions": [],
+          "editor_settings": {
+            "name": "حقوق سایت"
+          },
+          "settings": {
+            "classes": [
+              "e-4af0290b-5023"
+            ],
+            "paragraph": "© آرت‌نوو"
+          },
+          "styles": {
+            "__style_id": "e-4af0290b-5023",
+            "css": "font-size: 13px; color: #BDD1D0; line-height: 1.6; text-align: center; margin: 0px;"
+          },
+          "tag": "p"
+        }
+      ],
+      "interactions": [],
+      "editor_settings": {
+        "name": "فوتر آرت‌نوو"
+      },
+      "settings": {
+        "classes": [
+          "e-6b95239f-f99d"
+        ],
+        "tag": "div"
+      },
+      "styles": {
+        "__style_id": "e-6b95239f-f99d",
+        "css": "width: 100%; max-width: 1160px; padding-block-start: 28px; padding-block-end: 20px; padding-inline-start: 24px; padding-inline-end: 24px; margin-block-start: 0px; margin-block-end: 0px; margin-inline-start: auto; margin-inline-end: auto; display: flex; flex-direction: column; gap: 16px;\n@media(--mobile) { padding-block-start: 24px; padding-block-end: 20px; padding-inline-start: 14px; padding-inline-end: 14px; gap: 16px; }"
+      },
+      "tag": "div"
+    }
+  ]
+}

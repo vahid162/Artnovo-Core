@@ -58,15 +58,29 @@ jobs:
           fi
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > "$RUNNER_TEMP/artnovo-existing-release.json" 2>/dev/null; then
             python3 - <<'PY'
-          import json, os
+          import json, os, subprocess, tempfile
           from pathlib import Path
           data = json.loads((Path(os.environ['RUNNER_TEMP']) / 'artnovo-existing-release.json').read_text())
-          required = {Path(os.environ['RELEASE_ARCHIVE']).name, 'SHA256SUMS'}
+          archive = Path(os.environ['RELEASE_ARCHIVE'])
+          required = {archive.name, 'SHA256SUMS'}
           assets = {asset['name'] for asset in data.get('assets', []) if asset.get('size', 0) > 0}
           if data.get('isDraft') is not False or not required.issubset(assets):
               raise SystemExit('::error::Existing release is a draft or lacks the non-empty versioned ZIP/checksum. Inspect it before publishing.')
+          with tempfile.TemporaryDirectory(prefix='artnovo-published-', dir=os.environ['RUNNER_TEMP']) as directory:
+              try:
+                  subprocess.run([
+                      'gh', 'release', 'download', os.environ['RELEASE_TAG'],
+                      '--repo', os.environ['GITHUB_REPOSITORY'],
+                      '--pattern', archive.name, '--pattern', 'SHA256SUMS', '--dir', directory,
+                  ], check=True)
+                  for candidate in (archive, archive.with_name('SHA256SUMS')):
+                      published = Path(directory) / candidate.name
+                      if not published.is_file() or published.read_bytes() != candidate.read_bytes():
+                          raise SystemExit('::error::Existing release assets differ from the candidate package. Inspect the release and use a new version; published assets were left intact.')
+              except (OSError, subprocess.CalledProcessError):
+                  raise SystemExit('::error::Could not verify existing release assets. Inspect the release before publishing; its tag and assets were left intact.')
           PY
-            echo "::notice::Release $RELEASE_TAG already exists; its tag and assets were left intact."
+            echo "::notice::Release $RELEASE_TAG matches the candidate package; its tag and assets were left intact."
             exit 0
           fi
           if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" > /dev/null 2>&1; then

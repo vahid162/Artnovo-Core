@@ -57,6 +57,14 @@ If the system `wp` wrapper uses another PHP version, invoke the WP-CLI PHAR with
 the host's PHP 8.5 interpreter and `-d memory_limit=512M` instead. Retain the same
 WP-CLI arguments and the host's required database socket environment.
 
+The cart fixture removes only WooCommerce Blocks' shutdown asset-cache writer;
+its SQL-write guard remains active through shutdown. Asset-cache persistence is
+outside the in-memory cart contract. The receipt fixture supplies read-only CRUD
+stores for reserved synthetic order/item IDs so Bridge's fresh reads can see the
+fixture without saving an order. It separately changes fresh owner, amount,
+status and existence to check stale caller rejection. These stores delegate
+non-fixture identities to WooCommerce and abort on an allocated fixture ID.
+
 The auth check captures its synthetic OTP in memory and verifies incorrect-code,
 scope and replay handling. It does not deliver an email. The account/received
 checks write synthetic HTML, with local assets inlined, only under

@@ -63,6 +63,16 @@ workflow is manual-only on `main`, requires explicit publication confirmation,
 and publishes a tag and GitHub assets; it does not install the plugin on WordPress.
 Do not dispatch it merely to test development changes.
 
+The owner's GitHub-first sequence also covers this site's native Elementor design
+and configuration changes. Record the proposed scoped native operations and public
+source reference in GitHub before applying them live. When a mission includes a
+Core version, publish its approved plugin artifact before the associated native
+design changes. Read back and verify the result, then record delivery evidence.
+The public [site design reference](site-design/artnovo/README.md) documents this
+boundary; it is not an importable database backup. Tests, pipeline assurance and
+post-deployment evidence outside the runtime payload do not by themselves require
+a plugin version bump, replacement release asset or reinstall of identical code.
+
 ## Informed versioned delivery
 
 Before asking the owner to install a new production version, check and explain the

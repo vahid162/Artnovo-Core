@@ -2,44 +2,49 @@
 
 ## Current mission and authority
 
-The owner requested the 24 browser-annotated UX/UI refinements on artnovo.ir,
-then added a minimal standalone Pinova sign-in screen with one mobile/email/
-username entry. Use Elementor SentinelX supported native tools for Elementor
-content and UI UX Designer guidance while preserving the existing navy/mint
-visual language. Core is the only plugin source in scope. Preserve Bridge,
-Wallet and Pinova code and their ownership; no mandatory dependency among the
-three commerce plugins, second ledger or new issuer. No direct live plugin
-source edits: use this repository, review/test, GitHub publication and install
-only the exact official release asset before shipping plugin changes.
+The owner requested reconciliation of GitHub with the installed artnovo.ir site,
+audit of GitHub-first delivery order, and all applicable checks under AI
+Development Governance. Preserve the Core-only plugin-code boundary and independent
+Bridge/Wallet/Pinova ownership. No direct live plugin edits, overwritten published
+assets, version churn or reinstall of identical code. Native Elementor design and
+configuration must also be proposed in GitHub before future live application.
 
-Implement the unambiguous purchase/home/header/footer fixes. For account-panel
-redesign (comments 19, 21, 22, 24), prepare two distinct minimal concepts for the
-owner to choose; do not deploy an unchosen account layout. Remove the unnecessary
-address navigation within Core's presentation when implementing the agreed menu;
-do not erase data or disable native third-party endpoints.
+This mission records the existing public native design, repairs two invalid
+integration fixtures and strengthens immutable-release asset verification. It
+changes only documentation, tests and CI, outside the packaged runtime. Previous
+authority for the scoped Core GitHub delivery remains applicable; validation is
+read-only, and no new live code/configuration or release dispatch is needed.
+Preserve nonces, rate limits, stale-selection/duplicate-payment checks, receipt
+validation and owner checks. No other plugin source edits or real payments.
 
-The owner allows required WordPress/Woo settings changes and controlled test
-orders/messages to their own contacts. Do not make a real payment or financially
-approve issuance merely to test presentation. Preserve native terms consent,
-nonces, owner checks, rate limits, stale-selection and duplicate-payment fences.
+## Installed baseline and workspace
 
-## Baseline and workspace
+Core **1.3.1** is published and installed. PR #8 merged as
+`18e39aa8a40f7e6d51374f3619502c5c9bce8a46`, full source tree
+`ca2f7485a12fe51f23c3d70509e5be3249ddbb0d`; tag v1.3.1 targets that commit.
+Official ZIP SHA-256:
+`db6307cb13fa35c19141ab810133e687c430d300adad86178bc33a57e9621bcf`.
+All 32 installed files match the published payload. Main CI 43897136878, PR CI
+43897144330 and publication 43897423853 passed. Recovery was rehearsed; the
+preceding 1.3.0 backup is `/var/backups/artnovo-core/20261116T153502Z-ty6h_nie`.
+Bridge, Wallet and Pinova source manifests remain unchanged.
 
-Core 1.3.0 was merged in PR #7 as `bc9c9209c4f973965b2be63b3c3ede5443f2c45b`,
-source tree `cbcf418d82dfbbc72afe6c7b8213c95ddfbc014a`, formally released and
-installed from its exact official ZIP, SHA-256
+The preceding feature release 1.3.0 was PR #7, merge
+`bc9c9209c4f973965b2be63b3c3ede5443f2c45b`, tree
+`cbcf418d82dfbbc72afe6c7b8213c95ddfbc014a`, ZIP SHA-256
 `dfe4df55d0bbe47f6e0b8eb14fb79956d5ce5a5d0acf270cf0463c22b4863d14`.
-All 32 installed files match; Bridge, Wallet and Pinova manifests are unchanged.
-Main CI 43891848175 and release workflow 43892107942 succeeded. Backup/recovery
-is `/var/backups/artnovo-core/20261116T150623Z-0u3kp0hn`.
+Its retained backup is `/var/backups/artnovo-core/20261116T150623Z-0u3kp0hn`.
+Published assets were not replaced. 1.3.1 adds only the final dynamic-price CSS
+fallback plus version/docs metadata; every module PHP/JS byte matches 1.3.0.
 
-The final live visual check found that saved legacy Elementor price alignment does
-not apply to generated loop widget IDs. Branch `work/plan-price-alignment` from
-that exact main adds one scoped CSS alignment rule and version metadata for 1.3.1.
-No module PHP or JavaScript bytes change. Do not overwrite the published 1.3.0
-assets. Core remains the only plugin source owner; root owns Git and deployment.
+The reconciliation branch `work/governance-site-sync` starts at the 1.3.1 merge.
+It includes the previous post-deployment notes and a public native design reference
+for home 68, header 75 and footer 86. The 1.3.1 tag stays immutable; newer docs/tests
+commits need not be its target. Package identity is verified independently of the
+full source tree. The reconciliation PR and Actions are the delivery record for
+this docs/tests/CI change. There are no plugin-runtime changes.
 
-## Scope and seams
+## Preserved UX scope and seams
 
 - Native Elementor: home #68, header #75, footer #86, identified by fresh MCP
   structure reads. Restyle explanatory game feature as noninteractive content,
@@ -65,26 +70,53 @@ assets. Core remains the only plugin source owner; root owns Git and deployment.
 
 ## Verification and remaining work
 
-Home/header/footer native changes are published; their element identities, queries
-and link destinations remain. Clear purchase/sign-in fixes are installed in 1.3.0.
-The two account-panel concepts remain outside the plugin, awaiting owner choice.
+The delivery-order audit confirmed Core releases preceded installation. The actual
+gap was earlier direct native Elementor publication and uncommitted final notes.
+The supported public design reads are now in `docs/site-design/artnovo/`; these are
+versioned references, not an importable full-site/database backup. Current policy
+requires the proposed native operations in GitHub first.
 
-1.3.0 passed required local/CI checks and independent review, 17 real loopback HTTP
-checks including native Pinova password proof and order 167, and 14 live HTTPS
-checks through the native checkout without a new order. Order 167 is cancelled,
-unpaid and has no issuance operation; owner 15 has no email. Live tests confirmed
-that product 26 survives sign-in and checkout has no email field. All 32 installed
-payload files and unchanged other-plugin manifests were verified. An initial CI
-failure was an obsolete expected asset list; its required assets were retained in
-the corrected assertion and subsequent PR/main/release validations passed.
+Fresh reconciliation checks: all 12 mandatory commands, 35 PHP lints and two JS
+syntax checks passed (49 command exits). All seven read-only site fixtures passed
+with 126 PASS assertions and zero process exits, including shutdown and multipart
+HTTP parsing. Two legacy harness failures were repaired without weakening guards
+or changing Bridge: remove only the cart Blocks cache writer; provide fresh
+synthetic order/item CRUD state for receipt checks and add stale-state negatives.
+Eighteen release workflow cases passed; existing assets must match candidate bytes
+or publishing stops without rewriting tags/assets. Independent cross-reviews of
+both areas found no blocker. The rebuilt 32-file ZIP remains identical to 1.3.1.
+No customer/order/receipt save, real payment, provider issuance or outbound message
+was performed in this reconciliation. GitHub validation is the delivery gate for
+this docs/tests/CI change; no runtime release/reinstall is required.
 
-1.3.1 reuses those auth/money checks only because every module PHP/JS file is byte
-identical to 1.3.0. Independent review confirmed this mapping. Fresh browser QA passed price alignment and currency gap for 4/6/4 cards at
-320/480/1206px with no overflow. All mandatory patch checks passed. A separate
-official patch release/install remains next. The legacy-widget
-CSS gap is recorded in [UI refinement evidence](evidence/2026-11-16-ui-refinements.md).
 
-Final cleanup remains: revoke/rotate the controlled test identity, clear its carts,
-close localhost:8773 preview and the isolated browser/SSH tunnel, preserve only
-non-secret aggregate QA results. Do not copy raw private reports or credentials.
-Actual 200%/400% browser zoom, real payment and provider issuance remain untested.
+The clear home/purchase/standalone sign-in changes are delivered. Native Elementor
+changes on #68/#75/#86 are published with preserved element identities, product
+queries and link destinations. The two account-panel concepts are ready in the
+thread visualization directory, awaiting the owner's choice before implementation;
+no unchosen account-panel design is installed. Address navigation was hidden only
+inside Core's presentation.
+
+Required checks and independent reviews passed. 1.3.0 passed 17 loopback HTTP checks
+with actual native Pinova password proof and persisted BACS order 167, plus 14 live
+HTTPS checks through native checkout for preserved product 26 without a new order.
+Customer 15 is a controlled blank-email account; order 167 is cancelled, unpaid and
+has no issuance operation. Its tokens/cart/persistent cart were cleared, password
+rotated and temporary credential file removed. The audit customer/order remain
+explicitly marked as tests. No real payment or provider issuance was performed.
+
+1.3.1 reuses auth/money evidence only through the byte-identical module PHP/JS
+mapping. Fresh geometry passed for 4/6/4 cards at 320/480/1206px. On the installed
+public site, all four 320px one-month prices align at x30 (card x14 + 16px padding),
+with currency on the left and a positive gap. Public 320px native login has the
+required LTR field, soft focus and email-signup alternative, without overflow.
+All 32 installed bytes and unchanged other-plugin manifests were verified again.
+
+The localhost preview was stopped and removed; its SSH tunnel was closed. The
+isolated browser was closed and its temporary profile removed. Only non-secret
+aggregate evidence and public screenshots were retained outside Git. Raw private
+reports and test credentials were not copied into durable artifacts.
+
+See [UI refinement evidence](evidence/2026-11-16-ui-refinements.md). Actual browser
+zoom at 200%/400%, physical devices, real payment and provider delivery remain
+untested. The next product decision is the account-panel concept choice.
