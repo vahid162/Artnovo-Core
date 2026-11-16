@@ -122,11 +122,11 @@ function checkout_coupon_form(): void {
 	?>
 	<section class="artnovo-order-coupon" aria-labelledby="artnovo-coupon-label">
 		<form class="checkout_coupon woocommerce-form-coupon" id="woocommerce-checkout-form-coupon" method="post" aria-labelledby="artnovo-coupon-label">
-			<p class="form-row artnovo-order-field">
-				<label id="artnovo-coupon-label" for="coupon_code">کد تخفیف (اختیاری)</label>
-				<input type="text" name="coupon_code" class="input-text" id="coupon_code" dir="ltr" autocomplete="off">
-			</p>
-			<button type="submit" class="button artnovo-coupon-apply" name="apply_coupon">اعمال کد تخفیف</button>
+			<label id="artnovo-coupon-label" for="coupon_code">کد تخفیف (اختیاری)</label>
+			<div class="artnovo-coupon-row">
+				<p class="form-row artnovo-order-field"><input type="text" name="coupon_code" class="input-text" id="coupon_code" dir="ltr" autocomplete="off"></p>
+				<button type="submit" class="button artnovo-coupon-apply" name="apply_coupon">اعمال کد</button>
+			</div>
 		</form>
 	</section>
 	<?php
@@ -137,7 +137,7 @@ function checkout_account_hint(): void {
 }
 
 function checkout_payment_heading(): void {
-	echo '<h3 class="artnovo-payment-heading">روش پرداخت</h3>';
+	echo '<h3 class="artnovo-payment-heading">روش پرداخت را انتخاب کنید</h3>';
 }
 
 function render_order( ?\WC_Product $plan ): string {

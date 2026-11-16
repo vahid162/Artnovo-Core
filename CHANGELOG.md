@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 1.5.0 — 2026-11-16
+
+- Present transient customer notices as safe bottom-left five-second toasts with
+  dismiss/countdown and reading pauses; retain native source nodes, field validation
+  and permanent states. Cover WooCommerce, Core, native Pinova and Bridge copy output
+  without changing another plugin or adding an authentication/notification engine.
+- Keep coupon input and secondary action in one row, tighten its label spacing,
+  separate signed-in guidance and clarify the payment-method heading.
+- Compact post-order completion into a purchase summary, persistent current state,
+  real next action and optional invoice details. Preserve receipt owner/key/nonce,
+  file policy, bank-transfer processing and private partial/complete delivery.
+- Keep manual copy usable when Clipboard fails, with matching visual/keyboard order.
+- Include the previously published 1.4.1 page-type routing regression fix.
+
 ## 1.4.1 — 2026-11-16
 
 - Restrict the retired purchase-page redirect and current wizard context to actual

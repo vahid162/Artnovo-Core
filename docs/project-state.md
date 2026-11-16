@@ -19,36 +19,36 @@ owner/order-key/nonces, private links, receipt policy and backend payment/issuan
 
 ## Installed baseline
 
-Core **1.4.0** is officially published and installed after PR10 merge
-`c2988d59b7085c544dbfef8e4d104a507a8de085`, tree
-`f6047eb9c3b2efc62c8123aa984e345c2c3304cf`. Main CI43925745160 and publication
-43925900948 passed. ZIP SHA256
-`5c99394c330ac2ffdc4428df290ead1d0143d30a8d1d530b95cf5753fc761064` matches all32
-live files; Bridge/Wallet/Pinova unchanged. Atomic recovery rehearsal and health
-checks passed; backup `/var/backups/artnovo-core/20261116T181215Z-tjuu2j0o`.
+Core **1.4.1** is officially released and installed after PR11 merge
+`eb9a9da0b76acc3f3a3c6322f01db2529896d894`, full tree
+`37f2cf98e5f3f531976a562d0ce27ecb2be4423e`. Main CI43937295695 and publication
+43937456955 passed. Official ZIP SHA256
+`b9954651c2488b36de64052695852cc4ded07409a572f3e0359b051d3cb2a2a3` matches all32
+live files. Recovery/health and unchanged Bridge/Wallet/Pinova manifests passed;
+backup `/var/backups/artnovo-core/20261116T191624Z-zu8s2dpn`. PR10's archive ID
+collision review is fixed/resolved. Page61/68 guards use qualified native is_page.
 
-Selected responsive account rows, right sidebar/mobile navigation, copy/local QR,
-optional email and real native orders/profile/Wallet handlers are delivered.
-Absent-Bridge signed-in fallback remains native Woo. Home/login/checkout/native
-catalog/legal/header/footer improvements retain navy/mint/Vazir and native data.
-Initial supported native operations were published after1.4.0 install. PR11's
-GitHub-first placeholder wrapper and currency-spacing refinements are now applied
-and verified; source references and display manifest are current.
+Selected My Accounts and global home/login/checkout/native catalog/legal/header/
+footer improvements remain delivered. All planned native1.4.0/1.4.1 refinements
+are published after the associated Core release/install and verified. Native source
+references and display manifest record the observed result, including left-aligned
+product prices with currency gap. No unrelated plugin source was edited.
 
 ## Current candidate and delivery gates
 
-PR11 `work/accounts-delivery-evidence` adds **1.4.1**: actual-page type checks for
-retired page61 and wizard68, correcting PR10 review4589577964 without changing
-checkout authorization. Regression reproduced before fix;14 bootstrap scenarios
-and72 native WP_Query type-collision cases now pass. Complete standalone/lint
-49/49 and synthetic real-stack7/7 (301 assertions) passed. Independent native
-WordPress behavior review found no blocker. GitHub CI, merge, official publication
-and exact ZIP install remain pending. Existing tags/assets stay immutable.
+**1.5.0** in `work/compact-receipt-notices` is based on current1.4.1 main. Adds shared
+customer toasts, compact post-order presentation and coupon/copy/spacing refinements.
+All existing guards and native integrations remain. Independent reviews found and
+fixed initial-notice announcement, copy-wrapper exclusion and hidden manual-copy
+field issues. Thirty isolated JS lifecycle/security assertions and five asset
+contracts pass. Final59/59 standalone/lint commands (all14 mandatory gates) and
+7/7 native integration commands (357 assertions) passed. Browser toast lifetime/progress, focused reading pause, multi-source coverage,
+manual dismiss, safe/native link actions and desktop/mobile placement passed.
+GitHub CI/merge/publication and exact installed asset remain delivery gates.
 
-The [1.4.1 native contract](site-design/artnovo/planned-1.4.1.json) proposes final
-product-detail price/currency alignment after patch release/install. It is not yet
-applied. Keep proposed and observed source separate until supported readback/QA.
-Update final delivery evidence after installation and resolve the exact PR10 thread.
+See [compact completion evidence](evidence/2026-11-16-compact-completion.md) for the
+current scope, actual tests and limits. Avoid financial/provider tests unless needed
+for a new financial concern; this is presentation work with preserved backend APIs.
 
 ## Evidence and limits
 

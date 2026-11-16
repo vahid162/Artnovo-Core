@@ -212,10 +212,13 @@ function render_received_page(): void {
 	$delivery = received_services( $order );
 	$billing_email = $order->get_billing_email();
 	$state = received_state( $order, $delivery );
+	$can_upload = received_receipt_can_upload( $order );
+	$has_receipt = received_receipt_exists( $order );
+	$has_services = $order->is_paid() && '' !== $delivery['html'];
 	$refresh = add_query_arg( 'artnovo_status', wp_generate_uuid4(), received_order_url( $order ) ) . '#artnovo-received-status';
 	$support = add_query_arg( 'order', $order->get_id(), account_url( 'support' ) );
 	$primary = match ( $state['state'] ) {
-		'pending' => received_receipt_can_upload( $order ) ? [ '#artnovo-received-receipt', 'ارسال رسید پرداخت' ] : [ $refresh, 'به‌روزرسانی وضعیت' ],
+		'pending' => $can_upload ? [ '#artnovo-received-receipt', 'ارسال رسید پرداخت' ] : [ $refresh, 'به‌روزرسانی وضعیت' ],
 		'receipt', 'issuing' => [ $refresh, 'به‌روزرسانی وضعیت' ],
 		'ready' => [ '#artnovo-received-services', 'دریافت لینک اتصال' ],
 		'failed' => $order->needs_payment() && 'wpvpn_wallet' !== $order->get_payment_method()
@@ -224,57 +227,62 @@ function render_received_page(): void {
 	};
 	?>
 	<main id="content" class="artnovo-account artnovo-received" dir="rtl" data-state="<?php echo esc_attr( $state['state'] ); ?>">
-		<header class="artnovo-received-header" id="artnovo-received-status">
-			<p class="artnovo-account-muted">پیگیری خرید و دریافت اشتراک</p>
-			<div class="artnovo-received-status" data-state="<?php echo esc_attr( $state['state'] ); ?>"><h1><?php echo esc_html( $state['title'] ); ?></h1><p><?php echo esc_html( $state['message'] ); ?></p></div>
+		<header class="artnovo-received-header">
+			<p class="artnovo-account-muted">خرید <bdi><?php echo esc_html( $order->get_order_number() ); ?></bdi></p>
+			<a href="<?php echo esc_url( account_url() ); ?>">اکانت‌های من</a>
 		</header>
-		<ol class="artnovo-received-progress" aria-label="وضعیت خرید">
-			<?php foreach ( [ 1 => 'ثبت خرید', 2 => 'تأیید پرداخت', 3 => 'آماده‌سازی', 4 => 'دریافت اشتراک' ] as $number => $label ) : ?>
-				<li <?php if ( $number < $state['step'] || 'ready' === $state['state'] ) : ?>data-complete="true"<?php endif; ?> <?php if ( $number === $state['step'] ) : ?>aria-current="step"<?php endif; ?>><?php echo esc_html( $label ); ?></li>
-			<?php endforeach; ?>
-		</ol>
-		<?php wc_print_notices(); ?>
+		<section class="artnovo-received-summary" aria-label="خلاصهٔ خرید">
+			<div class="artnovo-received-plans"><?php foreach ( $order->get_items() as $item ) : ?>
+				<p><strong><?php echo esc_html( $item->get_name() ); ?></strong><span><?php echo esc_html( 'تعداد ' . number_format_i18n( $item->get_quantity() ) ); ?></span></p>
+			<?php endforeach; ?></div>
+			<div class="artnovo-received-total"><span>مبلغ خرید</span><strong class="artnovo-received-amount"><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></strong></div>
+		</section>
 		<div class="artnovo-received-layout">
 			<div class="artnovo-received-main">
-				<section class="artnovo-account-card">
-					<h2>ادامهٔ این خرید</h2>
-					<div class="artnovo-account-actions">
-						<a class="artnovo-account-button" href="<?php echo esc_url( $primary[0] ); ?>"><?php echo esc_html( $primary[1] ); ?></a>
-						<a class="artnovo-account-button artnovo-account-button-secondary" href="<?php echo esc_url( account_url() ); ?>">اشتراک‌های من</a>
-						<?php if ( $primary[0] !== $refresh ) : ?><a href="<?php echo esc_url( $refresh ); ?>">به‌روزرسانی وضعیت</a><?php endif; ?>
-						<?php if ( $primary[0] !== $support ) : ?><a href="<?php echo esc_url( $support ); ?>">پشتیبانی این خرید</a><?php endif; ?>
+				<section class="artnovo-account-card artnovo-received-focus">
+					<div class="artnovo-received-status" id="artnovo-received-status" data-state="<?php echo esc_attr( $state['state'] ); ?>">
+						<span class="artnovo-received-state-mark" aria-hidden="true"><?php echo 'ready' === $state['state'] ? '✓' : '•'; ?></span>
+						<div><h1><?php echo esc_html( $state['title'] ); ?></h1><p><?php echo esc_html( $state['message'] ); ?></p></div>
 					</div>
+					<ol class="artnovo-received-progress" aria-label="وضعیت خرید">
+						<?php foreach ( [ 1 => 'ثبت خرید', 2 => 'تأیید پرداخت', 3 => 'آماده‌سازی', 4 => 'دریافت اکانت' ] as $number => $label ) : ?>
+							<li <?php if ( $number < $state['step'] || 'ready' === $state['state'] ) : ?>data-complete="true"<?php endif; ?> <?php if ( $number === $state['step'] ) : ?>aria-current="step"<?php endif; ?>><?php echo esc_html( $label ); ?></li>
+						<?php endforeach; ?>
+					</ol>
+					<?php wc_print_notices(); ?>
+					<?php if ( ! ( 'pending' === $state['state'] && $can_upload ) && ! ( 'ready' === $state['state'] && $has_services ) ) : ?>
+						<div class="artnovo-received-primary"><a class="artnovo-account-button" data-artnovo-received-primary href="<?php echo esc_url( $primary[0] ); ?>"><?php echo esc_html( $primary[1] ); ?></a></div>
+					<?php endif; ?>
+					<?php if ( 'pending' === $state['state'] && $can_upload ) : ?>
+						<div class="artnovo-received-payment">
+							<?php if ( 'bacs' === $order->get_payment_method() ) : ?>
+								<section class="artnovo-received-bank" aria-label="اطلاعات واریز"><?php
+								$gateways = WC()->payment_gateways()->payment_gateways();
+								if ( isset( $gateways['bacs'] ) ) { $gateways['bacs']->thankyou_page( $order->get_id() ); }
+								?></section>
+							<?php endif; ?>
+							<?php render_received_receipt( $order ); ?>
+						</div>
+					<?php endif; ?>
+					<?php if ( $has_services ) : ?>
+						<section id="artnovo-received-services" class="artnovo-received-services" aria-label="اکانت‌های این خرید"><?php echo $delivery['html']; ?></section>
+					<?php endif; ?>
 				</section>
-				<?php if ( 'pending' === $state['state'] && 'bacs' === $order->get_payment_method() && received_receipt_can_upload( $order ) ) : ?>
-					<section class="artnovo-account-card artnovo-received-bank"><h2>اطلاعات واریز</h2><?php
-					$gateways = WC()->payment_gateways()->payment_gateways();
-					if ( isset( $gateways['bacs'] ) ) {
-						$gateways['bacs']->thankyou_page( $order->get_id() );
-					}
-					?></section>
-				<?php endif; ?>
-				<?php if ( in_array( $state['state'], [ 'pending', 'receipt' ], true ) || received_receipt_exists( $order ) ) : ?>
-					<?php render_received_receipt( $order ); ?>
-				<?php endif; ?>
-				<?php if ( $order->is_paid() && $delivery['html'] ) : ?>
-					<section id="artnovo-received-services" class="artnovo-account-card"><?php echo $delivery['html']; ?>
-						<p><a href="<?php echo esc_url( account_url( 'help' ) ); ?>">راهنمای اتصال</a></p>
-					</section>
-				<?php endif; ?>
-				<details class="artnovo-account-card artnovo-received-details woocommerce"><summary>جزئیات خرید و پرداخت</summary><?php received_integrations( $order ); ?></details>
-			</div>
-			<aside class="artnovo-account-card artnovo-received-summary" aria-labelledby="artnovo-received-summary-heading">
-				<h2 id="artnovo-received-summary-heading">خلاصهٔ خرید</h2>
-				<?php foreach ( $order->get_items() as $item ) : ?>
-					<p><strong><?php echo esc_html( $item->get_name() ); ?></strong><br><span class="artnovo-account-muted"><?php echo esc_html( 'تعداد ' . number_format_i18n( $item->get_quantity() ) ); ?></span></p>
-				<?php endforeach; ?>
-				<dl><dt>شمارهٔ پیگیری</dt><dd><?php echo esc_html( $order->get_order_number() ); ?></dd>
-					<dt>مبلغ خرید</dt><dd class="artnovo-received-amount"><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></dd>
+				<nav class="artnovo-received-links" aria-label="پیگیری و راهنمای خرید">
+					<?php if ( $primary[0] !== $refresh ) : ?><a href="<?php echo esc_url( $refresh ); ?>">به‌روزرسانی وضعیت</a><?php endif; ?>
+					<a href="<?php echo esc_url( account_url( 'help' ) ); ?>">راهنمای اتصال</a>
+					<?php if ( $primary[0] !== $support ) : ?><a href="<?php echo esc_url( $support ); ?>">پشتیبانی این خرید</a><?php endif; ?>
+				</nav>
+				<details class="artnovo-received-details woocommerce"><summary>جزئیات خرید و فاکتور</summary>
+					<dl><dt>شمارهٔ پیگیری</dt><dd><bdi><?php echo esc_html( $order->get_order_number() ); ?></bdi></dd>
+						<dt>روش پرداخت</dt><dd><?php echo esc_html( $order->get_payment_method_title() ); ?></dd>
 						<?php if ( is_email( $billing_email ) ) : ?><dt>ایمیل خرید</dt><dd dir="ltr"><?php echo esc_html( $billing_email ); ?></dd><?php endif; ?>
-					<dt>روش پرداخت</dt><dd><?php echo esc_html( $order->get_payment_method_title() ); ?></dd>
-					<?php if ( $order->get_date_created() ) : ?><dt>تاریخ خرید</dt><dd><?php echo esc_html( wc_format_datetime( $order->get_date_created() ) ); ?></dd><?php endif; ?>
-				</dl>
-			</aside>
+						<?php if ( $order->get_date_created() ) : ?><dt>تاریخ خرید</dt><dd><?php echo esc_html( wc_format_datetime( $order->get_date_created() ) ); ?></dd><?php endif; ?>
+					</dl>
+					<?php if ( $has_receipt && 'pending' !== $state['state'] ) : ?><?php render_received_receipt( $order ); ?><?php endif; ?>
+					<?php received_integrations( $order ); ?>
+				</details>
+			</div>
 		</div>
 	</main>
 	<?php

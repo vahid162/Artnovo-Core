@@ -3,6 +3,12 @@ require_once dirname( __DIR__ ) . '/fixture-paths.php';
 artnovo_fixture_boot_core();
 require __DIR__ . '/qa-bootstrap.php';
 
+// Preview bank details are synthetic; the real gateway renderer is retained.
+add_filter( 'woocommerce_bacs_accounts', static fn() => [ [
+	'account_name' => 'حساب آزمایشی رابط', 'account_number' => '0000000000000000',
+	'bank_name' => 'بانک آزمایشی', 'sort_code' => '', 'iban' => 'IR000000000000000000000000', 'bic' => '',
+] ] );
+
 $failures = 0;
 $check = static function ( string $case, bool $passed ) use ( &$failures ): void {
 	$failures += $passed ? 0 : 1;
@@ -25,6 +31,9 @@ $cases = [
 	'review' => [ 'processing', 'needs_review', false, 1, [] ],
 	'multi-ready' => [ 'processing', 'succeeded', false, 2, [ 'succeeded', 'succeeded' ] ],
 	'multi-partial' => [ 'processing', 'succeeded', false, 2, [ 'succeeded', 'pending' ] ],
+	'missing-service' => [ 'processing', null, false, 1, [] ],
+	'failed-service' => [ 'processing', 'failed', false, 1, [] ],
+	'ready-with-receipt' => [ 'processing', 'succeeded', true, 1, [] ],
 ];
 $id = 2147100010;
 $orders = [];
@@ -36,9 +45,9 @@ foreach ( $cases as $name => $config ) {
 	$check( $name . ' is private to the owner with matching key', $current instanceof WC_Order && $current->get_id() === $order->get_id() );
 	$delivery = \Artnovo\AccountUI\received_services( $current );
 	$state = \Artnovo\AccountUI\received_state( $current, $delivery );
-	$expected = match ( $name ) { 'multi-ready' => 'ready', 'multi-partial' => 'issuing', default => $name };
+	$expected = match ( $name ) { 'multi-ready', 'ready-with-receipt' => 'ready', 'multi-partial' => 'issuing', 'missing-service', 'failed-service' => 'review', default => $name };
 	$check( $name . ' displays ' . $expected, $state['state'] === $expected );
-	$expected_links = match ( $name ) { 'ready', 'multi-partial' => 1, 'multi-ready' => 2, default => 0 };
+	$expected_links = match ( $name ) { 'ready', 'multi-partial', 'ready-with-receipt' => 1, 'multi-ready' => 2, default => 0 };
 	$check( $name . ' has only authorized private service links', count( $delivery['links'] ) === $expected_links );
 }
 
@@ -93,7 +102,7 @@ $state = \Artnovo\AccountUI\received_state( $expired, $delivery );
 $check( 'expired issued subscription has no private link', [] === $delivery['links'] );
 $check( 'expired issued subscription is closed rather than preparing', 'closed' === $state['state'] );
 
-foreach ( [ 'pending', 'receipt', 'issuing', 'ready', 'failed', 'closed', 'review', 'multi-ready', 'multi-partial' ] as $name ) {
+foreach ( array_keys( $cases ) as $name ) {
 	$order = $orders[ $name ];
 	$set_route( $order );
 	ob_start();
@@ -101,6 +110,46 @@ foreach ( [ 'pending', 'receipt', 'issuing', 'ready', 'failed', 'closed', 'revie
 	$markup = ob_get_clean();
 	$check( $name . ' renders status and new layout', str_contains( $markup, 'artnovo-received-layout' ) && ! str_contains( $markup, 'Fatal error' ) );
 	$check( $name . ' avoids native cart interface', ! str_contains( $markup, 'woocommerce-cart-form' ) && ! str_contains( $markup, 'مشاهدهٔ سبد' ) );
+	$summary_position = strpos( $markup, 'class="artnovo-received-summary"' );
+	$status_position = strpos( $markup, 'id="artnovo-received-status"' );
+	$check( $name . ' puts its compact plan summary before the persistent state', false !== $summary_position
+		&& false !== $status_position && $summary_position < $status_position && str_contains( $markup, 'artnovo-received-total' ) );
+	$tags = new WP_HTML_Tag_Processor( $markup );
+	$invoice = $tags->next_tag( [ 'tag_name' => 'DETAILS', 'class_name' => 'artnovo-received-details' ] );
+	$check( $name . ' keeps its native invoice available in an initially closed disclosure', $invoice && null === $tags->get_attribute( 'open' ) );
+	$tags = new WP_HTML_Tag_Processor( $markup );
+	$primary = [];
+	while ( $tags->next_tag( 'A' ) ) {
+		if ( null !== $tags->get_attribute( 'data-artnovo-received-primary' ) ) { $primary[] = $tags->get_attribute( 'href' ); }
+	}
+	$expected_primary = in_array( $name, [ 'pending', 'ready', 'multi-ready', 'ready-with-receipt' ], true ) ? 0 : 1;
+	$check( $name . ' has one state action without a duplicate receipt or service CTA', $expected_primary === count( $primary ) );
+	if ( in_array( $name, [ 'receipt', 'issuing', 'multi-partial' ], true ) ) {
+		parse_str( wp_parse_url( $primary[0] ?? '', PHP_URL_QUERY ) ?: '', $refresh_query );
+		$check( $name . ' refresh retains the same private order key', ( $refresh_query['key'] ?? null ) === $order->get_order_key()
+			&& isset( $refresh_query['artnovo_status'] ) && str_contains( $primary[0], '#artnovo-received-status' ) );
+	}
+	if ( 'pending' === $name ) {
+		$tags = new WP_HTML_Tag_Processor( $markup );
+		$form = $tags->next_tag( [ 'tag_name' => 'FORM', 'class_name' => 'artnovo-received-receipt-form' ] );
+		$check( 'compact pending form retains the real private POST destination', $form
+			&& 'post' === $tags->get_attribute( 'method' ) && 'multipart/form-data' === $tags->get_attribute( 'enctype' )
+			&& \Artnovo\AccountUI\received_order_url( $order ) === $tags->get_attribute( 'action' ) );
+		$tags = new WP_HTML_Tag_Processor( $markup );
+		$fields = [];
+		$file = false;
+		while ( $tags->next_tag( 'INPUT' ) ) {
+			$field_name = $tags->get_attribute( 'name' );
+			if ( is_string( $field_name ) ) { $fields[ $field_name ] = $tags->get_attribute( 'value' ); }
+			if ( 'wpvpn_receipt' === $field_name ) {
+				$file = 'file' === $tags->get_attribute( 'type' ) && 'image/jpeg,image/png' === $tags->get_attribute( 'accept' )
+					&& true === $tags->get_attribute( 'required' );
+			}
+		}
+		$check( 'compact receipt preserves file policy and owner nonce', $file && '2097152' === ( $fields['MAX_FILE_SIZE'] ?? null )
+			&& '1' === ( $fields['artnovo_received_receipt'] ?? null )
+			&& wp_verify_nonce( $fields['artnovo_received_receipt_nonce'] ?? '', 'artnovo_received_receipt_' . $order->get_id() ) );
+	}
 	$base = artnovo_fixture_root() . '/modules/account/';
 	$account_css = file_get_contents( $base . 'artnovo-account.css' );
 	$account_js = file_get_contents( $base . 'artnovo-account.js' );

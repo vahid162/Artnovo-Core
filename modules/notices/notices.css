@@ -1,0 +1,41 @@
+/* Keep the original notice nodes and handlers; only transferred messages disappear. */
+[data-artnovo-toast-source="1"] { display: none !important; }
+:is(.woocommerce, .woocommerce-page) :is(.woocommerce-info, .woocommerce-message, .woocommerce-error, .wc-block-components-notice-banner) {
+	padding: 1rem; border: 0; border-radius: 12px; background: #152735;
+	color: #bdd1d0; box-shadow: none; font-family: Vazir, Tahoma, sans-serif;
+}
+:is(.woocommerce, .woocommerce-page) :is(.woocommerce-info, .woocommerce-message, .woocommerce-error)::before { display: none; }
+:is(.woocommerce, .woocommerce-page) .checkout-inline-error-message { color: #ffb3be; font: inherit; font-size: .8125rem; }
+.artnovo-toasts {
+	position: fixed; left: 20px; bottom: 20px; z-index: 100000;
+	display: grid; gap: 10px; width: min(360px, calc(100% - 28px));
+	max-height: calc(100dvh - 40px); overflow-y: auto;
+	font-family: Vazir, Tahoma, sans-serif; direction: rtl; pointer-events: none;
+}
+.artnovo-toast {
+	--notice-accent: #46d7a6;
+	box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) 44px;
+	gap: 8px; min-width: 0; padding: 12px 12px 0; border: 0; border-radius: 16px;
+	background: #152735; color: #f0f9f7; box-shadow: 0 12px 36px #0005;
+	font-size: 13px; line-height: 1.9; text-align: start; pointer-events: auto;
+}
+.artnovo-toast[data-kind="error"] { --notice-accent: #ffb3be; }
+.artnovo-toast-body { min-width: 0; align-self: center; overflow-wrap: anywhere; }
+.artnovo-toast-body :is(p, ul, ol) { margin: 0; color: inherit; }
+.artnovo-toast-body :is(ul, ol) { padding-inline-start: 18px; }
+.artnovo-toast-body a { display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; color: #9adaf0; text-underline-offset: 3px; }
+.artnovo-toast button.artnovo-toast-close {
+	display: inline-grid; place-items: center; align-self: start;
+	width: 44px; min-width: 44px; height: 44px; min-height: 44px; margin: 0; padding: 0;
+	border: 0; border-radius: 10px; background: transparent; color: #bdd1d0;
+	font: inherit; font-size: 24px; line-height: 1; box-shadow: none; cursor: pointer;
+}
+.artnovo-toast button.artnovo-toast-close:hover { background: #203c49; color: #f0f9f7; }
+.artnovo-toast :is(button.artnovo-toast-close, a):focus-visible { outline: 0; box-shadow: 0 0 0 2px #9adaf099, 0 0 20px #46d7a63d; }
+.artnovo-toast-progress { grid-column: 1 / -1; height: 3px; margin-top: 4px; overflow: hidden; border-radius: 3px; background: #223a48; }
+.artnovo-toast-progress::before { content: ""; display: block; height: 100%; background: var(--notice-accent); transform-origin: left; animation: artnovo-toast-countdown 5s linear forwards; }
+.artnovo-toast[data-paused="1"] .artnovo-toast-progress::before { animation-play-state: paused; }
+.artnovo-toast-announcer { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@keyframes artnovo-toast-countdown { to { transform: scaleX(0); } }
+@media (max-width: 479px) { .artnovo-toasts { left: 14px; bottom: 14px; } }
+@media (prefers-reduced-motion: reduce) { .artnovo-toast-progress::before { animation: none; } }

@@ -4,6 +4,13 @@ The site-specific WordPress plugin for ArtNovo. It combines the purchase wizard,
 hidden-cart checkout, sign-in presentation, customer panel, order confirmation,
 receipt form, header behavior and default sender in one package.
 
+Customer-facing transient notices share a bottom-left five-second toast with a
+close control and countdown. Hover/focus and a hidden tab pause its reading time.
+Native validation nodes and handlers remain in place; order/payment state, field
+errors and permanent guidance remain accessible in their local context. The
+post-order service screen keeps the private native URL, receipt and delivery APIs
+inside a compact layout; no payment or issuance is moved into Core.
+
 ## Requirements
 
 - WordPress 7.0+, PHP 8.5.x and WooCommerce 11.2.1+.
@@ -73,7 +80,7 @@ This never deletes an existing order, a submitted wallet attempt or payment evid
 
 ## Install and update
 
-After release approval, install the verified `artnovo-core-1.4.1.zip` package from
+After release approval, install the verified `artnovo-core-1.5.0.zip` package from
 the published release. The command below builds a local candidate; a successful
 build alone does not authorize installation. The package contains an
 `artnovo-core/` plugin directory; GitHub's automatic source archives contain the
