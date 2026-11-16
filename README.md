@@ -120,6 +120,7 @@ python3 tests/governance.py
 php tests/bootstrap.php
 php tests/checkout-context.php
 node tests/compact-auth.js
+node tests/compact-checkout.js
 php tests/independence.php
 php tests/migration.php
 python3 tests/release.py

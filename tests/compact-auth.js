@@ -13,6 +13,7 @@ async function testCompactAuth(source, assert) {
 			setAttribute(name, value) { this.attributes[name] = value; }
 			removeAttribute(name) { delete this.attributes[name]; }
 			focus() { this.focused = true; }
+			set innerHTML(value) { throw new Error('HTML must never be inserted into the live DOM'); }
 		}
 		const names = ['artnovo_auth_identifier', 'artnovo_auth_proof', 'artnovo_product', 'artnovo_quantity', 'artnovo_selection_revision', 'artnovo_wizard_nonce', 'artnovo_login_method'];
 		const controls = Object.fromEntries(names.map((name) => [name, new Control()]));
@@ -40,11 +41,26 @@ async function testCompactAuth(source, assert) {
 		form.querySelector = (selector) => selector === 'button[type="submit"]' ? nodes.submit : nodes[selector.slice('[data-artnovo-auth-'.length, -1)];
 		form.querySelectorAll = () => [controls.artnovo_selection_revision];
 		form.closest = () => form;
-		const document = { querySelectorAll: () => [form], dispatchEvent: (event) => busy.push(event.detail.pending) };
-		const requests = [], responses = [], redirects = [], busy = [], windowEvents = {};
+		const requests = [], responses = [], redirects = [], busy = [], windowEvents = {}, templates = [], timers = new Map();
+		const document = {
+			querySelectorAll: () => [form], dispatchEvent: (event) => busy.push(event.detail.pending),
+			createElement: (tag) => {
+				if (tag !== 'template') throw new Error('Only inert templates may parse provider messages');
+				let markup = '';
+				return {
+					set innerHTML(value) { markup = value; templates.push(value); },
+					content: {
+						querySelectorAll: () => [...markup.matchAll(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi)].map(([match]) => ({ remove: () => { markup = markup.replace(match, ''); } })),
+						get textContent() { return markup.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '\u00a0').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'); }
+					}
+				};
+			}
+		};
 		const window = {
 			location: { href: 'https://example.test/?artnovo_plan=26#artnovo-order', origin: 'https://example.test', replace: (url) => redirects.push(url) },
-			setTimeout: () => 1, clearTimeout: () => {}, addEventListener: (name, callback) => { windowEvents[name] = callback; }
+			setTimeout: (callback, delay) => { const id = ++window.nextTimer; timers.set(id, { callback, delay }); return id; },
+			clearTimeout: (id) => timers.delete(id), nextTimer: 0,
+			addEventListener: (name, callback) => { windowEvents[name] = callback; }
 		};
 		class FormData {
 			constructor() { this.values = new Map(Object.entries(controls).filter(([, field]) => !field.disabled).map(([name, field]) => [name, field.value])); }
@@ -53,15 +69,28 @@ async function testCompactAuth(source, assert) {
 			entries() { return this.values.entries(); }
 		}
 		const fetch = async (url, request) => {
-			requests.push({ url, body: Object.fromEntries(request.body.entries()), headers: request.headers });
+			requests.push({ url, body: Object.fromEntries(request.body.entries()), headers: request.headers, signal: request.signal });
 			if (!responses.length) throw new Error('Unexpected request');
 			const response = responses.shift();
-			return response instanceof Promise ? response : { json: async () => response };
+			let abort;
+			try {
+				return await Promise.race([
+					response instanceof Promise ? response : { json: async () => response },
+					new Promise((resolve, reject) => {
+						abort = () => { const error = new Error('Request aborted'); error.name = 'AbortError'; reject(error); };
+						request.signal?.addEventListener('abort', abort, { once: true });
+					})
+				]);
+			} finally { request.signal?.removeEventListener('abort', abort); }
 		};
 		class CustomEvent { constructor(name, detail) { this.name = name; Object.assign(this, detail); } }
 		new Function('document', 'window', 'fetch', 'FormData', 'CustomEvent', source)(document, window, fetch, FormData, CustomEvent);
 		const submit = async () => { form.listeners.submit({ preventDefault() {} }); await settle(); };
-		return { form, controls, nodes, requests, responses, redirects, busy, submit, windowEvents };
+		const expire = async () => {
+			for (const [id, item] of timers) if (item.delay === 25000) { timers.delete(id); item.callback(); }
+			await settle();
+		};
+		return { form, controls, nodes, requests, responses, redirects, busy, submit, windowEvents, expire, templates };
 	}
 
 	const email = fixture({ identifier: 'new@example.test' });
@@ -80,7 +109,7 @@ async function testCompactAuth(source, assert) {
 	mobile.responses.push(prepared, { success: true, data: { login_method: 'otp', jwt: 'test-native-challenge', ttl: 120 } });
 	await mobile.submit();
 	check(mobile.requests.length === 2 && mobile.requests[0].body.artnovo_login_method === 'pinova' && mobile.requests[0].body.artnovo_wizard_nonce === 'existing-wizard-nonce', 'native authentication first preserves the nonce-protected selection');
-	check(mobile.requests[1].body.identifier === '09120000000' && mobile.requests[1].body.force_otp === '1' && mobile.requests[1].headers['X-WP-Nonce'] === 'native-rest-nonce', 'mobile uses native Pinova forced OTP with a REST nonce');
+	check(mobile.requests[1].body.identifier === '09120000000' && !('force_otp' in mobile.requests[1].body) && mobile.requests[1].headers['X-WP-Nonce'] === 'native-rest-nonce', 'mobile lets native Pinova select the authentication method and keeps its REST nonce');
 	check(!mobile.redirects.length && mobile.controls.artnovo_auth_proof.maxLength === 4, 'prepare does not redirect to the full native login page');
 	mobile.controls.artnovo_quantity.value = '2';
 	mobile.controls.artnovo_auth_proof.value = '۱۲۳۴';
@@ -100,6 +129,17 @@ async function testCompactAuth(source, assert) {
 	check(username.nodes.message.textContent === 'provider rejection' && !username.redirects.length && username.controls.artnovo_auth_proof.value === '' && !username.nodes.submit.disabled, 'native failure is inline, clears proof and allows a retry');
 	username.nodes.edit.listeners.click();
 	check(username.controls.artnovo_auth_proof.disabled && !username.controls.artnovo_auth_identifier.readOnly, 'editing discards proof state without changing the selected plan');
+
+	const numericUsername = fixture({ identifier: '1234' });
+	numericUsername.responses.push(prepared, { success: true, data: { login_method: 'password' } });
+	await numericUsername.submit();
+	check(numericUsername.requests[1].body.identifier === '1234' && !('force_otp' in numericUsername.requests[1].body) && numericUsername.controls.artnovo_auth_proof.type === 'password', 'a numeric username remains eligible for native password login');
+
+	const providerMarkup = fixture({ identifier: '09120000000' });
+	providerMarkup.responses.push(prepared, { success: true, message: 'کد به <span dir="ltr">09120000000</span> ارسال شد.<img src="https://malicious.test/pixel" onerror="bad()"><script>bad()</script><style>bad{}</style>', data: { login_method: 'otp', jwt: 'test-native-challenge', ttl: 120 } });
+	await providerMarkup.submit();
+	check(providerMarkup.nodes.message.textContent === 'کد به 09120000000 ارسال شد.' && providerMarkup.templates.some((html) => html.includes('<span')), 'provider markup is parsed in an inert template and only its message text reaches the live status');
+	check(!providerMarkup.nodes.message.textContent.includes('bad') && !providerMarkup.nodes.message.textContent.includes('<'), 'scripts, style contents and active markup never enter the displayed provider message');
 
 	const stale = fixture({ identifier: 'returning_user' });
 	stale.responses.push({ success: false, data: { refresh_required: true, redirect: 'https://malicious.test/steal' } });
@@ -127,6 +167,25 @@ async function testCompactAuth(source, assert) {
 	release({ json: async () => prepared });
 	await settle();
 	check(pending.form.dataset.artnovoAuthPending === '0' && pending.nodes.message.textContent === 'provider unavailable', 'a provider failure releases the interface while retaining the selected purchase');
+
+	const coreTimeout = fixture({ identifier: 'new@example.test' });
+	coreTimeout.responses.push(new Promise(() => {}));
+	await coreTimeout.submit();
+	await coreTimeout.expire();
+	check(coreTimeout.requests.length === 1 && coreTimeout.requests[0].signal?.aborted && coreTimeout.redirects.length === 1 && new URL(coreTimeout.redirects[0]).searchParams.has('artnovo_refresh'), 'Core timeout aborts the pending POST and recovers with one safe GET, without replay');
+	await coreTimeout.submit();
+	check(coreTimeout.requests.length === 1, 'a timed-out Core request is never resubmitted while the fresh GET starts');
+
+	const nativeTimeout = fixture({ identifier: 'returning_user' });
+	nativeTimeout.responses.push(prepared, new Promise(() => {}));
+	await nativeTimeout.submit();
+	await nativeTimeout.expire();
+	check(nativeTimeout.requests.length === 2 && nativeTimeout.requests[1].signal?.aborted && nativeTimeout.redirects.length === 1, 'native authentication shares the same abort deadline and fresh GET recovery');
+
+	const brokenNetwork = fixture({ identifier: 'returning_user' });
+	brokenNetwork.responses.push(Promise.reject(new TypeError('Network unavailable')));
+	await brokenNetwork.submit();
+	check(brokenNetwork.form.dataset.artnovoAuthPending === '0' && !brokenNetwork.nodes.submit.disabled && !brokenNetwork.redirects.length, 'a rejected network request releases pending state and leaves an explicit retry available');
 	return assertions;
 }
 

@@ -474,7 +474,14 @@
 	align-items: baseline;
 	justify-content: space-between;
 	gap: .25rem .75rem;
+	min-inline-size: 0;
 	font-size: .8125rem;
+}
+
+[data-artnovo-wizard] .artnovo-order-adjustments > div > span {
+	min-inline-size: 0;
+	max-inline-size: 100%;
+	overflow-wrap: anywhere;
 }
 
 [data-artnovo-wizard] .artnovo-order-adjustments {
@@ -691,8 +698,7 @@
 }
 
 /* Native fragments stay in the DOM for checkout quantity checks and financial hooks. */
-[data-artnovo-wizard] .artnovo-order-native :is(#order_review_heading, .woocommerce-billing-fields > h3),
-[data-artnovo-wizard] .artnovo-order[data-artnovo-summary-ready] .woocommerce-checkout-review-order-table {
+[data-artnovo-wizard] .artnovo-order-native :is(#order_review_heading, .woocommerce-billing-fields > h3) {
 	position: absolute;
 	inline-size: 1px;
 	block-size: 1px;
@@ -702,6 +708,10 @@
 	overflow: hidden;
 	clip-path: inset(50%);
 	white-space: nowrap;
+}
+
+[data-artnovo-wizard] .artnovo-order[data-artnovo-summary-ready] .woocommerce-checkout-review-order-table {
+	display: none;
 }
 
 [data-artnovo-wizard] .artnovo-order-native .woocommerce :is(.col2-set, #customer_details, #order_review, .col2-set > .col-1, .col2-set > .col-2) {

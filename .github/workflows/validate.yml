@@ -33,6 +33,7 @@ jobs:
           node --check modules/auth/compact-purchase.js
           node --check modules/home/artnovo-home-wizard.js
           node tests/compact-auth.js
+          node tests/compact-checkout.js
           php tests/checkout-context.php
           php tests/independence.php
           php tests/migration.php

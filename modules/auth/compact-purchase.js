@@ -1,6 +1,6 @@
 (() => {
 	'use strict';
-	if (typeof fetch !== 'function' || typeof FormData !== 'function') return;
+	if (typeof fetch !== 'function' || typeof FormData !== 'function' || typeof AbortController !== 'function') return;
 	const digits = (value) => value.replace(/[۰-۹٠-٩]/g, (digit) => String(digit.charCodeAt(0) % 16));
 	const number = new Intl.NumberFormat('fa-IR');
 	document.querySelectorAll('.artnovo-compact-auth').forEach((form) => {
@@ -28,7 +28,10 @@
 		const available = () => form.dataset.artnovoAuthAvailable !== '0';
 		const identity = () => ['artnovo_product', 'artnovo_quantity'].map((name) => form.elements.namedItem(name)?.value).join(':');
 		const show = (text, error = false) => {
-			message.textContent = text || '';
+			const template = document.createElement('template');
+			template.innerHTML = String(text || '');
+			template.content.querySelectorAll('script, style').forEach((node) => node.remove());
+			message.textContent = template.content.textContent.trim();
 			message.dataset.error = error ? '1' : '0';
 			identifier.setAttribute('aria-invalid', error && !method ? 'true' : 'false');
 			proof.setAttribute('aria-invalid', error && method ? 'true' : 'false');
@@ -90,6 +93,21 @@
 			updateRevision(data.selection_revision);
 			return result;
 		};
+		const request = async (url, options) => {
+			const controller = new AbortController();
+			let timedOut = false;
+			const deadline = window.setTimeout(() => { timedOut = true; controller.abort(); }, 25000);
+			try {
+				return await parse(await fetch(url, { ...options, signal: controller.signal }));
+			} catch (error) {
+				if (!timedOut) throw error;
+				// The server may have completed the POST; recover from its state instead of replaying it.
+				challengeJwt = '';
+				proof.value = '';
+				refresh();
+				return null;
+			} finally { window.clearTimeout(deadline); }
+		};
 		const core = async (action = '', code = '') => {
 			const payload = new FormData(form);
 			payload.delete('artnovo_auth_identifier');
@@ -101,16 +119,16 @@
 				payload.set('artnovo_email', identifier.value.trim());
 				if (code) payload.set('artnovo_otp_code', code);
 			}
-			return parse(await fetch(form.action, { method: 'POST', credentials: 'same-origin', body: payload }));
+			return request(form.action, { method: 'POST', credentials: 'same-origin', body: payload });
 		};
 		const native = async (url, payload) => {
 			const endpoint = safeUrl(url, url);
 			if (!endpoint) throw new Error('مسیر ورود در دسترس نیست. دوباره تلاش کنید.');
-			return parse(await fetch(endpoint.href, {
+			return request(endpoint.href, {
 				method: 'POST', credentials: 'same-origin',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', 'X-WP-Nonce': config.restNonce },
 				body: new URLSearchParams(payload)
-			}));
+			});
 		};
 		const prepare = async () => {
 			if (preparedIdentity === identity()) return true;
@@ -160,7 +178,6 @@
 			}
 			if (!await prepare()) return;
 			const payload = { identifier: identifier.value };
-			if (/^\+?[\d\s()-]+$/.test(identifier.value)) payload.force_otp = '1';
 			const response = await native(config.authenticateUrl, payload);
 			if (!response) return;
 			const data = response.data;
