@@ -57,6 +57,7 @@ function esc_html( $value ): string { return htmlspecialchars( $value, ENT_QUOTE
 function wp_normalize_path( string $path ): string { return str_replace( '\\', '/', $path ); }
 function has_term( ...$args ): bool { return $GLOBALS['legacy_route']['is_plan'] ?? false; }
 function get_queried_object_id(): int { return $GLOBALS['legacy_route']['page'] ?? 0; }
+function is_page( int $id ): bool { return ( $GLOBALS['legacy_route']['is_page'] ?? false ) && $id === get_queried_object_id(); }
 function is_admin(): bool { return $GLOBALS['legacy_route']['admin'] ?? false; }
 function wp_doing_ajax(): bool { return $GLOBALS['legacy_route']['ajax'] ?? false; }
 function is_preview(): bool { return $GLOBALS['legacy_route']['preview'] ?? false; }
@@ -65,6 +66,10 @@ function post_password_required( $id ): bool { return $GLOBALS['legacy_route']['
 function home_url( string $path ): string { return 'https://example.invalid' . $path; }
 function add_query_arg( array $query, string $url ): string { return $url . '?' . http_build_query( $query ); }
 function wc_get_product( $id ): WC_Product|false { return 25 === $id ? new WC_Product( true ) : false; }
+function is_user_logged_in(): bool { return true; }
+function plugins_url( string $path, string $file ): string { return 'https://example.invalid/plugins/' . $path; }
+function wp_enqueue_script( string $handle, ...$args ): void { $GLOBALS['route_scripts'][] = $handle; }
+function wp_enqueue_style( string $handle, ...$args ): void { $GLOBALS['route_styles'][] = $handle; }
 class LegacyWorkflowRedirect extends RuntimeException {
 	public function __construct( public string $destination, public int $status ) {}
 }
@@ -120,7 +125,7 @@ if ( in_array( $case, [ 'legacy-mail', 'restored-mail', 'retired-loaded-mail' ],
 $entry = dirname( __DIR__ ) . '/artnovo-core.php';
 check( is_file( $entry ), 'Core entrypoint must exist' );
 require $entry;
-check( '1.4.0' === Artnovo\Core\VERSION, 'release version' );
+check( '1.4.1' === Artnovo\Core\VERSION, 'release version' );
 check( count( $hooks['plugins_loaded'][30] ?? [] ) === 1, 'one dependency-ready loader at priority 30' );
 check( count( $hooks['wp_mail_from'][10] ?? [] ) === 1, 'exactly one early sender filter' );
 check( 'orders@artnovo.ir' === mail_sender( 'wordpress@artnovo.ir' ), 'default sender retained' );
@@ -160,6 +165,39 @@ if ( $expected ) {
 		$redirects = array_values( array_filter( $hooks['template_redirect'][2] ?? [],
 			static fn( $callback ) => 'artnovo-home-order-ui.php' === basename( ( new ReflectionFunction( $callback ) )->getFileName() ) ) );
 		check( 1 === count( $redirects ), 'one legacy purchase redirect is registered' );
+		$home_callbacks = static function ( string $hook, string $file ): array {
+			return array_values( array_filter( $GLOBALS['hooks'][ $hook ][10] ?? [],
+				static fn( $callback ) => $file === basename( ( new ReflectionFunction( $callback ) )->getFileName() ) ) );
+		};
+		foreach ( [ 61, 68 ] as $id ) {
+			foreach ( [ 'category', 'tag', 'product taxonomy', 'author', 'custom post type' ] as $type ) {
+				$legacy_route = [ 'page' => $id, 'is_page' => false, 'type' => $type, 'method' => 'GET' ];
+				$_SERVER['REQUEST_METHOD'] = 'GET';
+				$_GET = [];
+				$actual = null;
+				try { $redirects[0](); } catch ( LegacyWorkflowRedirect $redirect ) { $actual = $redirect->destination; }
+				check( null === $actual, "$type ID $id is not redirected as a purchase page" );
+				check( ! Artnovo\HomeOrderUI\on_workflow_page() && ! Artnovo\HomeOrderUI\Wizard\is_page()
+					&& ! Artnovo\PlanCheckout\wizard_page(), "$type ID $id does not activate either purchase context" );
+				foreach ( [ 'artnovo-home-order-ui.php', 'artnovo-home-wizard.php' ] as $file ) {
+					$source = '<!--artnovo-home-order--><!--artnovo-wizard-progress-->';
+					foreach ( $home_callbacks( 'elementor/frontend/the_content', $file ) as $callback ) {
+						check( $source === $callback( $source ), "$type ID $id keeps $file content unchanged" );
+					}
+					$route_scripts = [];
+					$route_styles = [];
+					foreach ( $home_callbacks( 'wp_enqueue_scripts', $file ) as $callback ) { $callback(); }
+					check( [] === $route_scripts && [] === $route_styles, "$type ID $id enqueues no purchase assets from $file" );
+				}
+			}
+			$legacy_route = [ 'page' => $id, 'is_page' => true ];
+			check( ( 61 === $id ) === Artnovo\HomeOrderUI\on_workflow_page()
+				&& ( 68 === $id ) === Artnovo\HomeOrderUI\Wizard\is_page()
+				&& ( 68 === $id ) === Artnovo\PlanCheckout\wizard_page(), "actual page $id retains its purchase context" );
+			$route_scripts = [];
+			foreach ( $home_callbacks( 'wp_enqueue_scripts', 61 === $id ? 'artnovo-home-order-ui.php' : 'artnovo-home-wizard.php' ) as $callback ) { $callback(); }
+			check( [ 61 === $id ? 'artnovo-home-flow' : 'artnovo-home-wizard' ] === $route_scripts, "actual page $id retains its purchase script" );
+		}
 		$home = 'https://example.invalid/#artnovo-categories';
 		foreach ( [
 			[ 'legacy GET', [], [], $home ],
@@ -176,7 +214,7 @@ if ( $expected ) {
 			[ 'WordPress preview', [ 'preview' => true ], [], null ],
 			[ 'Elementor editor preview', [], [ 'elementor-preview' => '61' ], null ],
 		] as [ $name, $overrides, $query, $expected_url ] ) {
-			$legacy_route = array_replace( [ 'page' => 61, 'method' => 'GET', 'is_plan' => true ], $overrides );
+			$legacy_route = array_replace( [ 'page' => 61, 'is_page' => true, 'method' => 'GET', 'is_plan' => true ], $overrides );
 			$_SERVER['REQUEST_METHOD'] = $legacy_route['method'];
 			$_GET = $query;
 			$actual = null;

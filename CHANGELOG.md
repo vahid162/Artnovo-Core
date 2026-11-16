@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.4.1 — 2026-11-16
+
+- Restrict the retired purchase-page redirect and current wizard context to actual
+  WordPress pages, preserving unrelated term/author/post archives with matching IDs.
+- Exercise both page helpers and their render, asset and checkout-context callers
+  with type-collision regressions using native in-memory WordPress queries.
+
 ## 1.4.0 — 2026-11-16
 
 - Implement the selected My Accounts layout with responsive native subscription

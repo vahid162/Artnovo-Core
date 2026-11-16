@@ -133,7 +133,7 @@
     }
   ],
   "post_publication_refinements": {
-    "state": "proposed-before-live",
+    "state": "published-and-verified",
     "reason": "Actual WooCommerce product gallery marks its placeholder DIV; its IMG has wp-post-image, while catalog placeholders use woocommerce-placeholder. Plain formatted prices also need a currency separator.",
     "native": {
       "post_id": 35,
@@ -158,6 +158,13 @@
       "value": "right_space",
       "rollback": "right",
       "verify": "Only formatted symbol spacing changes. Preserve currency, product prices, order totals, owners and all plugin code."
+    },
+    "evidence": {
+      "proposal_pr": 11,
+      "proposal_commit": "66f1251415411f485e5e9bc78dfe16cb9f723c1e",
+      "product_undo_revision": 174,
+      "readback": "Supported structure read matches intended placeholder wrapper selector; currency option is right_space; price and currency unchanged.",
+      "browser": "Product placeholder height zero, grid width 1112/292 at 1206/320; no horizontal overflow."
     }
   }
 }

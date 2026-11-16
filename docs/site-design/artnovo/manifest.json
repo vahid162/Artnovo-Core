@@ -104,10 +104,10 @@
     },
     "product": {
       "file": "product.json",
-      "sha256": "791217cd3bc32e66516d092f9c04fa849b6e640c22eb3aac06f6f3c198f1bd64"
+      "sha256": "4d6dafa3bb288af9839881255ae54001630cf9c68fa6649b6d90687be59d82e8"
     }
   },
   "display_settings": {
-    "woocommerce_currency_pos": "right"
+    "woocommerce_currency_pos": "right_space"
   }
 }

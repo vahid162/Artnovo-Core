@@ -164,6 +164,79 @@ $original_get = $_GET;
 $GLOBALS['wp_query'] = new WP_Query();
 $_GET = [];
 try {
+	$route = static function ( string $type, int $id ): void {
+		$query = new WP_Query();
+		$query->queried_object_id = $id;
+		if ( in_array( $type, [ 'category', 'tag', 'product taxonomy' ], true ) ) {
+			$taxonomy = [ 'category' => 'category', 'tag' => 'post_tag', 'product taxonomy' => 'product_cat' ][ $type ];
+			$query->queried_object = new WP_Term( (object) [ 'term_id' => $id, 'term_taxonomy_id' => $id, 'taxonomy' => $taxonomy, 'name' => 'Memory fixture', 'slug' => 'memory-fixture' ] );
+			$query->is_archive = true;
+			$query->is_category = 'category' === $type;
+			$query->is_tag = 'tag' === $type;
+			$query->is_tax = 'product taxonomy' === $type;
+		} elseif ( 'author' === $type ) {
+			$query->queried_object = (object) [ 'ID' => $id, 'user_login' => 'memory-fixture' ];
+			$query->is_author = $query->is_archive = true;
+		} else {
+			$query->queried_object = new WP_Post( (object) [ 'ID' => $id, 'post_type' => 'page' === $type ? 'page' : 'artnovo_qa_record', 'post_title' => 'Memory fixture', 'post_name' => 'memory-fixture' ] );
+			$query->is_singular = true;
+			$query->is_page = 'page' === $type;
+		}
+		$GLOBALS['wp_query'] = $query;
+	};
+	$home_callbacks = static function ( string $hook, string $file ): array {
+		$callbacks = [];
+		foreach ( $GLOBALS['wp_filter'][ $hook ]->callbacks[10] ?? [] as $entry ) {
+			$callback = $entry['function'];
+			if ( $callback instanceof Closure && realpath( ( new ReflectionFunction( $callback ) )->getFileName() )
+				=== realpath( artnovo_fixture_root() . '/modules/home/' . $file ) ) {
+				$callbacks[] = $callback;
+			}
+		}
+		return $callbacks;
+	};
+	foreach ( [ 61, 68 ] as $id ) {
+		foreach ( [ 'category', 'tag', 'product taxonomy', 'author', 'custom post type' ] as $type ) {
+			$route( $type, $id );
+			$check( "$type ID $id remains outside both purchase pages", $id === get_queried_object_id() && ! is_page()
+				&& ! Artnovo\HomeOrderUI\on_workflow_page() && ! Artnovo\HomeOrderUI\Wizard\is_page() && ! Artnovo\PlanCheckout\wizard_page() );
+			foreach ( [ 'artnovo-home-order-ui.php' => '68deff07', 'artnovo-home-wizard.php' => '6ad23061' ] as $file => $element_id ) {
+				$source = '<!--artnovo-home-order--><!--artnovo-wizard-progress-->';
+				foreach ( $home_callbacks( 'elementor/frontend/the_content', $file ) as $callback ) {
+					$check( "$type ID $id preserves $file content", $source === $callback( $source ) );
+				}
+				$element = new class( $element_id ) {
+					public function __construct( private string $id ) {}
+					public function get_id(): string { return $this->id; }
+				};
+				ob_start();
+				try {
+					foreach ( $home_callbacks( 'elementor/frontend/after_render', $file ) as $callback ) { $callback( $element ); }
+					$marker = ob_get_contents();
+				} finally { ob_end_clean(); }
+				$check( "$type ID $id emits no purchase marker from $file", '' === $marker );
+			}
+			$scripts = wp_scripts()->queue;
+			$styles = wp_styles()->queue;
+			try {
+				foreach ( [ 'artnovo-home-order-ui.php', 'artnovo-home-wizard.php' ] as $file ) {
+					foreach ( $home_callbacks( 'wp_enqueue_scripts', $file ) as $callback ) { $callback(); }
+				}
+				$check( "$type ID $id enqueues no purchase scripts", $scripts === wp_scripts()->queue );
+				$check( "$type ID $id preserves only legitimate native catalog styling", is_product_taxonomy()
+					? in_array( 'artnovo-home-wizard', wp_styles()->queue, true ) : $styles === wp_styles()->queue );
+			} finally {
+				wp_scripts()->queue = $scripts;
+				wp_styles()->queue = $styles;
+			}
+		}
+		$route( 'page', $id );
+		$check( "actual page $id retains its native purchase context", is_page( $id )
+			&& ( 61 === $id ) === Artnovo\HomeOrderUI\on_workflow_page()
+			&& ( 68 === $id ) === Artnovo\HomeOrderUI\Wizard\is_page()
+			&& ( 68 === $id ) === Artnovo\PlanCheckout\wizard_page() );
+	}
+	$GLOBALS['wp_query'] = new WP_Query();
 	$GLOBALS['wp_query']->is_singular = true;
 	$GLOBALS['wp_query']->queried_object = (object) [ 'ID' => 25, 'post_type' => 'product' ];
 	$GLOBALS['wp_query']->queried_object_id = 25;
@@ -213,8 +286,7 @@ try {
 	$GLOBALS['wp_query']->queried_object = (object) [ 'ID' => 999 ];
 	$GLOBALS['wp_query']->queried_object_id = 999;
 	$check( 'other public pages stay unchanged even with a matching policy element ID', $source === $markup_filter( $source ) );
-	$GLOBALS['wp_query']->queried_object = (object) [ 'ID' => 68 ];
-	$GLOBALS['wp_query']->queried_object_id = 68;
+	$route( 'page', 68 );
 	$source = '<main data-interaction-id="3ffe5619"><!--artnovo-wizard-progress--><section data-interaction-id="599de042"></section>'
 		. '<section data-interaction-id="4ef8e004"></section><section data-interaction-id="ad7be96"></section></main>';
 	$html = new WP_HTML_Tag_Processor( $markup_filter( $source ) );

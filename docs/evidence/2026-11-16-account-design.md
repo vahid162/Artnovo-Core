@@ -119,3 +119,29 @@ Woo option `woocommerce_currency_pos` is also proposed from right to right_space
 this supplies real separator whitespace to plain price strings as well as HTML.
 Neither proposal changes plugin code, currency or monetary values. Current
 observed source/settings and proposed operations remain explicitly distinct.
+
+
+## Post-publication display refinements and page-type regression
+
+PR11 commit `66f1251415411f485e5e9bc78dfe16cb9f723c1e` recorded the corrected
+placeholder wrapper and right_space proposal before application. Supported native
+update/publish succeeded (undo174), WordPress option changed with expected-old
+guard, and fresh readback matched. Product placeholder height is0, grid width
+1112/292 at1206/320px without overflow; currency and product25 price unchanged.
+The observed product reference and display-setting manifest now match these facts.
+
+PR10 review4589577964 correctly identified ID-only routing: a category/author with
+ID61 could enter a retired page redirect. Both page61 and wizard68 helpers now use
+qualified native `\is_page(PAGE_ID)`. The regression was reproduced before the fix
+(bootstrap ready failed on category61) and passed afterward. Fourteen bootstrap
+scenarios and72 new real WP_Query type-collision checks cover page/home, category,
+tag, product taxonomy, author and post/CPT contexts and render/asset/checkout callers.
+Native WordPress source confirms static front-page queries keep is_page=true and
+send_headers runs after query setup. No payment/auth/cart guard was weakened.
+
+Patch1.4.1 passes49/49 standalone/lint commands and7/7 synthetic integration commands
+with301 assertions (auth25,cart107,account83,received59,receipt20,template5,multipart2).
+These use the existing unchanged SQL/mail/outbound guards. No real records were
+saved. GitHub CI, formal1.4.1 publication and exact installed asset are pending.
+The separate1.4.1 native contract proposes the final product-detail price alignment
+after release/install; it has not yet been applied.
