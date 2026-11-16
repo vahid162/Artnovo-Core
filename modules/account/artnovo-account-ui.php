@@ -5,6 +5,7 @@ namespace Artnovo\AccountUI;
 defined( 'ABSPATH' ) || exit;
 
 require_once dirname( __DIR__ ) . '/auth/account-auth.php';
+require_once dirname( __DIR__ ) . '/auth/standalone-login.php';
 require_once __DIR__ . '/account-views.php';
 require_once dirname( __DIR__ ) . '/order-received/received.php';
 
@@ -22,6 +23,9 @@ function account_url( string $view = 'subscriptions' ): string {
 }
 
 function custom_account_page(): bool {
+	if ( standalone_login_page() ) {
+		return true;
+	}
 	if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
 		return false;
 	}

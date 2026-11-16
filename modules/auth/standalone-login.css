@@ -1,0 +1,75 @@
+.artnovo-account:has(.artnovo-standalone-login) {
+	min-height: 64svh;
+	display: grid;
+	place-items: center;
+	padding-block: clamp(32px, 7vh, 80px);
+}
+.artnovo-standalone-login {
+	box-sizing: border-box;
+	width: min(100%, 440px);
+	padding: clamp(24px, 5vw, 36px);
+	border: 0;
+	border-radius: 24px;
+	background: #152735;
+	color: #f0f9f7;
+	box-shadow: 0 20px 64px rgba(0, 0, 0, .12);
+	text-align: right;
+}
+.artnovo-standalone-login .artnovo-login-symbol {
+	display: grid;
+	place-items: center;
+	width: 48px;
+	height: 48px;
+	margin-block-end: 24px;
+	border-radius: 16px;
+	background: rgba(80, 213, 172, .12);
+	color: #46d7a6;
+	font-size: 26px;
+	font-weight: 800;
+}
+.artnovo-standalone-login h1 { margin: 0 0 12px; font-size: clamp(22px, 5vw, 28px); line-height: 1.6; }
+.artnovo-standalone-login .artnovo-login-hint { margin: 0 0 24px; color: #bdd1d0; font-size: 14px; line-height: 1.9; }
+.artnovo-standalone-login .pinova-container,
+.artnovo-standalone-login .pinova-container section,
+.artnovo-standalone-login .pinova-container .container,
+.artnovo-standalone-login .pinova-container .container > div {
+	width: 100%; max-width: 100%; margin: 0; padding: 0; background: transparent; font-family: inherit; color: inherit;
+}
+.artnovo-standalone-login .pinova-container [pinova-data="pinovaLoginForm()"] { width: 100%; overflow: visible; }
+.artnovo-standalone-login .pinova-container [pinova-data="pinovaLoginForm()"] > .relative { height: 32px; margin-bottom: 16px; }
+.artnovo-standalone-login .pinova-container [pinova-data="pinovaLoginForm()"]:has(#authenticate) > .relative { display: none; }
+.artnovo-standalone-login .pinova-container [pinova-data="pinovaLoginForm()"] > .relative > div { padding: 0; }
+.artnovo-standalone-login .pinova-container [pinova-show="(stepName === 'authenticate')"] { display: none; }
+.artnovo-standalone-login .pinova-container .artnovo-native-step label { display: block; margin-bottom: 12px; color: #f0f9f7; font-size: 14px; line-height: 1.9; }
+.artnovo-standalone-login .pinova-container .required { color: #46d7a6; margin-inline-start: 3px; }
+.artnovo-standalone-login .pinova-container input {
+	box-sizing: border-box; width: 100%; min-height: 52px; border: 0; border-radius: 12px;
+	background: #0c1723; color: #f0f9f7; font: inherit; font-size: 16px; padding: 12px 14px; text-align: left;
+	transition: box-shadow .18s ease;
+}
+.artnovo-standalone-login .pinova-container .artnovo-native-primary {
+	width: 100%; min-height: 50px; margin-top: 4px; border: 0; border-radius: 12px;
+	background: #46d7a6; color: #0c1723; font: inherit; font-weight: 700; cursor: pointer;
+}
+.artnovo-standalone-login .pinova-container .artnovo-native-primary:hover { background: #72e2bf; }
+.artnovo-standalone-login .pinova-container button:focus-visible,
+.artnovo-email-login .artnovo-account-auth button:focus-visible { outline: 0; box-shadow: 0 0 24px rgba(154, 218, 240, .4); }
+.artnovo-standalone-login a:focus-visible { outline: 2px solid #46d7a6; outline-offset: 4px; }
+.artnovo-standalone-login .pinova-container button:not(.artnovo-native-primary) { color: #bdd1d0; background-color: transparent; }
+.artnovo-standalone-login .pinova-container a { color: #46d7a6; }
+.artnovo-standalone-login .pinova-container [pinova-text$="errorMsg"] { color: #ffb5b5; line-height: 1.9; }
+.artnovo-standalone-login .artnovo-login-return { display: block; margin-top: 24px; color: #9adaf0; font-size: 13px; text-align: center; text-decoration: none; }
+.artnovo-standalone-login .artnovo-login-alternative { display: block; margin-top: 20px; color: #46d7a6; font-size: 14px; text-align: center; text-decoration: none; }
+.artnovo-email-login .artnovo-email-panel { padding: 0; background: transparent; }
+.artnovo-email-login .artnovo-email-panel > p { color: #bdd1d0; font-size: 14px; line-height: 1.9; }
+.artnovo-email-login .artnovo-account-auth label { display: block; margin: 16px 0 10px; font-size: 14px; }
+.artnovo-email-login .artnovo-account-auth input { min-height: 52px; border: 0; background: #0c1723; color: #f0f9f7; font-size: 16px; }
+.artnovo-email-login .artnovo-account-auth .artnovo-account-button { width: 100%; min-height: 50px; margin-top: 16px; border: 0; background: #46d7a6; color: #0c1723; }
+.artnovo-email-login .artnovo-email-panel > a:not(.artnovo-login-alternative) { display: block; margin-top: 20px; color: #9adaf0; font-size: 13px; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .artnovo-standalone-login .pinova-container input { transition: none; } }
+
+/* Outrank the shared account field selector for both native and email proofs. */
+.artnovo-account .artnovo-standalone-login :is(input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="hidden"])):is(:focus, :focus-visible) {
+	outline: 0;
+	box-shadow: 0 0 24px rgba(70, 215, 166, .25), 0 7px 24px rgba(0, 0, 0, .08);
+}

@@ -30,6 +30,7 @@ jobs:
           php -l artnovo-core.php
           find modules tests tools -name '*.php' -print0 | xargs -0 -n 1 php -l
           php tests/bootstrap.php
+          php tests/account-native-login.php
           node --check modules/auth/compact-purchase.js
           node --check modules/home/artnovo-home-wizard.js
           node tests/compact-auth.js

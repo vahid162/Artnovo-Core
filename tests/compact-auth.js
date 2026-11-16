@@ -8,11 +8,14 @@ async function testCompactAuth(source, assert) {
 	const settle = async () => { for (let index = 0; index < 80; index++) await Promise.resolve(); };
 	function fixture(options = {}) {
 		class Control {
-			constructor(value = '') { this.value = value; this.dataset = {}; this.listeners = {}; this.attributes = {}; this.disabled = false; this.hidden = false; }
+			constructor(value = '') { this.value = value; this.dataset = {}; this.listeners = {}; this.attributes = {}; this.disabled = false; this.hidden = false; this.childNodes = []; this.text = ''; }
 			addEventListener(name, callback) { this.listeners[name] = callback; }
 			setAttribute(name, value) { this.attributes[name] = value; }
 			removeAttribute(name) { delete this.attributes[name]; }
 			focus() { this.focused = true; }
+			get textContent() { return this.childNodes.length ? this.childNodes.map((node) => node.textContent).join('') : this.text; }
+			set textContent(value) { this.childNodes = []; this.text = String(value); }
+			replaceChildren(...nodes) { this.childNodes = nodes; this.text = ''; }
 			set innerHTML(value) { throw new Error('HTML must never be inserted into the live DOM'); }
 		}
 		const names = ['artnovo_auth_identifier', 'artnovo_auth_proof', 'artnovo_product', 'artnovo_quantity', 'artnovo_selection_revision', 'artnovo_wizard_nonce', 'artnovo_login_method'];
@@ -44,7 +47,9 @@ async function testCompactAuth(source, assert) {
 		const requests = [], responses = [], redirects = [], busy = [], windowEvents = {}, templates = [], timers = new Map();
 		const document = {
 			querySelectorAll: () => [form], dispatchEvent: (event) => busy.push(event.detail.pending),
+			createTextNode: (value) => ({ textContent: String(value), nodeType: 3 }),
 			createElement: (tag) => {
+				if (tag === 'bdi') return Object.assign(new Control(), { tagName: 'BDI' });
 				if (tag !== 'template') throw new Error('Only inert templates may parse provider messages');
 				let markup = '';
 				return {
@@ -99,6 +104,7 @@ async function testCompactAuth(source, assert) {
 	check(email.requests.length === 1 && email.requests[0].url === 'https://example.test/', 'email uses the existing Core endpoint only');
 	check(email.requests[0].body.artnovo_login_method === 'email' && email.requests[0].body.artnovo_otp_action === 'send' && email.requests[0].body.artnovo_email === 'new@example.test', 'email signup is sent to the existing Core OTP engine');
 	check(email.controls.artnovo_auth_proof.maxLength === 6 && email.controls.artnovo_auth_identifier.readOnly, 'Core email code owns its proof length and locks identifier');
+	check(email.nodes.edit.textContent === 'ویرایش ایمیل', 'email proof names the specific editable information');
 	email.controls.artnovo_auth_proof.value = '۱۲۳۴۵۶';
 	email.responses.push({ success: true, data: { redirect: 'https://example.test/?artnovo_plan=26' } });
 	await email.submit();
@@ -109,8 +115,9 @@ async function testCompactAuth(source, assert) {
 	mobile.responses.push(prepared, { success: true, data: { login_method: 'otp', jwt: 'test-native-challenge', ttl: 120 } });
 	await mobile.submit();
 	check(mobile.requests.length === 2 && mobile.requests[0].body.artnovo_login_method === 'pinova' && mobile.requests[0].body.artnovo_wizard_nonce === 'existing-wizard-nonce', 'native authentication first preserves the nonce-protected selection');
-	check(mobile.requests[1].body.identifier === '09120000000' && !('force_otp' in mobile.requests[1].body) && mobile.requests[1].headers['X-WP-Nonce'] === 'native-rest-nonce', 'mobile lets native Pinova select the authentication method and keeps its REST nonce');
+	check(mobile.requests[1].body.identifier === '09120000000' && !('force_otp' in mobile.requests[1].body) && mobile.requests[1].headers['X-WP-Nonce'] === 'native-rest-nonce', 'mobile normalizes local digits without overriding native identifier classification or its REST nonce');
 	check(!mobile.redirects.length && mobile.controls.artnovo_auth_proof.maxLength === 4, 'prepare does not redirect to the full native login page');
+	check(mobile.nodes.edit.textContent === 'ویرایش شماره موبایل', 'mobile proof names the phone editing action');
 	mobile.controls.artnovo_quantity.value = '2';
 	mobile.controls.artnovo_auth_proof.value = '۱۲۳۴';
 	mobile.responses.push(prepared, { success: true, data: {} });
@@ -122,6 +129,7 @@ async function testCompactAuth(source, assert) {
 	username.responses.push(prepared, { success: true, data: { login_method: 'password', ttl: 120 } });
 	await username.submit();
 	check(username.requests[1].body.force_otp === undefined && username.controls.artnovo_auth_proof.type === 'password' && username.nodes.resend.hidden, 'username honors native password authentication');
+	check(username.nodes.edit.textContent === 'ویرایش نام کاربری', 'username proof names the username editing action');
 	username.controls.artnovo_auth_proof.value = 'synthetic-secret';
 	username.responses.push({ success: false, message: 'provider rejection' });
 	await username.submit();
@@ -134,11 +142,47 @@ async function testCompactAuth(source, assert) {
 	numericUsername.responses.push(prepared, { success: true, data: { login_method: 'password' } });
 	await numericUsername.submit();
 	check(numericUsername.requests[1].body.identifier === '1234' && !('force_otp' in numericUsername.requests[1].body) && numericUsername.controls.artnovo_auth_proof.type === 'password', 'a numeric username remains eligible for native password login');
+	for (const [value, expected] of [['09120000000', '09120000000'], ['9120000000', '9120000000'], ['+989120000000', '+989120000000'], ['989120000000', '989120000000'], ['00989120000000', '00989120000000'], ['۰۹۱۲۰۰۰۰۰۰۰', '09120000000'], ['٠٩١٢٠٠٠٠٠٠٠', '09120000000'], ['+98 (912) 000-0000', '+98 (912) 000-0000']]) {
+		const formatted = fixture({ identifier: value });
+		formatted.responses.push(prepared, { success: true, data: { login_method: 'otp', jwt: 'test-native-challenge', ttl: 120 } });
+		await formatted.submit();
+		check(formatted.requests[1]?.body.identifier === expected, `Iranian mobile format ${value} reaches the native classifier without speculative coercion`);
+	}
+	const shortInternational = fixture({ identifier: '+98912000000' });
+	shortInternational.responses.push(prepared, { success: false, message: 'تلفن همراه معتبر نمی‌باشد.' });
+	await shortInternational.submit();
+	check(shortInternational.requests[1]?.body.identifier === '+98912000000' && shortInternational.nodes.message.textContent.includes('۱۱ رقم') && shortInternational.controls.artnovo_auth_identifier.attributes['aria-invalid'] === 'true' && !shortInternational.nodes.submit.disabled, 'a native rejection of an explicit Iranian prefix gives a correctable format error');
+	for (const value of ['0912000000', '912000000']) {
+		const malformed = fixture({ identifier: value });
+		malformed.responses.push(prepared, { success: false, message: 'برای دریافت کد تایید، از تلفن همراه یا ایمیل استفاده کنید.' });
+		await malformed.submit();
+		check(malformed.requests.length === 2 && malformed.nodes.message.textContent.includes('۱۱ رقم') && malformed.nodes.message.textContent.includes('09123456789') && malformed.form.dataset.artnovoAuthPending === '0', 'native rejection of phone-shaped input explains the Iranian length and format');
+		const numericAccount = fixture({ identifier: value });
+		numericAccount.responses.push(prepared, { success: true, data: { login_method: 'password' } });
+		await numericAccount.submit();
+		check(numericAccount.requests[1].body.identifier === value && numericAccount.controls.artnovo_auth_proof.type === 'password' && numericAccount.nodes.edit.textContent === 'ویرایش موبایل یا نام کاربری', 'an existing phone-shaped numeric username still follows native password proof');
+	}
+	for (const value of ['9999999999', '09999999999']) {
+		const numericAccount = fixture({ identifier: value });
+		numericAccount.responses.push(prepared, { success: true, data: { login_method: 'password' } });
+		await numericAccount.submit();
+		check(numericAccount.requests[1]?.body.identifier === value && !('force_otp' in numericAccount.requests[1].body) && numericAccount.controls.artnovo_auth_proof.type === 'password' && numericAccount.nodes.edit.textContent === 'ویرایش موبایل یا نام کاربری', 'a phone-length numeric username remains unchanged and native password authentication owns the challenge');
+		numericAccount.controls.artnovo_auth_proof.value = 'synthetic-secret';
+		numericAccount.responses.push({ success: true, data: {} });
+		await numericAccount.submit();
+		check(numericAccount.requests[2]?.body.identifier === value && numericAccount.redirects.length === 1, 'phone-length numeric username password verification keeps its original account identifier');
+	}
+	const blockedPhone = fixture({ identifier: '0912000000' });
+	blockedPhone.responses.push(prepared, { success: false, message: 'ایمیل یا تلفن همراه مسدود شده است.' });
+	await blockedPhone.submit();
+	check(blockedPhone.nodes.message.textContent === 'ایمیل یا تلفن همراه مسدود شده است.', 'format guidance does not conceal a native account block');
 
 	const providerMarkup = fixture({ identifier: '09120000000' });
-	providerMarkup.responses.push(prepared, { success: true, message: 'کد به <span dir="ltr">09120000000</span> ارسال شد.<img src="https://malicious.test/pixel" onerror="bad()"><script>bad()</script><style>bad{}</style>', data: { login_method: 'otp', jwt: 'test-native-challenge', ttl: 120 } });
+	providerMarkup.responses.push(prepared, { success: true, message: 'کد به <span dir="ltr">+989120000000</span> ارسال شد.<img src="https://malicious.test/pixel" onerror="bad()"><script>bad()</script><style>bad{}</style>', data: { login_method: 'otp', jwt: 'test-native-challenge', ttl: 120 } });
 	await providerMarkup.submit();
-	check(providerMarkup.nodes.message.textContent === 'کد به 09120000000 ارسال شد.' && providerMarkup.templates.some((html) => html.includes('<span')), 'provider markup is parsed in an inert template and only its message text reaches the live status');
+	check(providerMarkup.nodes.message.textContent === 'کد به +989120000000 ارسال شد.' && providerMarkup.templates.some((html) => html.includes('<span')), 'provider markup is parsed in an inert template and only its message text reaches the live status');
+	const isolatedPhone = providerMarkup.nodes.message.childNodes.find((node) => node.tagName === 'BDI');
+	check(isolatedPhone?.dir === 'ltr' && isolatedPhone.textContent === '+989120000000', 'the phone and international prefix are isolated in their logical left-to-right order');
 	check(!providerMarkup.nodes.message.textContent.includes('bad') && !providerMarkup.nodes.message.textContent.includes('<'), 'scripts, style contents and active markup never enter the displayed provider message');
 
 	const stale = fixture({ identifier: 'returning_user' });

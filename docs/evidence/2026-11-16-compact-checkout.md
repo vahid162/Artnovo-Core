@@ -105,3 +105,28 @@ Publication, asset/tag identity, installation, rollback receipt, unchanged third
 party source manifests and post-install smoke are recorded in the resulting PR
 and local operational deployment artifacts after those operations occur. A local
 package or a passing preview alone is not an installed or released version.
+
+## Completed production delivery
+
+PR #6 merged as `0cc4ac1792e4c80b489fe08bbcdc5c311519944a`; main validation
+[43867666940](https://github.com/vahid162/Artnovo-Core/actions/runs/43867666940)
+and manual publication [43867899071](https://github.com/vahid162/Artnovo-Core/actions/runs/43867899071)
+succeeded. [v1.2.0](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.2.0)
+targets that commit. The official ZIP digest is
+`6f0cf4dc32ac85d7cd55818e59983df28edc7ca43fb0200363080918f1a4020f` and all 30
+installed files match it. Third-party plugin manifests remained identical.
+
+The reviewed atomic installer retained a private previous-source backup and
+passed its exchange/restore rehearsal, drain and 16-script OPcache invalidation.
+Home and account health checks returned 200. The production HTTP session regression
+passed, including fresh cookies, stable GETs, 25→26 replacement, stale POST303 and
+AJAX403 recovery, replay and foreign-origin denial.
+
+A real production email code arrived in Inbox from orders@artnovo.ir, signed in
+customer 13 and retained the selected product. At 320px, native checkout, correct
+billing identity, equal native/compact total, unchecked initial terms and native
+Wallet/BACS were observed without overflow or runtime exceptions. Selecting BACS
+showed its correct bank-information CTA. The final smoke created no order or real
+payment; customer 13 sessions and cart were cleared afterward. Bridge has no
+issuance operation for cancelled test order 157; its receipt belongs to customer
+13. Operational identities and the private backup receipt remain outside Git.

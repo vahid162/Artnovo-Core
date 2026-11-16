@@ -37,12 +37,6 @@ function account_native_login_url( string $destination = '' ): string {
 		? \Pinova\Pinova::get_login_url( $return ) : add_query_arg( 'artnovo_redirect', $return, wc_get_page_permalink( 'myaccount' ) );
 }
 
-add_filter( 'pinova/login_back_url', static function ( string $destination ): string {
-	// Leave admin and third-party return destinations owned by Pinova.
-	$resume = add_query_arg( 'artnovo_resume', '1', wc_get_page_permalink( 'myaccount' ) );
-	return $destination === $resume ? account_auth_destination( $destination ) : $destination;
-} );
-
 function account_auth_destination( string $requested = '' ): string {
 	$fallback = account_url();
 	$account = wp_parse_url( wc_get_page_permalink( 'myaccount' ) );
@@ -126,6 +120,26 @@ function account_auth_state( bool $complete = false ): array {
 	];
 }
 
+function account_login_destination( array &$state, bool $complete = false ): string {
+	$destination = $state['redirect'];
+	if ( $complete && '' !== account_wizard_return() ) {
+		$destination = account_auth_destination( add_query_arg( 'artnovo_resume', '1', wc_get_page_permalink( 'myaccount' ) ) );
+	} elseif ( '1' === ( $_GET['artnovo_resume'] ?? null ) ) {
+		$destination = account_auth_destination( add_query_arg( 'artnovo_resume', '1', wc_get_page_permalink( 'myaccount' ) ) );
+		if ( '' === $state['email'] ) {
+			$state['email'] = Checkout\wizard_draft()['billing_email'] ?? '';
+		}
+	} elseif ( isset( $_GET['artnovo_redirect'] ) && is_string( $_GET['artnovo_redirect'] ) ) {
+		$destination = account_auth_destination( wp_unslash( $_GET['artnovo_redirect'] ) );
+	} elseif ( isset( $_GET['back_url'] ) && is_string( $_GET['back_url'] ) ) {
+		$destination = account_auth_destination( wp_unslash( $_GET['back_url'] ) );
+	} elseif ( ( empty( $state['email'] ) || is_wc_endpoint_url() || isset( $_GET['artnovo_view'] ) )
+		&& ! empty( $_SERVER['REQUEST_URI'] ) && is_string( $_SERVER['REQUEST_URI'] ) ) {
+		$destination = account_auth_destination( home_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
+	}
+	return $destination;
+}
+
 function account_auth_reply( array|\WP_Error $result, bool $ajax ): never {
 	if ( ! is_wp_error( $result ) && isset( $result['redirect'] ) ) {
 		if ( $ajax ) {
@@ -150,7 +164,7 @@ function account_auth_reply( array|\WP_Error $result, bool $ajax ): never {
 		}
 		wp_send_json_success( $result );
 	}
-	$destination = ! empty( $state['customer'] ) ? account_url( 'profile' ) : wc_get_page_permalink( 'myaccount' );
+	$destination = ! empty( $state['customer'] ) ? account_url( 'profile' ) : add_query_arg( 'artnovo_email_login', '1', wc_get_page_permalink( 'myaccount' ) );
 	wp_safe_redirect( $destination . '#artnovo-account-login', 303 );
 	exit;
 }

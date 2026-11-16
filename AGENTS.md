@@ -47,6 +47,7 @@ Use PHP **8.5.x**, Python **3.10+** and Node.js **20+** (for the isolated authen
 python3 tools/check.py
 python3 tests/governance.py
 php tests/bootstrap.php
+php tests/account-native-login.php
 php tests/checkout-context.php
 node tests/compact-auth.js
 node tests/compact-checkout.js

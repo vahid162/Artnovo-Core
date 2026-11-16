@@ -139,6 +139,10 @@
 	min-inline-size: 0;
 }
 
+[data-artnovo-wizard] :is(#artnovo-categories, #artnovo-plans, #artnovo-order) {
+	scroll-margin-block-start: calc(6.5rem + var(--artnovo-progress-gap));
+}
+
 [data-artnovo-wizard] [data-artnovo-panel] h2 {
 	margin-block: 0 .875rem;
 	scroll-margin-block-start: calc(6.5rem + var(--artnovo-progress-gap));
@@ -213,6 +217,14 @@
 [data-artnovo-wizard] .artnovo-duration-card[aria-pressed="true"],
 [data-artnovo-wizard] [data-artnovo-group] article[data-artnovo-selected-card] {
 	background-color: var(--artnovo-selected-surface);
+}
+
+[data-artnovo-wizard] :is([data-artnovo-group] article, .artnovo-order) .woocommerce-Price-amount bdi {
+	display: inline-flex;
+	align-items: baseline;
+	gap: .35em;
+	direction: rtl;
+	white-space: nowrap;
 }
 
 [data-artnovo-wizard] .artnovo-selected-badge {
@@ -437,8 +449,10 @@
 	display: inline-flex;
 	align-items: center;
 	gap: .125rem;
-	border: 1px solid var(--order-field-border);
+	border: 0;
 	border-radius: .75rem;
+	box-shadow: 0 8px 28px #00000012;
+	transition: background-color .15s ease, box-shadow .15s ease;
 	background: var(--artnovo-navy);
 }
 
@@ -552,7 +566,7 @@
 	font-weight: 700;
 }
 
-[data-artnovo-wizard] .artnovo-order :is(.artnovo-order-form, .artnovo-order-native form.checkout, .artnovo-order-field, .artnovo-compact-auth-label) {
+[data-artnovo-wizard] .artnovo-order :is(.artnovo-order-form, .artnovo-order-native form.checkout, .artnovo-order-field) {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
 	align-items: start;
@@ -573,7 +587,7 @@
 }
 
 [data-artnovo-wizard] .artnovo-order .artnovo-compact-auth-label {
-	gap: .5rem;
+	display: block;
 	font-size: .875rem;
 }
 
@@ -582,8 +596,10 @@
 	min-inline-size: 0;
 	min-block-size: 3.125rem;
 	padding: .625rem .875rem;
-	border: 1px solid var(--order-field-border);
+	border: 0;
 	border-radius: .75rem;
+	box-shadow: 0 8px 28px #00000012;
+	transition: background-color .15s ease, box-shadow .15s ease;
 	background: var(--artnovo-navy);
 	color: var(--artnovo-text);
 	font: inherit;
@@ -599,13 +615,28 @@
 	opacity: 1;
 }
 
+[data-artnovo-wizard] .artnovo-order :is(.artnovo-compact-auth-input, .woocommerce form .form-row input.input-text):is(:focus, :focus-visible) {
+	outline: none;
+	background: #112735;
+	box-shadow: 0 0 24px #46d7a640, 0 7px 24px #00000014;
+}
+
+[data-artnovo-wizard] .artnovo-order :is(.artnovo-coupon-apply, .artnovo-order-submit, #place_order):focus-visible {
+	outline: none;
+	box-shadow: 0 0 24px #9adaf066;
+}
+
+[data-artnovo-wizard] .artnovo-order .artnovo-compact-auth-label .required {
+	color: #ffd5dd;
+}
+
 [data-artnovo-wizard] .artnovo-order .artnovo-compact-auth-input[readonly] {
 	background: #112330;
 	color: var(--artnovo-muted);
 }
 
 [data-artnovo-wizard] .artnovo-order .artnovo-compact-auth-input[aria-invalid="true"] {
-	border-color: #ff9eb2;
+	box-shadow: 0 0 22px #ff9eb240;
 }
 
 [data-artnovo-wizard] .artnovo-order .artnovo-compact-auth-input[autocomplete="one-time-code"] {
@@ -750,31 +781,36 @@
 	font-size: .8125rem;
 }
 
-[data-artnovo-wizard] .artnovo-order-coupon > summary {
-	min-block-size: 2.75rem;
-	padding-block: .5rem;
-	color: var(--artnovo-focus);
-	cursor: pointer;
-}
-
 [data-artnovo-wizard] .artnovo-order-native .woocommerce form.checkout_coupon {
-	/* WooCommerce collapses its native coupon form during initialization. */
-	display: block !important;
-	margin: .25rem 0 1rem;
+	/* Keep WooCommerce's native form visible without its disclosure animation. */
+	display: grid !important;
+	grid-template-columns: minmax(0, 1fr);
+	gap: .625rem;
+	margin: 0;
 	padding: 0;
 	border: 0;
 	color: var(--artnovo-text);
 }
 
-[data-artnovo-wizard] .artnovo-order-native .woocommerce form.checkout_coupon button.button {
+[data-artnovo-wizard] .artnovo-order-native .woocommerce form.checkout_coupon .form-row {
+	margin: 0;
+}
+
+[data-artnovo-wizard] .artnovo-order-native .woocommerce form.checkout_coupon .artnovo-coupon-apply {
+	justify-self: start;
 	min-block-size: 2.75rem;
-	margin-block-start: .625rem;
-	padding: .5rem .875rem;
-	border: 1px solid var(--order-field-border);
-	border-radius: .625rem;
-	background: var(--artnovo-navy);
-	color: var(--artnovo-emerald);
+	padding: .5rem 1rem;
+	border: 0;
+	border-radius: .75rem;
+	background: #233e49;
+	color: var(--artnovo-text);
+	box-shadow: 0 7px 22px #00000012;
 	font: inherit;
+	font-weight: 600;
+}
+
+[data-artnovo-wizard] .artnovo-order-native .woocommerce form.checkout_coupon .artnovo-coupon-apply:hover:enabled {
+	background: #2b4b55;
 }
 
 [data-artnovo-wizard] .artnovo-order :is(.woocommerce-message, .woocommerce-error, .woocommerce-info) {
@@ -900,13 +936,56 @@
 
 [data-artnovo-wizard] .artnovo-order-native #payment .woocommerce-form__label-for-checkbox {
 	display: flex;
-	align-items: baseline;
-	gap: .5rem;
+	align-items: flex-start;
+	gap: .625rem;
+	min-block-size: 2.75rem;
+	padding: .875rem;
+	border-radius: .875rem;
+	background: var(--artnovo-navy);
+	cursor: pointer;
 }
 
-[data-artnovo-wizard] .artnovo-order-native #payment input[type="checkbox"] {
-	flex-shrink: 0;
-	accent-color: var(--artnovo-emerald);
+[data-artnovo-wizard] .artnovo-order-native #payment .woocommerce-terms-and-conditions-checkbox-text {
+	min-inline-size: 0;
+	line-height: 1.9;
+}
+
+[data-artnovo-wizard] .artnovo-order-native #payment #terms {
+	appearance: none;
+	display: inline-grid;
+	place-content: center;
+	flex: 0 0 auto;
+	inline-size: 1.375rem;
+	block-size: 1.375rem;
+	margin: .125rem 0 0;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: #69888e;
+	color: var(--artnovo-ink);
+	box-shadow: 0 5px 18px #00000018;
+	cursor: pointer;
+}
+
+[data-artnovo-wizard] .artnovo-order-native #payment #terms::before {
+	content: "✓";
+	font-size: .875rem;
+	font-weight: 800;
+	line-height: 1;
+	opacity: 0;
+}
+
+[data-artnovo-wizard] .artnovo-order-native #payment #terms:checked {
+	background: var(--artnovo-emerald);
+}
+
+[data-artnovo-wizard] .artnovo-order-native #payment #terms:checked::before {
+	opacity: 1;
+}
+
+[data-artnovo-wizard] .artnovo-order-native #payment #terms:focus-visible {
+	outline: none;
+	box-shadow: 0 0 22px #9adaf066;
 }
 
 @media (max-width: 380px) {

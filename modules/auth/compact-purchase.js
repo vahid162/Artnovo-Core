@@ -3,6 +3,7 @@
 	if (typeof fetch !== 'function' || typeof FormData !== 'function' || typeof AbortController !== 'function') return;
 	const digits = (value) => value.replace(/[۰-۹٠-٩]/g, (digit) => String(digit.charCodeAt(0) % 16));
 	const number = new Intl.NumberFormat('fa-IR');
+	const mobileHint = 'شمارهٔ موبایل ایران باید ۱۱ رقم و با ۰۹ شروع شود؛ مانند 09123456789. بدون صفر یا با پیش‌شمارهٔ ۹۸ هم می‌توانید وارد کنید.';
 	document.querySelectorAll('.artnovo-compact-auth').forEach((form) => {
 		if (form.dataset.artnovoAuthInitialized) return;
 		let config;
@@ -31,7 +32,23 @@
 			const template = document.createElement('template');
 			template.innerHTML = String(text || '');
 			template.content.querySelectorAll('script, style').forEach((node) => node.remove());
-			message.textContent = template.content.textContent.trim();
+			const plain = template.content.textContent.trim();
+			message.textContent = plain;
+			const phones = [...plain.matchAll(/(?<![0-9])(?:\+98|0098|98|0)?9[0-9]{9}(?![0-9])/g)];
+			if (phones.length) {
+				const parts = [];
+				let end = 0;
+				for (const match of phones) {
+					parts.push(document.createTextNode(plain.slice(end, match.index)));
+					const phone = document.createElement('bdi');
+					phone.dir = 'ltr';
+					phone.textContent = match[0];
+					parts.push(phone);
+					end = match.index + match[0].length;
+				}
+				parts.push(document.createTextNode(plain.slice(end)));
+				message.replaceChildren(...parts);
+			}
 			message.dataset.error = error ? '1' : '0';
 			identifier.setAttribute('aria-invalid', error && !method ? 'true' : 'false');
 			proof.setAttribute('aria-invalid', error && method ? 'true' : 'false');
@@ -162,6 +179,9 @@
 				proof.pattern = `[0-9]{${length}}`;
 			}
 			label.textContent = method === 'password' ? 'رمز عبور' : 'کد تأیید';
+			edit.textContent = identifier.value.includes('@') ? 'ویرایش ایمیل'
+				: method === 'otp' ? 'ویرایش شماره موبایل'
+					: /^[+0-9\s()-]+$/.test(identifier.value) ? 'ویرایش موبایل یا نام کاربری' : 'ویرایش نام کاربری';
 			resend.hidden = method !== 'otp';
 			submit.textContent = 'ورود و ادامهٔ پرداخت';
 			countdown();
@@ -178,7 +198,17 @@
 			}
 			if (!await prepare()) return;
 			const payload = { identifier: identifier.value };
-			const response = await native(config.authenticateUrl, payload);
+			let response;
+			try {
+				response = await native(config.authenticateUrl, payload);
+			} catch (error) {
+				// Short numeric usernames remain native candidates; explain phone-shaped input only after native rejection.
+				const phoneShaped = /^(?:\+|0098|98|0?9)[0-9]+$/.test(identifier.value.replace(/[\s()-]/g, ''));
+				if (phoneShaped && ['برای دریافت کد تایید، از تلفن همراه یا ایمیل استفاده کنید.', 'ایمیل یا تلفن همراه معتبر نمی‌باشد.', 'تلفن همراه معتبر نمی‌باشد.'].includes(error.message)) {
+					throw new Error(mobileHint);
+				}
+				throw error;
+			}
 			if (!response) return;
 			const data = response.data;
 			if (data.login_method !== 'password' && (data.login_method !== 'otp' || !data.jwt)) {

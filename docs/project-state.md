@@ -2,110 +2,95 @@
 
 ## Current mission and authority
 
-The owner selected the **compact purchase** prototype and explicitly requested
-implementation in Core, the guest-session fix, tests, a new GitHub release and
-installation on artnovo.ir. Only Core plugin source may change. Ordinary WordPress
-or WooCommerce settings may be adjusted when necessary. No Bridge, Wallet or
-Pinova source change, second ledger, new issuer or mandatory dependency among
-Core/Bridge/Wallet is authorized. The user already authorized controlled test
-orders and SMS/email to their own contacts; do not make a real payment or approve
-financial delivery merely to test presentation.
+The owner requested the 24 browser-annotated UX/UI refinements on artnovo.ir,
+then added a minimal standalone Pinova sign-in screen with one mobile/email/
+username entry. Use Elementor SentinelX supported native tools for Elementor
+content and UI UX Designer guidance while preserving the existing navy/mint
+visual language. Core is the only plugin source in scope. Preserve Bridge,
+Wallet and Pinova code and their ownership; no mandatory dependency among the
+three commerce plugins, second ledger or new issuer. No direct live plugin
+source edits: use this repository, review/test, GitHub publication and install
+only the exact official release asset before shipping plugin changes.
 
-Canonical checkout: this repository. Base source is merged PR #5,
-`7aad8c503ee4d6d8f9eb9c058fd7d8f0e75fef53`, released and installed as **1.1.0**.
-The selected visual is the compact variant in the thread's
-`artnovo-checkout-directions.html`; its demo data and simulated payments are not
-implementation. Use the existing native authentication, checkout and receipt APIs.
-Development, review, authorized merge/release and exact-package installation are
-owned by this mission; do not stop after a draft PR.
+Implement the unambiguous purchase/home/header/footer fixes. For account-panel
+redesign (comments 19, 21, 22, 24), prepare two distinct minimal concepts for the
+owner to choose; do not deploy an unchosen account layout. Remove the unnecessary
+address navigation within Core's presentation when implementing the agreed menu;
+do not erase data or disable native third-party endpoints.
 
-## Work and ownership
+The owner allows required WordPress/Woo settings changes and controlled test
+orders/messages to their own contacts. Do not make a real payment or financially
+approve issuance merely to test presentation. Preserve native terms consent,
+nonces, owner checks, rate limits, stale-selection and duplicate-payment fences.
 
-- Session repair: initialize the native WooCommerce guest cookie before output on
-  Core purchase pages, account for native empty-session cleanup, and recover stale
-  forms with a fresh GET retaining the current allowed selection. Invalid input
-  must never update a cart, create an account/order, debit or issue a service.
-- Compact authentication: one identifier and one main action; Core's existing
-  email-code signup/login stays available, mobile/username use native Pinova APIs.
-  Proof fields depend on the provider's response. Refresh authenticated nonces by
-  returning through the canonical resume route; do not reuse guest checkout tokens.
-- Compact presentation: one summary, quantity and change-plan controls, one active
-  login/payment state, native WooCommerce checkout submission, native receipt and
-  real delivery status. Bank transfer remains pending financial review. Wallet
-  appears only when its existing provider permits it. Never promise bank-transfer
-  instant delivery or modify submitted orders when a new plan is selected.
-- Root owns version/docs, integration acceptance, the final tree, reviews, commits,
-  PR/CI, release and deployment. Shared implementation workers have disjoint files
-  and must not stage, commit, build packages or mutate the website.
+## Baseline and workspace
 
-## Agreed implementation seams
+Installed/released baseline is Core **1.2.0**, PR #6, main commit
+`0cc4ac1792e4c80b489fe08bbcdc5c311519944a`; source tree
+`c7e8538447169b87c1393b00b77f919938ea3a5f`. Its official ZIP SHA-256 is
+`6f0cf4dc32ac85d7cd55818e59983df28edc7ca43fb0200363080918f1a4020f` and all 30
+installed files matched. Bridge/Wallet/Pinova were byte-identical before/after.
+The prior deployment backup is `/var/backups/artnovo-core/20261116T123737Z-5h24mu4q`.
+Keep published assets immutable. Detailed prior acceptance remains in
+[compact checkout evidence](evidence/2026-11-16-compact-checkout.md) and PR #6.
 
-The existing nonce-protected root purchase POST remains the selection boundary.
-A guest AJAX request with `artnovo_login_method=pinova` may prepare a validated
-selection for native sign-in, returning its current revision and resume destination.
-It does not authenticate. Email proof continues to use the existing Core checkout
-OTP request. Native Pinova authenticate, login/otp and login/password endpoints
-remain their owner. JSON stale-form responses include a safe fresh-GET destination;
-normal stale POSTs redirect instead of rendering an unrecoverable 403 page. Nonce
-and same-origin checks stay in place.
+Current branch: `work/purchase-ui-refinements` from origin/main. The initial two
+dirty documentation files were this thread's post-deployment notes, not unrelated
+owner code; preserve and commit that completed evidence with this mission's
+baseline before implementation. Root owns Git, version/docs, release, installation
+and native Elementor mutations. Workers must use disjoint files and not mutate
+Git or the site.
 
-The compact auth module owns `render_compact_auth(product_id, quantity,
-selection_revision, can_checkout)` and its separate script. Home rendering calls
-that helper only for guests and keeps native Woo checkout for authenticated users.
-No-JavaScript fallback uses the native sign-in route. Existing endpoint, receipt,
-account-owner and payment fences remain intact.
+## Scope and seams
 
-## Current progress
+- Native Elementor: home #68, header #75, footer #86, identified by fresh MCP
+  structure reads. Restyle explanatory game feature as noninteractive content,
+  center/match step headings, align mobile gutters, align price/currency, place
+  copyright last, and mobile header menu right / logo center / account left.
+  Preserve product query identities, duration navigation, links and content.
+- Compact auth: exact requested wording, required label marker, soft accessible
+  focus, Iranian-mobile normalization compatible with native numeric usernames,
+  safe LTR-isolated phone notices and precise edit labels. Preserve the native
+  provider's returned proof method and the existing Core email signup path.
+- Checkout: remove mandatory email UI only in the protected service wizard;
+  delivery is in the account. Retain existing account email as optional order
+  metadata without fake addresses, account merging or automatic email attachment.
+  Use native Woo coupon processing with a visible single-column secondary action,
+  and improve the unchecked native terms control.
+- Standalone sign-in: inspect Core account routes and native Pinova ownership;
+  prefer native Pinova form/engine and existing safe return helpers, not another
+  authentication backend. Preserve return to selected purchases and owned deep
+  account/order/wallet routes.
+- Account concepts: throwaway responsive mockups in the thread visualization
+  directory, with realistic empty/active/multiple-account states, customer-service
+  navigation and no address UI. Await the owner's concept choice for deployment.
 
-Core **1.2.0** is implemented on `work/compact-checkout-session`; runtime changes
-and review fixes are committed through `3101fb2`. Required standalone checks,
-PHP lint, both Node behavioral tests and real private HTTP/browser acceptance
-passed. Dedicated review `20261116-113452-6dff1fc4` completed; its three findings
-were fixed and independently closed. The final 320px guest/checkout/receipt views
-and auth-busy/Back recovery were rechecked. Detailed observations and the two
-pre-existing site-fixture limits are in [compact checkout evidence](evidence/2026-11-16-compact-checkout.md).
+## Verification and remaining work
 
-The live site remains on 1.1.0 until authorized GitHub publication succeeds.
-Next: publish the scoped PR, wait for exact-head CI and available automated review,
-merge, run main validation, publish v1.2.0, verify the official asset identity and
-install that exact ZIP with the existing atomic recovery procedure. Controlled
-order 157 is labelled and cancelled, its temporary coupon 156 was deleted and
-customer 13 test sessions were revoked after browser acceptance. No real payment
-or financial approval was performed.
+Implementation is complete for the clear home/purchase/sign-in fixes. Native
+Elementor changes on #68/#75/#86 are published and read back: 63/5/13 nodes remain,
+with no unexpected tree changes. Browser geometry confirms equal 14px mobile
+plan/duration gutters, the requested mobile header and final copyright section.
+The two account-panel concepts remain outside the plugin, awaiting owner selection.
 
-## Verification and release boundary
+Core candidate version is 1.3.0 (32 runtime files). Only Core source changes.
+Required standalone checks passed; focused auth checks include cold Pinova REST,
+ordinary checkout/wallet preservation, numeric usernames and email signup fallback.
+Independent review closed email-signup, ordinary-return and policy-link issues,
+then confirmed the narrowly preserved canonical resume URL without weakening the
+general validator. Real HTTP testing found and verified this REST resume fix.
 
-High risk: authentication, purchase state and production deployment. Prove new
-behavior with focused failing/passing regressions; run the required standalone
-suite, PHP lint, package/release checks and meaningful integration checks. Existing
-in-memory tests do not prove browser header/cookie behavior. Exercise a native
-first guest GET, first selection, Back, refresh, stale token recovery, real email
-login, native username recognition, desktop/mobile layouts, native Wallet/orders,
-BACS order and receipt page. Use controlled test records, mark/cancel them and
-revoke test sessions. Do not weaken ownership/payment tests for visual convenience.
+The loopback real-stack journey passed 17 checks: native Pinova password login of
+controlled blank-email customer 15, preserved product 25/quantity 1, native checkout
+without contact fields and persisted BACS order 167. It was on-hold, total 100000,
+unpaid, email blank, Bridge snapshot matching, issuance operation absent. It is
+now cancelled and customer tokens/cart/persistent cart were cleared. No payment or
+issuance was performed. Do not send the test password/session data to GitHub.
 
-Require an independent review, then exact-head GitHub validation. Inspect auto
-review suggestions posted after a draft becomes ready before merging. Build a
-new versioned package, publish from the authorized main commit, verify tag/asset/
-checksum/payload, preserve a private previous-source backup and recovery rehearsal,
-and install only that published ZIP. Verify all installed bytes and unchanged
-Bridge/Wallet/Pinova source manifests. Record actual observations and unavailable
-browser/provider checks separately.
-
-## Prior facts and limits
-
-Core 1.1.0's published ZIP SHA-256 is
-`8774c6cafee1da33de449263e319961794e218fbd9aa279a2db1fdacb15d5c30`.
-All 28 installed payload files matched it. Test order #155 was unpaid, had no
-issued service, was cancelled and labelled; its test-customer sessions were
-revoked. CMS page #154 registers `/login` for Pinova; no server/plugin source
-change was needed for that page. The owner reports SMS working after allowing
-the server IP in MeliPayamak. Published policy pages and legal settings stay intact.
-
-The confirmed guest issue is late cookie creation in Elementor output, compounded
-by stale-form denial without GET recovery. The original browser nonce's initial
-staleness was not directly observed; Core's nonce action is not WooCommerce's
-session-specific nonce prefix. A previous diagnostic POST retry was rejected as
-outside its read-only scope. This new request explicitly authorizes the fix,
-implementation, tests and deployment; the earlier read-only diagnostic scope no
-longer governs this mission.
+Details are in [UI refinement evidence](evidence/2026-11-16-ui-refinements.md).
+The private candidate server on localhost:8773, its isolated browser/tunnel and
+fixture identity still require final cleanup after deployment verification.
+GitHub PR/merge, official release and exact-ZIP installation remain pending.
+Finish the remaining focused responsive/focus check, then publish through GitHub,
+verify artifact identity, rehearse recovery, install and run a scoped live smoke.
+Keep actual native zoom and real payment/provider delivery marked untested.

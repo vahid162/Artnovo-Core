@@ -1,8 +1,8 @@
 # Artnovo Core
 
-The site-specific WordPress plugin for ArtNovo. Version 1.1.0 includes the
-purchase wizard, hidden-cart checkout, email-code entry, customer panel, order
-confirmation, receipt form, header behavior and default sender into one package.
+The site-specific WordPress plugin for ArtNovo. It combines the purchase wizard,
+hidden-cart checkout, sign-in presentation, customer panel, order confirmation,
+receipt form, header behavior and default sender in one package.
 
 ## Requirements
 
@@ -35,12 +35,21 @@ WooCommerce dependency and Core's existing Elementor/Pinova requirements remain.
 | Bridge | Service purchase terms, payment authorization, receipt policy, issuance and service notifications | Core's general sign-in/account and ordinary WooCommerce checkout stay available; service payments stop safely without an issuer. |
 | TeraWallet | Balance, funding and transaction ledger | Bank-transfer service purchases remain available; the optional wallet payment method is unavailable. |
 
-The compact purchase form accepts email, mobile or username in one field without
-taking over Pinova's login route. Mobile registration and username/password proof
-use Pinova; email signup/login retains Core's existing email-code engine. Without
+The compact purchase form accepts email, mobile or username in one field.
+Mobile registration and username/password proof use Pinova; email signup/login retains Core's existing email-code engine. Without
 JavaScript the form preserves the purchase and opens the native sign-in route.
 Pinova 1.3 does not register a new customer from an email identifier alone, and a
 username is not an OTP destination. The chosen plan and quantity survive sign-in.
+
+The standalone guest account and public customer `/login/` screens reuse Pinova's
+native component in Core's minimal skin. Pinova keeps its proof engine, administrator
+and third-party return routes. When its component is unavailable, Core retains its
+existing email sign-in fallback.
+
+The protected, authenticated virtual-service wizard needs no checkout contact fields
+or email address. An existing valid account email is optional order metadata;
+phone-only customers receive their account details in their private customer panel.
+Ordinary checkout, taxable products and wallet funding keep their native fields.
 
 An order email is separate from the sign-in identifier. An email address must not
 silently merge accounts or change their owner. Bridge's ready notification uses
@@ -59,7 +68,7 @@ This never deletes an existing order, a submitted wallet attempt or payment evid
 
 ## Install and update
 
-After release approval, install the verified `artnovo-core-1.2.0.zip` package from
+After release approval, install the verified `artnovo-core-1.3.0.zip` package from
 the published release. The command below builds a local candidate; a successful
 build alone does not authorize installation. The package contains an
 `artnovo-core/` plugin directory; GitHub's automatic source archives contain the
