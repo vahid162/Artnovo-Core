@@ -2,7 +2,7 @@
   "format": "artnovo.native-change-contract.v1",
   "site": "https://artnovo.ir",
   "core_release": "v1.4.0",
-  "state": "proposed-before-live",
+  "state": "initial-operations-published",
   "sequence": "GitHub review and tests, merge, successful main CI, official release, exact ZIP install, native operations and publish, supported readback and browser checks.",
   "recovery": "Use the recorded before settings/styles through supported manage-elements, publish and compare fresh state; never restore raw storage JSON.",
   "changes": [
@@ -131,5 +131,33 @@
       ],
       "verify": "Product template keeps assignment, content, dynamic bindings, purchase actions and real-image gallery. Only placeholder gallery collapses; main landmark and 1160/14px gutters align with site."
     }
-  ]
+  ],
+  "post_publication_refinements": {
+    "state": "proposed-before-live",
+    "reason": "Actual WooCommerce product gallery marks its placeholder DIV; its IMG has wp-post-image, while catalog placeholders use woocommerce-placeholder. Plain formatted prices also need a currency separator.",
+    "native": {
+      "post_id": 35,
+      "operations": [
+        {
+          "action": "update",
+          "element_id": "44dd60e8",
+          "style": "padding: 0px; display: grid; gap: 24px; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: auto; align-items: start; &:has(.woocommerce-product-gallery__image--placeholder) { grid-template-columns: minmax(0,1fr); grid-template-rows: auto; } &:has(.woocommerce-product-gallery__image--placeholder) > [data-interaction-id=\"76bab128\"] { display: none; } &:has(.woocommerce-product-gallery__image--placeholder) > [data-interaction-id=\"2f9dde5\"] { grid-column: 1; grid-row: 1; }\n@media(--mobile) { gap: 14px; grid-template-columns: 1fr; grid-template-rows: auto auto; }",
+          "style_apply_mode": "replace"
+        }
+      ],
+      "before": [
+        {
+          "element_id": "44dd60e8",
+          "style": "padding: 0px; display: grid; gap: 24px; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: auto; align-items: start; &:has(img.woocommerce-placeholder) { grid-template-columns: minmax(0,1fr); grid-template-rows: auto; } &:has(img.woocommerce-placeholder) > [data-interaction-id=\"76bab128\"] { display: none; } &:has(img.woocommerce-placeholder) > [data-interaction-id=\"2f9dde5\"] { grid-column: 1; grid-row: 1; }\n@media(--mobile) { gap: 14px; grid-template-columns: 1fr; grid-template-rows: auto auto; }"
+        }
+      ]
+    },
+    "wordpress": {
+      "option": "woocommerce_currency_pos",
+      "expected_current": "right",
+      "value": "right_space",
+      "rollback": "right",
+      "verify": "Only formatted symbol spacing changes. Preserve currency, product prices, order totals, owners and all plugin code."
+    }
+  }
 }

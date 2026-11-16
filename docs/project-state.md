@@ -17,7 +17,10 @@ UX delivery. Do not edit live plugin source, overwrite old assets, change anothe
 plugin's code, create a second ledger/issuer or add a mandatory dependency. Tests
 use synthetic records; no real payment or provider issuance is needed.
 
-Candidate **1.4.0**, branch `work/accounts-ui-audit`, is not yet released or installed.
+**1.4.0 is released and installed** from the exact official asset after PR10,
+main CI and manual publication. The current delivery branch
+`work/accounts-delivery-evidence` records the deployed native source and two final
+display-only refinements proposed in GitHub before application.
 The selected layout uses right-side navigation and flat native subscription rows,
 copy/QR and private purchase details, known-empty versus error states, optional
 email completion and native endpoint handlers inside the same frame. Native order,
@@ -30,7 +33,8 @@ summary support phone-only buyers and Persian progress numbers. The recorded
 native operation contract in `docs/site-design/artnovo/planned-1.4.0.json` aligns
 the header consistently on desktop/mobile, gives legal/product roots main tags
 and removes only product-gallery placeholders. Native catalog styling preserves
-real images and all catalog processing. Native operations have not been applied. All seven synthetic integration commands
+real images and all catalog processing. Initial native operations are published and their preserved fields verified.
+Final placeholder selector/price-spacing refinements remain proposed. All seven synthetic integration commands
 passed229 assertions, including actual native order/edit/Wallet handlers; final
 GitHub CI and live artifact verification remain delivery gates. See
 [account-design evidence](evidence/2026-11-16-account-design.md).

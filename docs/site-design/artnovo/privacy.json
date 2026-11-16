@@ -9,7 +9,7 @@
       "id": "1af5b109",
       "elType": "e-div-block",
       "title": "صفحه سیاست",
-      "tag": "article",
+      "tag": "main",
       "editor_settings": {
         "name": "صفحه سیاست"
       },
@@ -17,7 +17,7 @@
         "classes": [
           "e-33234c92-b80d"
         ],
-        "tag": "article"
+        "tag": "main"
       },
       "styles": {
         "__style_id": "e-33234c92-b80d",

@@ -1,9 +1,9 @@
 {
   "format": "artnovo.site-design-manifest.v1",
   "site": "https://artnovo.ir",
-  "core_release": "v1.3.1",
-  "core_commit": "18e39aa8a40f7e6d51374f3619502c5c9bce8a46",
-  "core_zip_sha256": "db6307cb13fa35c19141ab810133e687c430d300adad86178bc33a57e9621bcf",
+  "core_release": "v1.4.0",
+  "core_commit": "c2988d59b7085c544dbfef8e4d104a507a8de085",
+  "core_zip_sha256": "5c99394c330ac2ffdc4428df290ead1d0143d30a8d1d530b95cf5753fc761064",
   "documents": [
     {
       "id": 68,
@@ -84,7 +84,7 @@
     },
     "header": {
       "file": "header.json",
-      "sha256": "0e055e4121488baa970bc77f22a63f160e3d176a88e1b72c2063a3f4bb824150"
+      "sha256": "b615f5de369c8216b44b2c6959a113209cdba5ca6beebd32b8196da47e436f14"
     },
     "footer": {
       "file": "footer.json",
@@ -92,19 +92,22 @@
     },
     "terms": {
       "file": "terms.json",
-      "sha256": "c3dc5e2fa5d7a339c53249441d8fc61d0423509659ecba86726477875a842b70"
+      "sha256": "9f5788eb7fac6666d5ab70b016927d4209065cbb538d9b8d5345a33f4f04c7bc"
     },
     "privacy": {
       "file": "privacy.json",
-      "sha256": "45f339617fd4cb5e8a60453862ca97db7a01a3f2bdb43286512e3621e00342ff"
+      "sha256": "758b3509ca58d5c7bd3cdf7e7ab5127c487f73dd8b13ad4abd50bfe217de271c"
     },
     "refunds": {
       "file": "refunds.json",
-      "sha256": "d03f98ffc838f9bda0b87d641b1fd9a3032055f701a096d66e3ee258c3992281"
+      "sha256": "8aa71b7f277c170b76f2a0f9d4bca862274b73d5c689f90c6f61f224ed58f0ed"
     },
     "product": {
       "file": "product.json",
-      "sha256": "147012c166c0ee21224bcb4c03e317fa16842dc30b901168ba593dd06a5598b8"
+      "sha256": "791217cd3bc32e66516d092f9c04fa849b6e640c22eb3aac06f6f3c198f1bd64"
     }
+  },
+  "display_settings": {
+    "woocommerce_currency_pos": "right"
   }
 }
