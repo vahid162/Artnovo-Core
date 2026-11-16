@@ -6,6 +6,8 @@ use Artnovo\PlanCheckout;
 
 defined( 'ABSPATH' ) || exit;
 
+require_once dirname( __DIR__ ) . '/auth/compact-purchase.php';
+
 const PAGE_ID = 68;
 const DURATIONS = [
 	1 => [ 'vpn-one-month', 'یک‌ماهه', 'artnovo-wizard-one-month', '5e3a70a2' ],
@@ -132,7 +134,7 @@ function checkout_coupon_form(): void {
 }
 
 function checkout_account_hint(): void {
-	echo '<p class="artnovo-order-hint artnovo-order-account">با حساب خود وارد شده‌اید. اطلاعات سفارش به ایمیل زیر ارسال می‌شود.</p>';
+	echo '<p class="artnovo-order-account">✓ ورود انجام شد</p><p class="artnovo-order-hint">اطلاعات این خرید به ایمیل زیر ارسال می‌شود.</p>';
 	if ( '' === wp_get_current_user()->user_email ) {
 		printf( '<p class="artnovo-order-hint"><a href="%s">برای دریافت اعلان آماده‌شدن اشتراک، ایمیل همین حساب را تأیید کنید.</a> ایمیل سفارش را نیز در فرم زیر وارد کنید.</p>', esc_url( \Artnovo\AccountUI\account_url( 'profile' ) ) );
 	}
@@ -148,9 +150,6 @@ function render_order( ?\WC_Product $plan ): string {
 	$currency = $woocommerce ? html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ) : '';
 	$checkout = function_exists( '\\Artnovo\\PlanCheckout\\wizard_checkout_active' );
 	$review = $checkout && $plan && PlanCheckout\wizard_checkout_active();
-	if ( $checkout && WC()->session ) {
-		WC()->session->set_customer_session_cookie( true );
-	}
 	$selection_revision = $checkout && WC()->session ? PlanCheckout\wizard_selection_revision() : '';
 	$draft = $checkout ? PlanCheckout\wizard_draft() : [];
 	$prices = [];
@@ -183,17 +182,9 @@ function render_order( ?\WC_Product $plan ): string {
 	$quantity = $plan_id === $draft_plan ? $draft_quantity : 1;
 	$can_checkout = in_array( (string) $plan_id, $ready, true );
 	$auto_prepare = $login && $can_checkout && ! $review && '1' !== ( $_GET['artnovo_prepare_failed'] ?? null );
-	$coupons = $woocommerce && wc_coupons_enabled();
-	$email_otp = ! $login && function_exists( '\\Artnovo\\PlanCheckout\\wizard_email_otp_enabled' ) && PlanCheckout\wizard_email_otp_enabled();
-	$otp_expires = $email_otp && $plan_id === $draft_plan
-		? PlanCheckout\wizard_email_otp_expiry( $draft['billing_email'] ?? '' )
-		: 0;
-	$checkout_hint = $email_otp
-		? 'برای ورود یا ساخت حساب، ایمیل‌تان را با کد تأیید کنید.'
-		: 'برای ثبت سفارش وارد حساب خود شوید. پلن، تعداد و ایمیل حفظ می‌شوند.';
 	$unit_price = $plan ? ( $prices[ $plan->get_id() ] ?? 0 ) / ( 10 ** $decimals ) : 0;
 	$formatted_price = $plan ? wp_kses_post( wc_price( $unit_price ) ) : '';
-	$formatted_total = $plan ? wp_kses_post( wc_price( $quantity * $unit_price ) ) : '';
+	$formatted_total = $review && WC()->cart ? wp_kses_post( WC()->cart->get_total() ) : ( $plan ? wp_kses_post( wc_price( $quantity * $unit_price ) ) : '' );
 
 	ob_start();
 	?>
@@ -209,8 +200,8 @@ function render_order( ?\WC_Product $plan ): string {
 		data-artnovo-price-decimals="<?php echo esc_attr( (string) $decimals ); ?>"
 		data-artnovo-currency="<?php echo esc_attr( $currency ); ?>">
 		<div class="artnovo-order-intro">
-			<h2 id="artnovo-order-heading">ثبت سفارش و پرداخت</h2>
-			<p>پلن، تعداد و مبلغ سفارش را اینجا بررسی کنید.</p>
+			<h2 id="artnovo-order-heading">خریدتان را کامل کنید</h2>
+			<p>ورود، پرداخت و دریافت اکانت؛ از همین‌جا.</p>
 		</div>
 		<?php if ( $checkout && $login ) : ?>
 			<form method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>" data-artnovo-prepare hidden>
@@ -230,26 +221,32 @@ function render_order( ?\WC_Product $plan ): string {
 		<div class="artnovo-order-layout" data-artnovo-selected <?php echo $plan ? '' : 'hidden'; ?>>
 			<aside class="artnovo-order-summary" aria-labelledby="artnovo-summary-heading">
 				<div class="artnovo-order-product">
-					<h3 id="artnovo-summary-heading">پلن انتخاب‌شده</h3>
-					<strong class="artnovo-order-plan" data-artnovo-title><?php echo $plan ? esc_html( $plan->get_name() ) : ''; ?></strong>
-					<a href="#artnovo-plans">تغییر پلن</a>
+					<div><h3 id="artnovo-summary-heading">انتخاب شما</h3><strong class="artnovo-order-plan" data-artnovo-title><?php echo $plan ? esc_html( $plan->get_name() ) : ''; ?></strong></div>
+					<a class="artnovo-order-change" href="#artnovo-plans">تغییر پلن <span aria-hidden="true">←</span></a>
 				</div>
-				<div class="artnovo-order-unit">
+				<div class="screen-reader-text">
 					<span>قیمت هر اشتراک</span>
 					<strong data-artnovo-price data-artnovo-unit-price><?php echo $formatted_price; ?></strong>
 				</div>
 				<div class="artnovo-order-quantity">
-					<span id="artnovo-order-quantity-label">تعداد اشتراک</span>
+					<span id="artnovo-order-quantity-label">تعداد اکانت</span>
 					<div class="artnovo-order-quantity-control" role="group" aria-labelledby="artnovo-order-quantity-label" dir="ltr">
 						<button type="button" data-artnovo-quantity-step="-1" aria-label="کم‌کردن تعداد اشتراک" disabled>−</button>
 						<span data-artnovo-quantity dir="auto"><?php echo esc_html( persian_number( $quantity ) ); ?></span>
 						<button type="button" data-artnovo-quantity-step="1" aria-label="زیادکردن تعداد اشتراک" disabled>+</button>
 					</div>
 				</div>
+				<div data-artnovo-adjustments class="artnovo-order-adjustments"></div>
+				<div class="artnovo-order-total" aria-live="polite" aria-atomic="true"><span>مبلغ قابل پرداخت</span><div data-artnovo-total><?php echo $formatted_total; ?></div></div>
 				<?php if ( $review ) : ?>
 					<p data-artnovo-quantity-status class="artnovo-order-hint" role="status" hidden></p>
 				<?php endif; ?>
 			</aside>
+			<ol class="artnovo-order-steps" aria-label="مراحل تکمیل خرید">
+				<li <?php echo $login ? 'data-complete="true"' : 'aria-current="step"'; ?>><span aria-hidden="true"><?php echo $login ? '✓' : '۱'; ?></span>ورود</li>
+				<li <?php echo $login ? 'aria-current="step"' : ''; ?>><span aria-hidden="true">۲</span>پرداخت</li>
+				<li><span aria-hidden="true">۳</span>دریافت اکانت</li>
+			</ol>
 			<?php if ( $review ) : ?>
 				<div class="artnovo-order-native">
 					<?php
@@ -281,10 +278,6 @@ function render_order( ?\WC_Product $plan ): string {
 				</div>
 			<?php elseif ( $login ) : ?>
 				<div class="artnovo-order-panel">
-					<div class="artnovo-order-total" aria-live="polite" aria-atomic="true">
-						<span>جمع سفارش</span>
-						<strong data-artnovo-total><?php echo $formatted_total; ?></strong>
-					</div>
 					<p role="status"><?php echo $auto_prepare ? 'در حال آماده‌سازی فرم ثبت سفارش.' : ( $can_checkout ? 'فرم سفارش آماده نشد. دوباره تلاش کنید.' : 'خرید این پلن در حال حاضر در دسترس نیست.' ); ?></p>
 					<button type="button" data-artnovo-retry-prepare class="artnovo-order-submit" <?php disabled( ! $can_checkout ); ?> <?php echo $auto_prepare ? 'hidden' : ''; ?>>باز کردن فرم ثبت سفارش</button>
 					<noscript>
@@ -298,54 +291,7 @@ function render_order( ?\WC_Product $plan ): string {
 					</noscript>
 				</div>
 			<?php else : ?>
-			<form class="artnovo-order-form" method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>" aria-label="اطلاعات سفارش" aria-describedby="artnovo-order-status" <?php if ( $email_otp ) : ?>data-artnovo-email-otp data-artnovo-otp-expires="<?php echo esc_attr( (string) $otp_expires ); ?>"<?php endif; ?>>
-				<?php wp_nonce_field( 'artnovo_wizard_checkout', 'artnovo_wizard_nonce', false ); ?>
-				<input type="hidden" name="artnovo_selection_revision" value="<?php echo esc_attr( $selection_revision ); ?>">
-				<input type="hidden" name="artnovo_product" value="<?php echo esc_attr( (string) $plan_id ); ?>">
-				<input type="hidden" name="artnovo_quantity" value="<?php echo esc_attr( (string) $quantity ); ?>">
-				<section class="artnovo-order-panel" aria-labelledby="artnovo-order-contact-heading">
-					<h3 id="artnovo-order-contact-heading">اطلاعات سفارش</h3>
-					<label class="artnovo-order-field">ایمیل سفارش
-						<input name="artnovo_email" type="email" dir="ltr" autocomplete="email" maxlength="<?php echo $email_otp ? '100' : '254'; ?>" value="<?php echo esc_attr( $draft['billing_email'] ?? '' ); ?>" <?php wp_readonly( (bool) $otp_expires ); ?> required>
-					</label>
-					<?php if ( $email_otp ) : ?>
-						<div class="artnovo-order-field" data-artnovo-otp-fields <?php echo $otp_expires ? '' : 'hidden'; ?>>
-							<label for="artnovo-email-code">کد تأیید ایمیل</label>
-							<input id="artnovo-email-code" name="artnovo_otp_code" type="text" dir="ltr" inputmode="numeric" autocomplete="one-time-code" maxlength="<?php echo esc_attr( (string) PlanCheckout\EMAIL_OTP_DIGITS ); ?>" aria-describedby="artnovo-email-code-hint artnovo-email-otp-message" <?php disabled( ! $otp_expires ); ?> required>
-							<p id="artnovo-email-code-hint" class="artnovo-order-hint">کد شش‌رقمی ارسال‌شده به ایمیل را وارد کنید.</p>
-							<div class="artnovo-order-otp-actions">
-								<button type="button" data-artnovo-otp-edit>تغییر ایمیل</button>
-								<button type="button" data-artnovo-otp-resend>ارسال دوبارهٔ کد</button>
-							</div>
-						</div>
-						<p id="artnovo-email-otp-message" data-artnovo-otp-message role="status" hidden></p>
-					<?php endif; ?>
-					<div class="artnovo-order-actions">
-						<p id="artnovo-order-status" class="artnovo-order-hint" data-artnovo-status-ready="<?php echo esc_attr( $checkout_hint ); ?>"><?php echo esc_html( $can_checkout ? $checkout_hint : 'خرید این پلن هنوز در دسترس نیست.' ); ?></p>
-						<button type="submit" class="artnovo-order-submit" <?php disabled( ! $can_checkout ); ?>><?php echo $email_otp ? ( $otp_expires ? 'تأیید و ادامهٔ خرید' : 'ارسال کد تأیید' ) : 'ورود و ادامهٔ خرید'; ?></button>
-						<button type="submit" name="artnovo_login_method" value="pinova" formnovalidate class="artnovo-order-submit" <?php disabled( ! $can_checkout ); ?>>ورود با موبایل، ایمیل یا نام کاربری</button>
-						<button type="submit" name="artnovo_login_method" value="email" formnovalidate>ورود ایمیلی از صفحهٔ حساب</button>
-					</div>
-				</section>
-				<section class="artnovo-order-panel" aria-labelledby="artnovo-order-payment-heading">
-					<h3 id="artnovo-order-payment-heading">خلاصه و پرداخت</h3>
-					<div class="artnovo-order-total" aria-live="polite" aria-atomic="true">
-						<span>جمع سفارش</span>
-						<strong data-artnovo-total><?php echo $formatted_total; ?></strong>
-					</div>
-					<?php if ( $coupons ) : ?>
-						<details class="artnovo-order-coupon" <?php if ( ! empty( $draft['coupon'] ) ) : ?>open<?php endif; ?>>
-							<summary>کد تخفیف دارید؟</summary>
-							<div class="artnovo-order-field">
-								<label for="artnovo-guest-coupon">کد تخفیف</label>
-								<input id="artnovo-guest-coupon" name="artnovo_coupon" type="text" dir="ltr" autocomplete="off" aria-describedby="artnovo-guest-coupon-hint" maxlength="100" value="<?php echo esc_attr( $draft['coupon'] ?? '' ); ?>">
-								<p id="artnovo-guest-coupon-hint" class="artnovo-order-hint">اعتبار کد بعد از ورود بررسی می‌شود.</p>
-							</div>
-						</details>
-					<?php endif; ?>
-					<p class="artnovo-order-hint">روش پرداخت بعد از ورود در همین بخش نمایش داده می‌شود.</p>
-				</section>
-			</form>
+				<?php render_compact_auth( $plan_id, $quantity, $selection_revision, $can_checkout ); ?>
 			<?php endif; ?>
 		</div>
 	</section>
@@ -423,6 +369,10 @@ add_action( 'wp_enqueue_scripts', static function (): void {
 		$css = 'artnovo-home-wizard.css';
 		$js = 'artnovo-home-wizard.js';
 		$deps = function_exists( '\Artnovo\PlanCheckout\wizard_checkout_active' ) && PlanCheckout\wizard_checkout_active() ? [ 'wc-checkout' ] : [];
+		if ( ! is_user_logged_in() ) {
+			wp_enqueue_script( 'artnovo-compact-auth', plugins_url( '../auth/compact-purchase.js', __FILE__ ), [], (string) filemtime( dirname( __DIR__ ) . '/auth/compact-purchase.js' ), true );
+			$deps[] = 'artnovo-compact-auth';
+		}
 		wp_enqueue_style( 'artnovo-home-wizard', plugins_url( $css, __FILE__ ), [], (string) filemtime( __DIR__ . '/' . $css ) );
 		wp_enqueue_script( 'artnovo-home-wizard', plugins_url( $js, __FILE__ ), $deps, (string) filemtime( __DIR__ . '/' . $js ), true );
 	}

@@ -35,9 +35,10 @@ WooCommerce dependency and Core's existing Elementor/Pinova requirements remain.
 | Bridge | Service purchase terms, payment authorization, receipt policy, issuance and service notifications | Core's general sign-in/account and ordinary WooCommerce checkout stay available; service payments stop safely without an issuer. |
 | TeraWallet | Balance, funding and transaction ledger | Bank-transfer service purchases remain available; the optional wallet payment method is unavailable. |
 
-The purchase wizard offers native Pinova sign-in without taking over Pinova's
-login route. Mobile registration and existing email/username sign-in use Pinova;
-Core retains new-email registration and its server-rendered email-code fallback.
+The compact purchase form accepts email, mobile or username in one field without
+taking over Pinova's login route. Mobile registration and username/password proof
+use Pinova; email signup/login retains Core's existing email-code engine. Without
+JavaScript the form preserves the purchase and opens the native sign-in route.
 Pinova 1.3 does not register a new customer from an email identifier alone, and a
 username is not an OTP destination. The chosen plan and quantity survive sign-in.
 
@@ -58,7 +59,7 @@ This never deletes an existing order, a submitted wallet attempt or payment evid
 
 ## Install and update
 
-After release approval, install the verified `artnovo-core-1.1.0.zip` package from
+After release approval, install the verified `artnovo-core-1.2.0.zip` package from
 the published release. The command below builds a local candidate; a successful
 build alone does not authorize installation. The package contains an
 `artnovo-core/` plugin directory; GitHub's automatic source archives contain the
@@ -118,6 +119,7 @@ python3 tools/check.py
 python3 tests/governance.py
 php tests/bootstrap.php
 php tests/checkout-context.php
+node tests/compact-auth.js
 php tests/independence.php
 php tests/migration.php
 python3 tests/release.py
