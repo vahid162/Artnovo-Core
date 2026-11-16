@@ -1,90 +1,93 @@
 # Current project state
 
-## Mission and authority
+## Current mission and authority
 
-The owner subsequently explicitly authorized finalizing PR #5, publishing the
-formal GitHub release **1.1.0**, installing that exact release on **artnovo.ir**,
-and running a short post-install smoke test. This supersedes the earlier hold on
-those effects for this Core release. It does not authorize changing Bridge/Wallet
-code or making a real customer payment. The delivery preparation below predates
-the merge/release/install; their immutable results belong to the delivery record.
+The owner selected the **compact purchase** prototype and explicitly requested
+implementation in Core, the guest-session fix, tests, a new GitHub release and
+installation on artnovo.ir. Only Core plugin source may change. Ordinary WordPress
+or WooCommerce settings may be adjusted when necessary. No Bridge, Wallet or
+Pinova source change, second ledger, new issuer or mandatory dependency among
+Core/Bridge/Wallet is authorized. The user already authorized controlled test
+orders and SMS/email to their own contacts; do not make a real payment or approve
+financial delivery merely to test presentation.
 
-On 2026-11-16 the owner requested implementing the purchase-sign-in correction in
-`vahid162/Artnovo-Core`, with independent operation and no duplicated responsibilities
-between Core, WP VPN Bridge and TeraWallet. Repository work starts from
-`be084b8aa2c9ca5953ab39c13d2361bb32363497` on
-`work/pinova-auth-independent-accounts`. The earlier Governance PR #4 is merged;
-its detailed evidence remains in the dated record.
+Canonical checkout: this repository. Base source is merged PR #5,
+`7aad8c503ee4d6d8f9eb9c058fd7d8f0e75fef53`, released and installed as **1.1.0**.
+The selected visual is the compact variant in the thread's
+`artnovo-checkout-directions.html`; its demo data and simulated payments are not
+implementation. Use the existing native authentication, checkout and receipt APIs.
+Development, review, authorized merge/release and exact-package installation are
+owned by this mission; do not stop after a draft PR.
 
-The owner explicitly prohibits direct changes to custom plugin code on WordPress.
-Develop and verify the repository change, prepare its reviewable PR and versioned
-delivery. Production must receive an approved published package, never edited
-source files or a site snippet. Merge, release and installation remain distinct
-effects under the repository's [development governance](development-governance.md).
-Full purchase testing on the live site waits for coordinated plugin reports.
+## Work and ownership
 
-Separately, the owner explicitly authorized enabling Bridge's two delivery emails
-through WooCommerce settings. That settings-only operation was completed and read
-back with `enabled=yes` and valid generation IDs. Hashes of installed PHP, JS and
-CSS files in Core, Bridge and Wallet remained unchanged; no test email was sent.
-This operation does not authorize replacing their source or changing their ledger.
+- Session repair: initialize the native WooCommerce guest cookie before output on
+  Core purchase pages, account for native empty-session cleanup, and recover stale
+  forms with a fresh GET retaining the current allowed selection. Invalid input
+  must never update a cart, create an account/order, debit or issue a service.
+- Compact authentication: one identifier and one main action; Core's existing
+  email-code signup/login stays available, mobile/username use native Pinova APIs.
+  Proof fields depend on the provider's response. Refresh authenticated nonces by
+  returning through the canonical resume route; do not reuse guest checkout tokens.
+- Compact presentation: one summary, quantity and change-plan controls, one active
+  login/payment state, native WooCommerce checkout submission, native receipt and
+  real delivery status. Bank transfer remains pending financial review. Wallet
+  appears only when its existing provider permits it. Never promise bank-transfer
+  instant delivery or modify submitted orders when a new plan is selected.
+- Root owns version/docs, integration acceptance, the final tree, reviews, commits,
+  PR/CI, release and deployment. Shared implementation workers have disjoint files
+  and must not stage, commit, build packages or mutate the website.
 
-## Acceptance and boundaries
+## Agreed implementation seams
 
-This is high risk because sign-in, customer identity and purchase context are
-affected. Use focused negative/replay/missing-dependency regressions and a distinct
-independent technical review; retain nonce, rate-limit, ownership and payment fences.
+The existing nonce-protected root purchase POST remains the selection boundary.
+A guest AJAX request with `artnovo_login_method=pinova` may prepare a validated
+selection for native sign-in, returning its current revision and resume destination.
+It does not authenticate. Email proof continues to use the existing Core checkout
+OTP request. Native Pinova authenticate, login/otp and login/password endpoints
+remain their owner. JSON stale-form responses include a safe fresh-GET destination;
+normal stale POSTs redirect instead of rendering an unrecoverable 403 page. Nonce
+and same-origin checks stay in place.
 
-- Expose native Pinova mobile/email/username sign-in and preserve Core's existing
-  new-email registration and usable server-rendered email fallback.
-- Preserve plan, quantity and a validated internal return destination. Billing
-  email must not select, merge or transfer account/order ownership.
-- Keep the three plugins independently installable: no new mandatory dependency
-  among them, no second wallet ledger or service issuer in Core. An unavailable
-  optional provider disables only the capability that actually requires it.
-- Leave third-party account endpoints and non-plan carts/funding to their native
-  handlers. Core must not intercept them through its template or redirects.
-- Preserve the hidden-cart service journey: selecting plan B replaces unpaid plan
-  A silently, with the new quantity, without notices or a visible cart. Browser
-  return, sign-in or a stale request must not revive an older selection; existing
-  orders, submitted payment attempts and payment evidence are not deleted.
-- Keep receipt authorization in Bridge's public API, with safe compatibility and
-  missing-provider behavior. Do not open payment/receipt guards for independence.
-- Preserve the published Elementor policy pages and their footer links/settings.
-  These CMS changes are independent of the plugin release.
+The compact auth module owns `render_compact_auth(product_id, quantity,
+selection_revision, can_checkout)` and its separate script. Home rendering calls
+that helper only for guests and keeps native Woo checkout for authenticated users.
+No-JavaScript fallback uses the native sign-in route. Existing endpoint, receipt,
+account-owner and payment fences remain intact.
 
-## Verification and delivery
+## Verification and release boundary
 
-The 1.1.0 candidate is implemented locally. Proof-first regressions captured eight
-account/login ownership failures, three ordinary-cart failures, and four final
-login-session/error-persistence failures before their production fixes. Integrated
-standalone checks passed: document/governance, bootstrap, checkout context,
-authentication (33 assertions), selection/replay/login (42 assertions), independence
-(80 assertions), migration, release policy, packaging and PHP lint (31 files).
-Migration used a private temporary directory outside Git; no WordPress fixture ran.
-The initial version assertion was advanced with the runtime version; no behavioral
-assertion or payment guard was weakened.
+High risk: authentication, purchase state and production deployment. Prove new
+behavior with focused failing/passing regressions; run the required standalone
+suite, PHP lint, package/release checks and meaningful integration checks. Existing
+in-memory tests do not prove browser header/cookie behavior. Exercise a native
+first guest GET, first selection, Back, refresh, stale token recovery, real email
+login, native username recognition, desktop/mobile layouts, native Wallet/orders,
+BACS order and receipt page. Use controlled test records, mark/cancel them and
+revoke test sessions. Do not weaken ownership/payment tests for visual convenience.
 
-Independent review completed eight risk-based lenses and validated five findings.
-The fixes protect native review and denied-checkout persistence, redirect stale
-checkout URLs, prevent competing login submits, and exercise the actual account
-completion callback. A fresh independent resolution review closed all five with
-no remaining blockers for a **draft PR**. Actual WordPress/browser acceptance is
-still pending. See the [candidate verification](evidence/2026-11-16-pinova-auth-independence/verification.md).
+Require an independent review, then exact-head GitHub validation. Inspect auto
+review suggestions posted after a draft becomes ready before merging. Build a
+new versioned package, publish from the authorized main commit, verify tag/asset/
+checksum/payload, preserve a private previous-source backup and recovery rehearsal,
+and install only that published ZIP. Verify all installed bytes and unchanged
+Bridge/Wallet/Pinova source manifests. Record actual observations and unavailable
+browser/provider checks separately.
 
-Three behavior-preserving simplification lenses found no worthwhile changes in
-the submitted module/test diff. The final login-session edge was then closed with
-focused failing/passing regressions and remains included in the technical review.
+## Prior facts and limits
 
-No new runtime code is installed, no release/tag is published and no real customer
-purchase is executed by this mission so far. Browser and live purchase acceptance
-must be recorded as unavailable/not run until actually observed. Repository push/PR
-automation was inspected: validation is read-only; publication is manual-only on
-main and does not install WordPress.
+Core 1.1.0's published ZIP SHA-256 is
+`8774c6cafee1da33de449263e319961794e218fbd9aa279a2db1fdacb15d5c30`.
+All 28 installed payload files matched it. Test order #155 was unpaid, had no
+issued service, was cancelled and labelled; its test-customer sessions were
+revoked. CMS page #154 registers `/login` for Pinova; no server/plugin source
+change was needed for that page. The owner reports SMS working after allowing
+the server IP in MeliPayamak. Published policy pages and legal settings stay intact.
 
-## Prior delivery facts
-
-Installed Core remains 1.0.1; the dated [installation record](evidence/2026-11-15-core-1.0.1-install/verification.md)
-identifies its approved package. The [Governance 1.4 evidence](evidence/2026-11-16-governance-1.4/verification.md)
-belongs to the earlier policy change and is not new authentication evidence.
-Keep installed, developed, published and product-accepted facts separate.
+The confirmed guest issue is late cookie creation in Elementor output, compounded
+by stale-form denial without GET recovery. The original browser nonce's initial
+staleness was not directly observed; Core's nonce action is not WooCommerce's
+session-specific nonce prefix. A previous diagnostic POST retry was rejected as
+outside its read-only scope. This new request explicitly authorizes the fix,
+implementation, tests and deployment; the earlier read-only diagnostic scope no
+longer governs this mission.
