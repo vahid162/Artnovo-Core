@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.0 — 2026-11-16
+
 - Make native Pinova sign-in available from the purchase flow while preserving
   email-code entry and new-email registration.
 - Keep third-party account endpoints, ordinary carts and wallet funding with their

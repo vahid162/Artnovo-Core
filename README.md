@@ -1,6 +1,6 @@
 # Artnovo Core
 
-The site-specific WordPress plugin for ArtNovo. The 1.1.0 candidate includes the
+The site-specific WordPress plugin for ArtNovo. Version 1.1.0 includes the
 purchase wizard, hidden-cart checkout, email-code entry, customer panel, order
 confirmation, receipt form, header behavior and default sender into one package.
 

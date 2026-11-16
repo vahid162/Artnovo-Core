@@ -2,6 +2,13 @@
 
 ## Mission and authority
 
+The owner subsequently explicitly authorized finalizing PR #5, publishing the
+formal GitHub release **1.1.0**, installing that exact release on **artnovo.ir**,
+and running a short post-install smoke test. This supersedes the earlier hold on
+those effects for this Core release. It does not authorize changing Bridge/Wallet
+code or making a real customer payment. The delivery preparation below predates
+the merge/release/install; their immutable results belong to the delivery record.
+
 On 2026-11-16 the owner requested implementing the purchase-sign-in correction in
 `vahid162/Artnovo-Core`, with independent operation and no duplicated responsibilities
 between Core, WP VPN Bridge and TeraWallet. Repository work starts from
