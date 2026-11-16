@@ -69,3 +69,42 @@ page to front and enabling CDP focus emulation established real focus events:
 focused/hasFocus=true, visible, focusin=1, paused=1; the toast remained after5.5s
 and expired after blur/resumption. This is a harness-focus correction, not a
 production-code change. Unit hover/focus/hidden-tab pause cases also passed.
+
+
+## Published and installed1.5.0
+
+PR12 merged as `9cdb73196626cc881fd901dd30d74f1940217e81`, full tree
+`77718b7041853355789c6748ac19de32054cf8ff`. PR/main/publication runs
+43942004134 /43942132451 /43942307242 all passed. Tag v1.5.0 targets that merge;
+official release published2026-11-16T19:43:53Z. ZIP SHA256
+`111594a8108a99a3fb902f062a4b5256e0e4a1c60ac177350cbb03eea3104009` matches the
+frozen candidate and all35 live files. Independent readback confirmed exact match;
+Bridge/Wallet/Pinova source, activation set and wp-config hash were unchanged.
+
+Recovery backup/atomic exchange rehearsal receipt:
+`/var/backups/artnovo-core/20261116T194433Z-gm48xqfx`. Installation drained FPM,
+invalidated18 PHP scripts with no cached failures, purged only one host cache entry,
+removed owned maintenance state and passed home/account HTTP200/UI-marker checks.
+No live plugin source was patched. Native design did not change in1.5.0; its current
+manifest now maps the observed references to the installed Core artifact.
+
+Popup geometry: desktop1206 left/bottom20px,width360px,close44×44; mobile320
+left/bottom14px,width292px; no horizontal overflow. Final live guest purchase at1206/320 and native account login at390 passed: no
+overflow, one main, correct wizard/auth markers, published notice CSS/JS loaded
+and initialized. Browser-only synthetic notice injection on the actual site passed
+source preservation,44px close, desktop20px/mobile14px placement and5-second expiry.
+The temporary DOM nodes were removed; no message/order/customer was saved.
+
+
+## Cleanup and final operational record
+
+Owned loopback preview process stopped, port8774 has no listener, private stages
+with synthetic rendered HTML were removed, and Windows confirmed zero owned QA
+Chrome/tunnel processes and zero temporary QA profiles. User browsers were not
+targeted. Only nonsecret aggregate results/public screenshots and private recovery
+backups remain. No credentials were made for this UI mission.
+
+The final delivery-record change is documentation only. Runtime ZIP rebuilt after
+these observations remains byte-identical to the formal1.5.0 asset; no retag, asset
+overwrite or reinstall follows from operational notes. Local main was fast-forwarded
+to the official merge before this notes branch.
