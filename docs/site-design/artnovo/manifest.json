@@ -1,9 +1,9 @@
 {
   "format": "artnovo.site-design-manifest.v1",
   "site": "https://artnovo.ir",
-  "core_release": "v1.4.1",
-  "core_commit": "eb9a9da0b76acc3f3a3c6322f01db2529896d894",
-  "core_zip_sha256": "b9954651c2488b36de64052695852cc4ded07409a572f3e0359b051d3cb2a2a3",
+  "core_release": "v1.5.0",
+  "core_commit": "9cdb73196626cc881fd901dd30d74f1940217e81",
+  "core_zip_sha256": "111594a8108a99a3fb902f062a4b5256e0e4a1c60ac177350cbb03eea3104009",
   "documents": [
     {
       "id": 68,

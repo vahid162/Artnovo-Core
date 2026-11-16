@@ -1,67 +1,85 @@
 # Current project state
 
-## Mission and authority
+## Completed outcome and authority
 
-The owner selected **My Accounts** (اکانت‌های من), requested a global UX/UI audit
-and matching desktop/mobile improvements, and authorized scoped Core merge, release
-and installation. Only Core runtime code may change. Bridge, Wallet and Pinova
-remain independent owners of issuance, money and identity. Native Elementor/config
-changes must be proposed in GitHub, reviewed, and applied through supported APIs
-only after the associated official Core artifact is released/installed. Never edit
-live plugin source or raw Elementor storage; never overwrite published assets.
+The owner selected **My Accounts** (اکانت‌های من), requested global UX/UI fixes,
+matching mobile/desktop presentation, minimal native Pinova login, compact checkout
+and post-order completion, and shared bottom-left customer notices. The ongoing
+scoped authority covered Core GitHub development, merge, release and installation.
+Core **1.5.0** is installed; a newly reported field-validation presentation issue
+is being corrected in **1.5.1** through the same GitHub-first delivery sequence.
 
-The latest added scope is a compact post-order flow, bottom-left five-second
-customer toasts with close/progress, and coupon/payment copy/spacing refinements.
-This is developed separately in `work/compact-receipt-notices` while the1.4.1 routing
-patch is delivered. Persistent order/payment state remains visible; transient
-notifications use the shared toast presentation. Preserve native validation, OTP,
-owner/order-key/nonces, private links, receipt policy and backend payment/issuance.
+Only Core runtime source changed. Bridge, Wallet and Pinova remain independent
+owners of service issuance/payment policy, balances and identity. No copied ledger,
+issuer or authentication engine was added. Native Elementor/config proposals were
+recorded in GitHub before supported live application after the corresponding Core
+release/install; current references/manifest match observed source. No raw Elementor
+storage or live plugin source was patched. Published tags/assets are immutable.
 
-## Installed baseline
+## Installed source and artifact
 
-Core **1.4.1** is officially released and installed after PR11 merge
-`eb9a9da0b76acc3f3a3c6322f01db2529896d894`, full tree
-`37f2cf98e5f3f531976a562d0ce27ecb2be4423e`. Main CI43937295695 and publication
-43937456955 passed. Official ZIP SHA256
-`b9954651c2488b36de64052695852cc4ded07409a572f3e0359b051d3cb2a2a3` matches all32
-live files. Recovery/health and unchanged Bridge/Wallet/Pinova manifests passed;
-backup `/var/backups/artnovo-core/20261116T191624Z-zu8s2dpn`. PR10's archive ID
-collision review is fixed/resolved. Page61/68 guards use qualified native is_page.
+PR12 merge/tag target `9cdb73196626cc881fd901dd30d74f1940217e81`, source tree
+`77718b7041853355789c6748ac19de32054cf8ff`. PR/main/publication Actions
+43942004134 /43942132451 /43942307242 passed. Official1.5.0 ZIP SHA256
+`111594a8108a99a3fb902f062a4b5256e0e4a1c60ac177350cbb03eea3104009` equals the
+frozen candidate and every one of35 installed files. Bridge/Wallet/Pinova source,
+activation set and wp-config hash remain unchanged. Recovery backup/rehearsal:
+`/var/backups/artnovo-core/20261116T194433Z-gm48xqfx`. Atomic exchange/drain,18 PHP
+opcode invalidations, zero cached failures, host-only cache purge and health checks
+passed; no maintenance remains. The final branch contains only delivery records,
+not another runtime release. Runtime bytes continue to match the official ZIP.
 
-Selected My Accounts and global home/login/checkout/native catalog/legal/header/
-footer improvements remain delivered. All planned native1.4.0/1.4.1 refinements
-are published after the associated Core release/install and verified. Native source
-references and display manifest record the observed result, including left-aligned
-product prices with currency gap. No unrelated plugin source was edited.
+Previously PR11/1.4.1 fixed actual-page routing for61/68; PR10 review4589577964 is
+resolved. Those fixes and regression checks are included in1.5.0. The native price
+alignment was applied only after official1.4.1 installation and readback verified
+only its intended card style changed. Native designs did not change in1.5.0.
 
-## Current candidate and delivery gates
+## Delivered behavior and checks
 
-**1.5.0** in `work/compact-receipt-notices` is based on current1.4.1 main. Adds shared
-customer toasts, compact post-order presentation and coupon/copy/spacing refinements.
-All existing guards and native integrations remain. Independent reviews found and
-fixed initial-notice announcement, copy-wrapper exclusion and hidden manual-copy
-field issues. Thirty isolated JS lifecycle/security assertions and five asset
-contracts pass. Final59/59 standalone/lint commands (all14 mandatory gates) and
-7/7 native integration commands (357 assertions) passed. Browser toast lifetime/progress, focused reading pause, multi-source coverage,
-manual dismiss, safe/native link actions and desktop/mobile placement passed.
-GitHub CI/merge/publication and exact installed asset remain delivery gates.
+My Accounts keeps real native subscription rows, copy/local QR, optional email,
+proper navigation and native order/profile/Wallet handlers. Missing-Bridge fallback
+remains native Woo. Header/footer/home/catalog/legal and minimal Pinova login align
+with navy/mint/Vazir at mobile and desktop sizes. Protected service checkout needs
+no email, keeps silent unpaid plan replacement and native discounts/financial totals.
+Coupon input/action share a row, label gap6px, login-info separation28px; payment
+heading is clear. Post-order view gives summary, permanent real state, actual next
+action and optional invoice details, with owner/key/receipt/issuance fences intact.
 
-See [compact completion evidence](evidence/2026-11-16-compact-completion.md) for the
-current scope, actual tests and limits. Avoid financial/provider tests unless needed
-for a new financial concern; this is presentation work with preserved backend APIs.
+Temporary customer notices use five-second bottom-left toasts with close/progress.
+Focus/hover/hidden tab pause reading time; permanent state, busy progress and field
+validation keep their context. Original native sources/IDs/handlers remain. Safe
+visible content, initial announcements and native copy/manual-selection are tested.
 
-## Evidence and limits
+Final59/59 independent/lint commands include all14 mandatory gates,37 PHP lints and
+8 JS syntax checks. All7 synthetic native WordPress commands passed357 assertions
+with SQL/mail/outbound guards. Independent reviews found and rechecked three UI
+issues before release; no blocking finding remains in the reviewed scope. Actual
+Chrome passed popup lifetime/progress/placement, focused pause, native message
+sources, safe link actions/dismiss, receipt Clipboard fault/manual selection,
+Tab/Enter/QR and representative desktop/mobile geometry. First font/focus fixture
+failures were diagnosed and rerun correctly; they were not counted as successes.
+Live guest purchase1206/320 and native login390 passed; actual published assets
+showed/closed synthetic browser-only notices at the expected position/time.
 
-[Account and1.4.1 evidence](evidence/2026-11-16-account-design.md) records native
-source operations, source/artifact identity, synthetic native handler tests and
-actual Chrome geometry/keyboard/copy fallback/QR/no-JS checks. Current QA uses
-synthetic records with SQL/mail/HTTP writes blocked, and public read-only pages.
-Real payment/provider issuance, OS clipboard, physical devices and actual browser
-zoom200/400% remain untested. Private preview server/tunnel/browser still belong to
-this ongoing task and must be stopped/removed after final QA. Retain aggregate
-evidence only; no raw customer records, tokens or credentials in Git.
+[Compact completion delivery evidence](evidence/2026-11-16-compact-completion.md)
+and [account/native evidence](evidence/2026-11-16-account-design.md) record details.
+Cleanup of this task's private preview/staging/browser/tunnel is verified and
+recorded at the end of delivery evidence: no owned process/profile or port listener
+remains. Preserve private recovery receipts; retain only nonsecret aggregate QA
+results/public screenshots outside Git.
 
-Earlier reconciliation and controlled order167/customer15 history are preserved in
-[UI evidence](evidence/2026-11-16-ui-refinements.md) and dated prior evidence. Order167
-is cancelled/unpaid without issuance; its credential/session/cart cleanup was done.
-Do not reuse it or infer current financial/provider test success from that history.
+## Practical limits and history
+
+No real order/customer/receipt/credit/message/payment/provider issuance was created
+in this UI work. Physical devices, actual OS clipboard, screen-reader speech and
+native browser zoom200/400% were not tested; emulation is not certification.
+Earlier controlled customer15/order167 history and cleanup are preserved in
+[UI evidence](evidence/2026-11-16-ui-refinements.md); that order is cancelled/unpaid
+without issuance. No old test identity/token is reused or inferred to be current.
+
+PR12 review4590621008 correctly identified that Pinova field errors were classified
+as transient: after a toast closed their native source stayed hidden. PR13 now
+retains inline field-validation state until Pinova clears it, while Notyf and other
+transient messages keep the toast UI. Fresh patch59/59 standalone/lint,7/7 native integrations (357 assertions),34 notice
+assertions and independent scoped review passed after reproducing the old failure.
+CI/release/install/live QA and closure of that exact review thread remain current.
