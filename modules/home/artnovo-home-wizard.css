@@ -219,6 +219,11 @@
 	background-color: var(--artnovo-selected-surface);
 }
 
+/* Legacy excerpt IDs change inside Elementor loops, so their saved alignment misses the clone. */
+[data-artnovo-wizard] [data-artnovo-group] article > .elementor-widget-theme-post-excerpt:has(.woocommerce-Price-amount) {
+	text-align: left;
+}
+
 [data-artnovo-wizard] :is([data-artnovo-group] article, .artnovo-order) .woocommerce-Price-amount bdi {
 	display: inline-flex;
 	align-items: baseline;

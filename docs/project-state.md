@@ -25,21 +25,19 @@ nonces, owner checks, rate limits, stale-selection and duplicate-payment fences.
 
 ## Baseline and workspace
 
-Installed/released baseline is Core **1.2.0**, PR #6, main commit
-`0cc4ac1792e4c80b489fe08bbcdc5c311519944a`; source tree
-`c7e8538447169b87c1393b00b77f919938ea3a5f`. Its official ZIP SHA-256 is
-`6f0cf4dc32ac85d7cd55818e59983df28edc7ca43fb0200363080918f1a4020f` and all 30
-installed files matched. Bridge/Wallet/Pinova were byte-identical before/after.
-The prior deployment backup is `/var/backups/artnovo-core/20261116T123737Z-5h24mu4q`.
-Keep published assets immutable. Detailed prior acceptance remains in
-[compact checkout evidence](evidence/2026-11-16-compact-checkout.md) and PR #6.
+Core 1.3.0 was merged in PR #7 as `bc9c9209c4f973965b2be63b3c3ede5443f2c45b`,
+source tree `cbcf418d82dfbbc72afe6c7b8213c95ddfbc014a`, formally released and
+installed from its exact official ZIP, SHA-256
+`dfe4df55d0bbe47f6e0b8eb14fb79956d5ce5a5d0acf270cf0463c22b4863d14`.
+All 32 installed files match; Bridge, Wallet and Pinova manifests are unchanged.
+Main CI 43891848175 and release workflow 43892107942 succeeded. Backup/recovery
+is `/var/backups/artnovo-core/20261116T150623Z-0u3kp0hn`.
 
-Current branch: `work/purchase-ui-refinements` from origin/main. The initial two
-dirty documentation files were this thread's post-deployment notes, not unrelated
-owner code; preserve and commit that completed evidence with this mission's
-baseline before implementation. Root owns Git, version/docs, release, installation
-and native Elementor mutations. Workers must use disjoint files and not mutate
-Git or the site.
+The final live visual check found that saved legacy Elementor price alignment does
+not apply to generated loop widget IDs. Branch `work/plan-price-alignment` from
+that exact main adds one scoped CSS alignment rule and version metadata for 1.3.1.
+No module PHP or JavaScript bytes change. Do not overwrite the published 1.3.0
+assets. Core remains the only plugin source owner; root owns Git and deployment.
 
 ## Scope and seams
 
@@ -67,30 +65,26 @@ Git or the site.
 
 ## Verification and remaining work
 
-Implementation is complete for the clear home/purchase/sign-in fixes. Native
-Elementor changes on #68/#75/#86 are published and read back: 63/5/13 nodes remain,
-with no unexpected tree changes. Browser geometry confirms equal 14px mobile
-plan/duration gutters, the requested mobile header and final copyright section.
-The two account-panel concepts remain outside the plugin, awaiting owner selection.
+Home/header/footer native changes are published; their element identities, queries
+and link destinations remain. Clear purchase/sign-in fixes are installed in 1.3.0.
+The two account-panel concepts remain outside the plugin, awaiting owner choice.
 
-Core candidate version is 1.3.0 (32 runtime files). Only Core source changes.
-Required standalone checks passed; focused auth checks include cold Pinova REST,
-ordinary checkout/wallet preservation, numeric usernames and email signup fallback.
-Independent review closed email-signup, ordinary-return and policy-link issues,
-then confirmed the narrowly preserved canonical resume URL without weakening the
-general validator. Real HTTP testing found and verified this REST resume fix.
+1.3.0 passed required local/CI checks and independent review, 17 real loopback HTTP
+checks including native Pinova password proof and order 167, and 14 live HTTPS
+checks through the native checkout without a new order. Order 167 is cancelled,
+unpaid and has no issuance operation; owner 15 has no email. Live tests confirmed
+that product 26 survives sign-in and checkout has no email field. All 32 installed
+payload files and unchanged other-plugin manifests were verified. An initial CI
+failure was an obsolete expected asset list; its required assets were retained in
+the corrected assertion and subsequent PR/main/release validations passed.
 
-The loopback real-stack journey passed 17 checks: native Pinova password login of
-controlled blank-email customer 15, preserved product 25/quantity 1, native checkout
-without contact fields and persisted BACS order 167. It was on-hold, total 100000,
-unpaid, email blank, Bridge snapshot matching, issuance operation absent. It is
-now cancelled and customer tokens/cart/persistent cart were cleared. No payment or
-issuance was performed. Do not send the test password/session data to GitHub.
+1.3.1 reuses those auth/money checks only because every module PHP/JS file is byte
+identical to 1.3.0. Independent review confirmed this mapping. Fresh browser QA passed price alignment and currency gap for 4/6/4 cards at
+320/480/1206px with no overflow. All mandatory patch checks passed. A separate
+official patch release/install remains next. The legacy-widget
+CSS gap is recorded in [UI refinement evidence](evidence/2026-11-16-ui-refinements.md).
 
-Details are in [UI refinement evidence](evidence/2026-11-16-ui-refinements.md).
-The private candidate server on localhost:8773, its isolated browser/tunnel and
-fixture identity still require final cleanup after deployment verification.
-GitHub PR/merge, official release and exact-ZIP installation remain pending.
-Finish the remaining focused responsive/focus check, then publish through GitHub,
-verify artifact identity, rehearse recovery, install and run a scoped live smoke.
-Keep actual native zoom and real payment/provider delivery marked untested.
+Final cleanup remains: revoke/rotate the controlled test identity, clear its carts,
+close localhost:8773 preview and the isolated browser/SSH tunnel, preserve only
+non-secret aggregate QA results. Do not copy raw private reports or credentials.
+Actual 200%/400% browser zoom, real payment and provider issuance remain untested.
