@@ -6,7 +6,8 @@ The owner selected **My Accounts** (اکانت‌های من), requested global 
 matching mobile/desktop presentation, minimal native Pinova login, compact checkout
 and post-order completion, and shared bottom-left customer notices. The ongoing
 scoped authority covered Core GitHub development, merge, release and installation.
-All requested implementation and delivery are complete through Core **1.5.0**.
+Core **1.5.0** is installed; a newly reported field-validation presentation issue
+is being corrected in **1.5.1** through the same GitHub-first delivery sequence.
 
 Only Core runtime source changed. Bridge, Wallet and Pinova remain independent
 owners of service issuance/payment policy, balances and identity. No copied ledger,
@@ -76,5 +77,9 @@ Earlier controlled customer15/order167 history and cleanup are preserved in
 [UI evidence](evidence/2026-11-16-ui-refinements.md); that order is cancelled/unpaid
 without issuance. No old test identity/token is reused or inferred to be current.
 
-No functional work remains for this scoped delivery. New findings should follow
-the same GitHub-first sequence and independent plugin ownership.
+PR12 review4590621008 correctly identified that Pinova field errors were classified
+as transient: after a toast closed their native source stayed hidden. PR13 now
+retains inline field-validation state until Pinova clears it, while Notyf and other
+transient messages keep the toast UI. Fresh patch59/59 standalone/lint,7/7 native integrations (357 assertions),34 notice
+assertions and independent scoped review passed after reproducing the old failure.
+CI/release/install/live QA and closure of that exact review thread remain current.

@@ -127,10 +127,24 @@ const dynamic = scroll.element('ul', { class: 'woocommerce-error' }, 'خطای �
 scroll.jquery.scroll_to_notices(scroll.jquery(dynamic)); check(scroll.scrolls() === 1 && dynamic.dataset.artnovoToastSource === '1', 'synchronous checkout scroll transfers a new error before native focus/scroll');
 const block = fixture(({ element }) => { const node = element('div', { class: 'wc-block-components-notice-banner is-error' }); element('div', { class: 'wc-block-components-notice-banner__content' }, 'خطای بلوکی', node); element('button', {}, 'بستن اصلی', node); return node; });
 check(block.toasts().length === 1 && !block.toasts()[0].textContent.includes('بستن اصلی'), 'block notice supports native dismiss button without cloning it');
-const inline = fixture(({ element }) => element('div', { 'pinova-text': 'forms.authenticate.inputs.identifier.errorMsg' }, 'شماره درست نیست'));
-check(inline.toasts().length === 1 && inline.before.parentElement === inline.document.body, 'Pinova inline validation retains its native node');
-const close = inline.toasts()[0].querySelector('button'); check(close.type === 'button' && close.getAttribute('aria-label') === 'بستن اعلان', 'dismiss has an explicit non-submit type and Persian label');
-close.click(); check(inline.toasts().length === 0, 'dismiss closes the toast immediately');
+const inline = fixture(({ element }) => {
+	const form = element('form');
+	const field = element('input', { id: 'pinova-identifier', 'aria-invalid': 'true', 'aria-describedby': 'pinova-identifier-error' }, '', form);
+	const error = element('div', { id: 'pinova-identifier-error', 'pinova-text': 'forms.authenticate.inputs.identifier.errorMsg', role: 'alert' }, 'شماره درست نیست', form);
+	return { form, field, error };
+});
+check(inline.toasts().length === 0 && !inline.before.error.dataset.artnovoToastSource, 'Pinova field validation stays inline instead of becoming a temporary notice');
+inline.advance(5001);
+check(inline.before.error.parentElement === inline.before.form && inline.before.error.textContent === 'شماره درست نیست'
+	&& inline.before.error.getAttribute('aria-hidden') === null && !inline.before.error.dataset.artnovoToastSource, 'Pinova field error stays visible and accessible after five seconds');
+check(inline.before.field.getAttribute('aria-describedby') === inline.before.error.id && inline.before.field.getAttribute('aria-invalid') === 'true', 'native field/error relationship and invalid state remain intact');
+inline.update(inline.before.error, 'شماره هنوز کامل نیست');
+check(inline.before.error.getAttribute('pinova-text') === 'forms.authenticate.inputs.identifier.errorMsg'
+	&& inline.before.error.getAttribute('role') === 'alert' && inline.toasts().length === 0, 'native Pinova binding and announcement semantics survive repeated validation');
+inline.advance(5001);
+check(inline.before.error.textContent === 'شماره هنوز کامل نیست' && inline.before.error.getAttribute('aria-hidden') === null, 'updated field validation has no toast expiration');
+const close = block.toasts()[0].querySelector('button'); check(close.type === 'button' && close.getAttribute('aria-label') === 'بستن اعلان', 'dismiss has an explicit non-submit type and Persian label');
+close.click(); check(block.toasts().length === 0, 'dismiss closes the toast immediately');
 const css = fs.readFileSync(require('node:path').join(__dirname, '../modules/notices/notices.css'), 'utf8');
 check(css.includes('prefers-reduced-motion: reduce') && css.includes('animation: none') && css.includes('min-height: 44px'), 'reduced-motion and minimum touch size styles exist');
 console.log(`PASS ${checks} notice lifecycle, ownership, security and accessibility assertions`);

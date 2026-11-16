@@ -6,7 +6,7 @@
 		'.woocommerce-notices-wrapper .woocommerce-info', '.woocommerce-NoticeGroup .woocommerce-info',
 		'.wc-block-components-notice-banner.is-error', '.wc-block-components-notice-banner.is-success',
 		'.woocommerce-notices-wrapper .wc-block-components-notice-banner.is-info',
-		'[data-artnovo-auth-message]', '[data-artnovo-quantity-status]', '[pinova-text$="errorMsg"]', '.wpvpn-subscription-link [role="status"]',
+		'[data-artnovo-auth-message]', '[data-artnovo-quantity-status]', '.wpvpn-subscription-link [role="status"]',
 		'[data-artnovo-copy-status]', '.notyf__toast'
 	].join(',');
 	const persistent = '.artnovo-received-status,.artnovo-account-subscriptions,.woocommerce-form-login-toggle,.woocommerce-form-coupon-toggle,.cart-empty,[data-artnovo-notice-permanent]';
@@ -77,7 +77,7 @@
 	}
 	function kind(source) {
 		const flag = source.getAttribute('data-error');
-		return source.matches('.woocommerce-error,.coupon-error-notice,.is-error,.notyf__toast--error,[pinova-text$="errorMsg"],[data-artnovo-quantity-status]') || flag !== null && !['0', 'false'].includes(flag)
+		return source.matches('.woocommerce-error,.coupon-error-notice,.is-error,.notyf__toast--error,[data-artnovo-quantity-status]') || flag !== null && !['0', 'false'].includes(flag)
 			? 'error' : source.matches('.woocommerce-message,.is-success,.notyf__toast--success') ? 'success' : 'info';
 	}
 	function show(source, state, content, announce) {

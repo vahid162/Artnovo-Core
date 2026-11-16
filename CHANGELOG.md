@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.5.1 — 2026-11-16
+
+- Keep Pinova field-validation errors beside their input until native validation
+  clears them; only transient native Pinova notifications become timed toasts.
+- Verify invalid field guidance survives toast expiry and manual dismissal, while
+  the native field relationship and other notification adapters remain intact.
+
 ## 1.5.0 — 2026-11-16
 
 - Present transient customer notices as safe bottom-left five-second toasts with

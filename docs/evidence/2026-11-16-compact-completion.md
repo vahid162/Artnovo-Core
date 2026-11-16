@@ -108,3 +108,26 @@ The final delivery-record change is documentation only. Runtime ZIP rebuilt afte
 these observations remains byte-identical to the formal1.5.0 asset; no retag, asset
 overwrite or reinstall follows from operational notes. Local main was fast-forwarded
 to the official merge before this notes branch.
+
+
+## Post-publication Pinova field-validation correction
+
+PR12 review4590621008 (PRRT_kwDOVqm1Ws64Gdel) identified a real classification
+error after1.5.0 was published: `[pinova-text$="errorMsg"]` is persistent local
+validation, but its native source stayed hidden after toast expiry. The isolated
+positive adapter test covered transfer, not the invalid field's continuing need.
+Patch1.5.1 removes only that field selector from timed transfer. Native Pinova
+Notyf and all other transient adapters remain; the field error stays until native
+validation clears it, consistent with README and Woo field validation.
+
+The original1.5.0 tag/assets remain unchanged. PR13 includes this scoped correction
+and its regression checks alongside the preceding deployment record. Fresh patch
+checks and final1.5.1 delivery will be recorded after execution.
+
+
+The new regression failed against1.5.0 before the patch and passed afterward:
+34 notice assertions now include initial/repeated field error after5001ms, intact
+local text/binding/role/ARIA relation/invalid state. Five asset contracts and an
+independent scoped review passed. Fresh patch-wide checks again passed59/59 and
+all7 native integrations passed357 assertions with the original write/mail/HTTP
+guards. No backend/payment/receipt helper or other plugin source changed.
