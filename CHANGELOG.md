@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Upgrade the project contract to AI Development Governance 1.4.0: adaptive work,
+  fresh-agent continuity, repeat setup without duplicate changes, and informed
+  delivery with immutable source/artifact identity. Plugin runtime is unchanged.
+
 - Adopt repository-specific AI Development Governance instructions, document
   ownership, risk/review gates and a canonical current-state record.
 - Add read-only PHP 8.5 pull-request validation and separate explicitly confirmed

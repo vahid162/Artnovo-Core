@@ -1,0 +1,17 @@
+{
+  "scope": "Isolated source-only revert; no remote/live state effects",
+  "results": [
+    {
+      "base": "2725701d17b9287e7f4caa8cb3da4207c608f3aa",
+      "before_tree": "79a38af121368d0a99ed9ba37e03d2ee3cbabf8c",
+      "recovered_tree": "79a38af121368d0a99ed9ba37e03d2ee3cbabf8c",
+      "identical": true
+    },
+    {
+      "base": "05edd7888c566019788d4cf2f1dff5ec482ab071",
+      "before_tree": "8f861e291b2a6b2da6f8fc08b4e80630c5c223c1",
+      "recovered_tree": "8f861e291b2a6b2da6f8fc08b4e80630c5c223c1",
+      "identical": true
+    }
+  ]
+}
