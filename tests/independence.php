@@ -139,7 +139,7 @@ $assets = [];
 foreach ( $hooks['wp_enqueue_scripts'][10] ?? [] as [ $callback ] ) {
 	$callback();
 }
-check( 'Core sign-in retains its required assets', [ 'artnovo-account-ui', 'artnovo-account-ui' ] === $assets );
+check( 'Core sign-in retains its required assets', [ 'artnovo-standalone-login', 'artnovo-account-ui', 'artnovo-account-ui' ] === $assets );
 $user = 7;
 $account_page = false;
 $received_page = true;
