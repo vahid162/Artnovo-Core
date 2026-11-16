@@ -1,0 +1,358 @@
+{
+  "format": "artnovo.elementor-reference.v1",
+  "site": "https://artnovo.ir",
+  "post_id": 35,
+  "root_id": "fcd870e",
+  "source": "elementor/get-page-structure",
+  "elements": [
+    {
+      "id": "fcd870e",
+      "elType": "e-flexbox",
+      "title": "صفحهٔ محصول",
+      "tag": "section",
+      "editor_settings": {
+        "name": "صفحهٔ محصول"
+      },
+      "settings": {
+        "classes": [
+          "e-152e829c-29fb"
+        ],
+        "tag": "section"
+      },
+      "styles": {
+        "__style_id": "e-152e829c-29fb",
+        "css": "width: 100%; max-width: 1120px; color: #F0F9F7; padding-block-start: 36px; padding-block-end: 48px; padding-inline-start: 24px; padding-inline-end: 24px; margin-block-start: 0px; margin-block-end: 0px; margin-inline-start: auto; margin-inline-end: auto; background-color: #0C1723; display: flex; flex-direction: column; gap: 20px;\n@media(--mobile) { padding-block-start: 20px; padding-block-end: 28px; padding-inline-start: 16px; padding-inline-end: 16px; gap: 14px; }"
+      },
+      "interactions": [],
+      "elements": [
+        {
+          "id": "1b3530a2",
+          "elType": "widget",
+          "widgetType": "e-heading",
+          "title": "بازگشت به فروشگاه",
+          "tag": "span",
+          "editor_settings": {
+            "name": "بازگشت به فروشگاه"
+          },
+          "settings": {
+            "classes": [
+              "e-6beae17f-f354"
+            ],
+            "tag": "span",
+            "title": "بازگشت به فروشگاه",
+            "link": {
+              "destination": "https://artnovo.ir/shop/",
+              "isTargetBlank": null,
+              "tag": "a"
+            }
+          },
+          "styles": {
+            "__style_id": "e-6beae17f-f354",
+            "css": "font-size: 14px; color: #9ADAF0; line-height: 1.6; text-decoration: underline;"
+          },
+          "interactions": []
+        },
+        {
+          "id": "4de87ac0",
+          "elType": "widget",
+          "widgetType": "woocommerce-notices",
+          "title": "اعلان‌های ووکامرس",
+          "editor_settings": {
+            "name": "اعلان‌های ووکامرس"
+          },
+          "settings": {},
+          "styles": {
+            "css": ""
+          },
+          "interactions": []
+        },
+        {
+          "id": "6f50631f",
+          "elType": "e-flexbox",
+          "title": "معرفی پلن",
+          "tag": "div",
+          "editor_settings": {
+            "name": "معرفی پلن"
+          },
+          "settings": {
+            "classes": [
+              "e-50bf19b2-3b48"
+            ]
+          },
+          "styles": {
+            "__style_id": "e-50bf19b2-3b48",
+            "css": "padding: 0px; display: flex; flex-direction: column; gap: 4px;"
+          },
+          "interactions": [],
+          "elements": [
+            {
+              "id": "3be38003",
+              "elType": "widget",
+              "widgetType": "e-paragraph",
+              "title": "نوع اشتراک",
+              "tag": "p",
+              "editor_settings": {
+                "name": "نوع اشتراک"
+              },
+              "settings": {
+                "classes": [
+                  "e-2046a5d8-f9c4"
+                ],
+                "paragraph": "اشتراک اتصال",
+                "tag": "p"
+              },
+              "styles": {
+                "__style_id": "e-2046a5d8-f9c4",
+                "css": "font-weight: 600; font-size: 13px; color: #9ADAF0; line-height: 1.5; margin: 0px;"
+              },
+              "interactions": []
+            },
+            {
+              "id": "26bb0493",
+              "elType": "widget",
+              "widgetType": "theme-post-title",
+              "title": "عنوان محصول",
+              "editor_settings": {
+                "name": "عنوان محصول"
+              },
+              "settings": {},
+              "styles": {
+                "css": "font-weight: 700; font-size: 36px; color: #F0F9F7; line-height: 1.4; text-align: start; @media(--mobile) { font-size: 25px; }"
+              },
+              "interactions": []
+            }
+          ]
+        },
+        {
+          "id": "44dd60e8",
+          "elType": "e-grid",
+          "title": "چیدمان محصول",
+          "tag": "div",
+          "editor_settings": {
+            "name": "چیدمان محصول"
+          },
+          "settings": {
+            "classes": [
+              "e-68969dd6-17a0"
+            ]
+          },
+          "styles": {
+            "__style_id": "e-68969dd6-17a0",
+            "css": "padding: 0px; display: grid; gap: 24px; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: auto; align-items: start;\n@media(--mobile) { gap: 14px; grid-template-columns: 1fr; grid-template-rows: auto auto; }"
+          },
+          "interactions": [],
+          "elements": [
+            {
+              "id": "76bab128",
+              "elType": "e-flexbox",
+              "title": "قاب تصویر",
+              "tag": "div",
+              "editor_settings": {
+                "name": "قاب تصویر"
+              },
+              "settings": {
+                "classes": [
+                  "e-203ca188-1147"
+                ]
+              },
+              "styles": {
+                "__style_id": "e-203ca188-1147",
+                "css": "min-width: 0px; padding: 14px; border-radius: 16px; background-color: #152735; display: flex; flex-direction: column; gap: 0px; grid-column: 2; grid-row: 1;\n@media(--mobile) { padding: 9px; grid-column: 1; grid-row: 1; }"
+              },
+              "interactions": [],
+              "elements": [
+                {
+                  "id": "71787be5",
+                  "elType": "widget",
+                  "widgetType": "woocommerce-product-images",
+                  "title": "تصاویر محصول",
+                  "editor_settings": {
+                    "name": "تصاویر محصول"
+                  },
+                  "settings": {
+                    "sale_flash": false
+                  },
+                  "styles": {
+                    "css": "border-start-start-radius: 12px; border-start-end-radius: 12px; border-end-start-radius: 12px; border-end-end-radius: 12px;"
+                  },
+                  "interactions": []
+                }
+              ]
+            },
+            {
+              "id": "2f9dde5",
+              "elType": "e-flexbox",
+              "title": "کارت مشخصات و خرید",
+              "tag": "div",
+              "editor_settings": {
+                "name": "کارت مشخصات و خرید"
+              },
+              "settings": {
+                "classes": [
+                  "e-51ee13b2-a249"
+                ]
+              },
+              "styles": {
+                "__style_id": "e-51ee13b2-a249",
+                "css": "min-width: 0px; padding: 24px; border-radius: 16px; background-color: #152735; display: flex; flex-direction: column; gap: 12px; grid-column: 1; grid-row: 1;\n@media(--mobile) { padding: 16px; gap: 10px; grid-column: 1; grid-row: 2; }"
+              },
+              "interactions": [],
+              "elements": [
+                {
+                  "id": "1e2055fb",
+                  "elType": "widget",
+                  "widgetType": "e-heading",
+                  "title": "عنوان مشخصات",
+                  "tag": "h2",
+                  "editor_settings": {
+                    "name": "عنوان مشخصات"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-1ce83f76-9f16"
+                    ],
+                    "tag": "h2",
+                    "title": "مشخصات پلن"
+                  },
+                  "styles": {
+                    "__style_id": "e-1ce83f76-9f16",
+                    "css": "font-weight: 700; font-size: 20px; color: #F0F9F7; line-height: 1.45; margin: 0px;"
+                  },
+                  "interactions": []
+                },
+                {
+                  "id": "2fcd0879",
+                  "elType": "widget",
+                  "widgetType": "theme-post-excerpt",
+                  "title": "حجم و اعتبار",
+                  "editor_settings": {
+                    "name": "حجم و اعتبار"
+                  },
+                  "settings": {},
+                  "styles": {
+                    "css": "font-size: 16px; color: #BDD1D0; line-height: 1.8; text-align: start;"
+                  },
+                  "interactions": []
+                },
+                {
+                  "id": "2e8c1c28",
+                  "elType": "widget",
+                  "widgetType": "e-paragraph",
+                  "title": "عنوان قیمت",
+                  "tag": "p",
+                  "editor_settings": {
+                    "name": "عنوان قیمت"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-67f892a1-b9a7"
+                    ],
+                    "paragraph": "قیمت پلن",
+                    "tag": "p"
+                  },
+                  "styles": {
+                    "__style_id": "e-67f892a1-b9a7",
+                    "css": "font-weight: 500; font-size: 13px; color: #BDD1D0; line-height: 1.45; margin: 0px;"
+                  },
+                  "interactions": []
+                },
+                {
+                  "id": "2fbf7da3",
+                  "elType": "widget",
+                  "widgetType": "theme-post-excerpt",
+                  "title": "قیمت محصول",
+                  "editor_settings": {
+                    "name": "قیمت محصول"
+                  },
+                  "settings": {},
+                  "styles": {
+                    "css": "font-weight: 700; font-size: 29px; color: #F0F9F7; line-height: 1.4; text-align: start; @media(--mobile) { font-size: 25px; }"
+                  },
+                  "interactions": []
+                },
+                {
+                  "id": "7b2f25c0",
+                  "elType": "widget",
+                  "widgetType": "woocommerce-product-add-to-cart",
+                  "title": "خرید و موجودی",
+                  "editor_settings": {
+                    "name": "خرید و موجودی"
+                  },
+                  "settings": {
+                    "show_quantity": false
+                  },
+                  "styles": {
+                    "css": "font-weight: 600; font-size: 16px; color: #06261B; padding-block-start: 14px; padding-block-end: 14px; padding-inline-start: 22px; padding-inline-end: 22px; border-start-start-radius: 10px; border-start-end-radius: 10px; border-end-start-radius: 10px; border-end-end-radius: 10px; border-style: none; background-color: #46D7A6; &:hover { color: #06261B; background-color: #9ADAF0; }"
+                  },
+                  "interactions": []
+                },
+                {
+                  "id": "46365a0a",
+                  "elType": "widget",
+                  "widgetType": "e-heading",
+                  "title": "پلن‌های دیگر",
+                  "tag": "span",
+                  "editor_settings": {
+                    "name": "پلن‌های دیگر"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-53ddd46d-9676"
+                    ],
+                    "tag": "span",
+                    "title": "مشاهدهٔ پلن‌های دیگر",
+                    "link": {
+                      "destination": "https://artnovo.ir/shop/",
+                      "isTargetBlank": null,
+                      "tag": "a"
+                    }
+                  },
+                  "styles": {
+                    "__style_id": "e-53ddd46d-9676",
+                    "css": "font-size: 14px; color: #9ADAF0; line-height: 1.6; text-decoration: underline;"
+                  },
+                  "interactions": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "7610bae1",
+          "elType": "e-div-block",
+          "title": "بخش توضیحات کامل",
+          "tag": "div",
+          "editor_settings": {
+            "name": "بخش توضیحات کامل"
+          },
+          "settings": {
+            "classes": [
+              "e-4eeff003-d273"
+            ]
+          },
+          "styles": {
+            "__style_id": "e-4eeff003-d273",
+            "css": "padding: 0px; display: block;"
+          },
+          "interactions": [],
+          "elements": [
+            {
+              "id": "fde4dbf",
+              "elType": "widget",
+              "widgetType": "theme-post-content",
+              "title": "توضیحات کامل محصول",
+              "editor_settings": {
+                "name": "توضیحات کامل محصول"
+              },
+              "settings": {},
+              "styles": {
+                "css": ""
+              },
+              "interactions": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

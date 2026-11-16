@@ -1,0 +1,135 @@
+{
+  "format": "artnovo.native-change-contract.v1",
+  "site": "https://artnovo.ir",
+  "core_release": "v1.4.0",
+  "state": "proposed-before-live",
+  "sequence": "GitHub review and tests, merge, successful main CI, official release, exact ZIP install, native operations and publish, supported readback and browser checks.",
+  "recovery": "Use the recorded before settings/styles through supported manage-elements, publish and compare fresh state; never restore raw storage JSON.",
+  "changes": [
+    {
+      "post_id": 75,
+      "operations": [
+        {
+          "action": "update",
+          "element_id": "422c4365",
+          "style": "width: 100%; min-height: 60px; max-width: 1160px; padding-block-start: 7px; padding-block-end: 7px; padding-inline-start: 24px; padding-inline-end: 24px; margin-block-start: 0px; margin-block-end: 0px; margin-inline-start: auto; margin-inline-end: auto; display: grid; gap: 10px; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center;\n@media(--tablet) { grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); }\n@media(--mobile) { padding-block-start: 7px; padding-block-end: 7px; padding-inline-start: 14px; padding-inline-end: 14px; gap: 8px; }\n& > a[data-interaction-id=\"63a891b2\"] { grid-column: 2; grid-row: 1; justify-self: center; width: fit-content; }\n",
+          "style_apply_mode": "replace"
+        },
+        {
+          "action": "update",
+          "element_id": "6c7b5283",
+          "style": "width: auto; min-width: 0px; padding: 0px; display: flex; flex-direction: column; grid-column: 1; grid-row: 1; justify-self: start;\n@media(--tablet) { grid-column: 1; justify-self: start; }",
+          "style_apply_mode": "replace"
+        }
+      ],
+      "before": [
+        {
+          "element_id": "422c4365",
+          "style": "width: 100%; min-height: 60px; max-width: 1160px; padding-block-start: 7px; padding-block-end: 7px; padding-inline-start: 24px; padding-inline-end: 24px; margin-block-start: 0px; margin-block-end: 0px; margin-inline-start: auto; margin-inline-end: auto; display: grid; gap: 10px; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center;\n@media(--tablet) { grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); }\n@media(--mobile) { padding-block-start: 7px; padding-block-end: 7px; padding-inline-start: 14px; padding-inline-end: 14px; gap: 8px; }"
+        },
+        {
+          "element_id": "6c7b5283",
+          "style": "width: auto; min-width: 0px; padding: 0px; display: flex; flex-direction: column; grid-column: 2; grid-row: 1; justify-self: center;\n@media(--tablet) { grid-column: 1; justify-self: start; }"
+        }
+      ],
+      "verify": "Desktop/tablet/mobile: menu right, original logo centered, account left; preserve IDs, links, type, content, current root spacing and other styles."
+    },
+    {
+      "post_id": 132,
+      "operations": [
+        {
+          "action": "update",
+          "element_id": "1e5d7dad",
+          "settings": {
+            "tag": "main"
+          }
+        }
+      ],
+      "before": [
+        {
+          "element_id": "1e5d7dad",
+          "settings": {
+            "tag": "article"
+          }
+        }
+      ],
+      "verify": "Only root tag changes to main. Core adds its scoped content ID at render time. Preserve all styles, children, text, links, template and publication status."
+    },
+    {
+      "post_id": 134,
+      "operations": [
+        {
+          "action": "update",
+          "element_id": "1af5b109",
+          "settings": {
+            "tag": "main"
+          }
+        }
+      ],
+      "before": [
+        {
+          "element_id": "1af5b109",
+          "settings": {
+            "tag": "article"
+          }
+        }
+      ],
+      "verify": "Only root tag changes to main. Core adds its scoped content ID at render time. Preserve all styles, children, text, links, template and publication status."
+    },
+    {
+      "post_id": 136,
+      "operations": [
+        {
+          "action": "update",
+          "element_id": "3844fe47",
+          "settings": {
+            "tag": "main"
+          }
+        }
+      ],
+      "before": [
+        {
+          "element_id": "3844fe47",
+          "settings": {
+            "tag": "article"
+          }
+        }
+      ],
+      "verify": "Only root tag changes to main. Core adds its scoped content ID at render time. Preserve all styles, children, text, links, template and publication status."
+    },
+    {
+      "post_id": 35,
+      "operations": [
+        {
+          "action": "update",
+          "element_id": "fcd870e",
+          "settings": {
+            "tag": "main"
+          },
+          "style": "width: 100%; max-width: 1160px; color: #F0F9F7; padding-block-start: 36px; padding-block-end: 48px; padding-inline-start: 24px; padding-inline-end: 24px; margin-block-start: 0px; margin-block-end: 0px; margin-inline-start: auto; margin-inline-end: auto; background-color: #0C1723; display: flex; flex-direction: column; gap: 20px;\n@media(--mobile) { padding-block-start: 20px; padding-block-end: 28px; padding-inline-start: 14px; padding-inline-end: 14px; gap: 14px; }",
+          "style_apply_mode": "replace"
+        },
+        {
+          "action": "update",
+          "element_id": "44dd60e8",
+          "style": "padding: 0px; display: grid; gap: 24px; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: auto; align-items: start;\n@media(--mobile) { gap: 14px; grid-template-columns: 1fr; grid-template-rows: auto auto; }\n&:has(img.woocommerce-placeholder) { grid-template-columns: minmax(0,1fr); grid-template-rows: auto; }\n&:has(img.woocommerce-placeholder) > [data-interaction-id=\"76bab128\"] { display: none; }\n&:has(img.woocommerce-placeholder) > [data-interaction-id=\"2f9dde5\"] { grid-column: 1; grid-row: 1; }\n",
+          "style_apply_mode": "replace"
+        }
+      ],
+      "before": [
+        {
+          "element_id": "fcd870e",
+          "settings": {
+            "tag": "section"
+          },
+          "style": "width: 100%; max-width: 1120px; color: #F0F9F7; padding-block-start: 36px; padding-block-end: 48px; padding-inline-start: 24px; padding-inline-end: 24px; margin-block-start: 0px; margin-block-end: 0px; margin-inline-start: auto; margin-inline-end: auto; background-color: #0C1723; display: flex; flex-direction: column; gap: 20px;\n@media(--mobile) { padding-block-start: 20px; padding-block-end: 28px; padding-inline-start: 16px; padding-inline-end: 16px; gap: 14px; }"
+        },
+        {
+          "element_id": "44dd60e8",
+          "style": "padding: 0px; display: grid; gap: 24px; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: auto; align-items: start;\n@media(--mobile) { gap: 14px; grid-template-columns: 1fr; grid-template-rows: auto auto; }"
+        }
+      ],
+      "verify": "Product template keeps assignment, content, dynamic bindings, purchase actions and real-image gallery. Only placeholder gallery collapses; main landmark and 1160/14px gutters align with site."
+    }
+  ]
+}

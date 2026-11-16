@@ -147,6 +147,87 @@ if ( ! $legacy ) {
 	$check( 'two eligible legacy plans collapse to the new plan', true === $result && 'same' === Artnovo\PlanCheckout\cart_selection( 27 ) );
 }
 
+// Exercise the public purchase/policy markup using WordPress's actual HTML processor.
+$markup_filter = null;
+foreach ( $GLOBALS['wp_filter']['elementor/frontend/the_content']->callbacks[10] ?? [] as $hook ) {
+	$callback = $hook['function'];
+	if ( $callback instanceof Closure && realpath( ( new ReflectionFunction( $callback ) )->getFileName() )
+		=== realpath( artnovo_fixture_root() . '/modules/home/artnovo-home-wizard.php' ) ) {
+		$markup_filter = $callback;
+	}
+}
+if ( ! $markup_filter ) {
+	WP_CLI::error( 'The candidate public markup filter is missing.' );
+}
+$original_query = $GLOBALS['wp_query'];
+$original_get = $_GET;
+$GLOBALS['wp_query'] = new WP_Query();
+$_GET = [];
+try {
+	$GLOBALS['wp_query']->is_singular = true;
+	$GLOBALS['wp_query']->queried_object = (object) [ 'ID' => 25, 'post_type' => 'product' ];
+	$GLOBALS['wp_query']->queried_object_id = 25;
+	$check( 'synthetic product route uses the native WooCommerce product conditional', is_product() );
+	foreach ( [ 'section', 'main' ] as $tag ) {
+		$source = '<' . $tag . ' class="kept" data-interaction-id="fcd870e"><p>متن محصول</p></' . $tag . '>';
+		$result = $markup_filter( $source );
+		$html = new WP_HTML_Tag_Processor( $result );
+		$check( 'product template ' . $tag . ' keeps its content and gains the native skip target', $html->next_tag( strtoupper( $tag ) )
+			&& 'main' === $html->get_attribute( 'id' ) && 'fcd870e' === $html->get_attribute( 'data-interaction-id' )
+			&& $html->has_class( 'kept' ) && str_contains( $result, '<p>متن محصول</p>' ) );
+	}
+	$unrelated = '<main id="main" class="site-main"><p>قالب بومی محصول دیگر</p></main>';
+	$check( 'unrelated native product roots stay unchanged', $unrelated === $markup_filter( $unrelated ) );
+	$unrelated = '<div data-interaction-id="fcd870e">ناحیهٔ غیرمرتبط</div>';
+	$check( 'unexpected product element tags stay unchanged', $unrelated === $markup_filter( $unrelated ) );
+	$_GET = [ 'elementor-preview' => '35' ];
+	$check( 'product Elementor preview stays unchanged', $source === $markup_filter( $source ) );
+	$_GET = [];
+	$GLOBALS['wp_query']->is_preview = true;
+	$check( 'product WordPress preview stays unchanged', $source === $markup_filter( $source ) );
+	$GLOBALS['wp_query']->is_preview = false;
+	$GLOBALS['wp_query']->is_singular = false;
+	$GLOBALS['wp_query']->queried_object = (object) [ 'ID' => 999, 'post_type' => 'page' ];
+	$GLOBALS['wp_query']->queried_object_id = 999;
+	$check( 'non-product pages keep matching product element IDs unchanged', ! is_product() && $source === $markup_filter( $source ) );
+	foreach ( [ 132 => '1e5d7dad', 134 => '1af5b109', 136 => '3844fe47' ] as $page_id => $root_id ) {
+		$GLOBALS['wp_query']->queried_object = (object) [ 'ID' => $page_id ];
+		$GLOBALS['wp_query']->queried_object_id = $page_id;
+		foreach ( [ 'article', 'main' ] as $tag ) {
+			$source = '<' . $tag . ' class="kept" data-interaction-id="' . $root_id . '"><p>متن موجود</p></' . $tag . '>';
+			$result = $markup_filter( $source );
+			$html = new WP_HTML_Tag_Processor( $result );
+			$check( $page_id . ' ' . $tag . ' keeps its root/content and gains the skip target', $html->next_tag( strtoupper( $tag ) )
+				&& 'content' === $html->get_attribute( 'id' ) && $root_id === $html->get_attribute( 'data-interaction-id' )
+				&& $html->has_class( 'kept' ) && str_contains( $result, '<p>متن موجود</p>' ) );
+		}
+		$unrelated = '<header data-interaction-id="shared-header">سرصفحه</header>';
+		$check( $page_id . ' leaves unrelated components unchanged', $unrelated === $markup_filter( $unrelated ) );
+		$_GET = [ 'elementor-preview' => (string) $page_id ];
+		$check( $page_id . ' leaves the Elementor preview unchanged', $source === $markup_filter( $source ) );
+		$_GET = [];
+		$GLOBALS['wp_query']->is_preview = true;
+		$check( $page_id . ' leaves the WordPress preview unchanged', $source === $markup_filter( $source ) );
+		$GLOBALS['wp_query']->is_preview = false;
+	}
+	$GLOBALS['wp_query']->queried_object = (object) [ 'ID' => 999 ];
+	$GLOBALS['wp_query']->queried_object_id = 999;
+	$check( 'other public pages stay unchanged even with a matching policy element ID', $source === $markup_filter( $source ) );
+	$GLOBALS['wp_query']->queried_object = (object) [ 'ID' => 68 ];
+	$GLOBALS['wp_query']->queried_object_id = 68;
+	$source = '<main data-interaction-id="3ffe5619"><!--artnovo-wizard-progress--><section data-interaction-id="599de042"></section>'
+		. '<section data-interaction-id="4ef8e004"></section><section data-interaction-id="ad7be96"></section></main>';
+	$html = new WP_HTML_Tag_Processor( $markup_filter( $source ) );
+	$ids = [];
+	while ( $html->next_tag() ) {
+		if ( $html->get_attribute( 'id' ) ) { $ids[] = $html->get_attribute( 'id' ); }
+	}
+	$check( 'purchase skip target preserves all three purchase anchors', [ 'content', 'artnovo-categories', 'artnovo-plans', 'artnovo-order-stage' ] === $ids );
+} finally {
+	$GLOBALS['wp_query'] = $original_query;
+	$_GET = $original_get;
+}
+
 remove_action( 'shutdown', '_wp_cron' );
 // Persisting the Blocks asset cache is outside this in-memory cart contract.
 foreach ( $GLOBALS['wp_filter']['shutdown']->callbacks ?? [] as $priority => $callbacks ) {

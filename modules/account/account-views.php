@@ -4,39 +4,73 @@ namespace Artnovo\AccountUI;
 
 defined( 'ABSPATH' ) || exit;
 
+function account_navigation(): array {
+	$native = wc_get_account_menu_items();
+	$view = account_view();
+	$primary = [
+		'subscriptions' => [ 'label' => 'اکانت‌های من', 'url' => account_url(), 'current' => 'subscriptions' === $view ],
+		'buy' => [ 'label' => 'خرید اکانت جدید', 'url' => home_url( '/#artnovo-categories' ), 'current' => false ],
+	];
+	foreach ( [ 'orders' => 'خریدها و پرداخت‌ها', 'woo-wallet' => 'کیف پول' ] as $endpoint => $label ) {
+		if ( isset( $native[ $endpoint ] ) ) {
+			$primary[ $endpoint ] = [ 'label' => $label, 'url' => wc_get_account_endpoint_url( $endpoint ), 'current' => $view === $endpoint ];
+		}
+	}
+	foreach ( [ 'help' => 'راهنمای اتصال', 'support' => 'پشتیبانی' ] as $key => $label ) {
+		$primary[ $key ] = [ 'label' => $label, 'url' => account_url( $key ), 'current' => $view === $key ];
+	}
+	$secondary = [ 'profile' => [ 'label' => 'اطلاعات حساب', 'url' => account_url( 'profile' ), 'current' => 'profile' === $view ] ];
+	foreach ( $native as $endpoint => $label ) {
+		if ( in_array( $endpoint, [ 'dashboard', 'vpn-subscriptions', 'edit-account', 'edit-address', 'customer-logout', 'orders', 'woo-wallet' ], true ) ) { continue; }
+		$secondary[ $endpoint ] = [ 'label' => 'downloads' === $endpoint ? 'فایل‌های قابل دریافت' : $label, 'url' => wc_get_account_endpoint_url( $endpoint ), 'current' => $view === $endpoint ];
+	}
+	$secondary['logout'] = [ 'label' => 'خروج از حساب', 'url' => wp_logout_url( wc_get_page_permalink( 'myaccount' ) ), 'current' => false ];
+	return [ 'primary' => $primary, 'secondary' => $secondary ];
+}
+
 function render_account(): void {
 	?>
 	<main id="content" class="artnovo-account" dir="rtl">
 		<?php if ( ! is_user_logged_in() ) : ?>
 			<?php render_account_login(); ?>
-		<?php else : ?>
+		<?php else :
+			$navigation = account_navigation();
+			$current = account_view();
+			$title = 'اکانت‌های من';
+			foreach ( array_merge( $navigation['primary'], $navigation['secondary'] ) as $item ) {
+				if ( $item['current'] ) { $title = $item['label']; break; }
+			}
+			if ( is_wc_endpoint_url( 'view-order' ) ) { $title = 'جزئیات خرید و رسید'; }
+			?>
 			<header class="artnovo-account-header">
-				<div><p class="artnovo-account-muted">پنل کاربری آرت‌نوو</p><h1>اشتراک‌ها و اتصال، یک‌جا</h1></div>
-				<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">خرید اشتراک جدید</a>
+				<div><p class="artnovo-account-muted">حساب آرت‌نوو</p><h1><?php echo esc_html( $title ); ?></h1><p class="artnovo-account-muted"><?php echo 'subscriptions' === $current ? 'لینک اتصال و اعتبار اکانت‌هایت همیشه اینجاست.' : 'اکانت‌ها، خریدها و راهنمای استفاده در یک حساب.'; ?></p></div>
+				<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">خرید اکانت جدید</a>
 			</header>
 			<div class="artnovo-account-layout">
-				<nav class="artnovo-account-nav" aria-label="منوی حساب کاربری">
-					<?php foreach ( [ 'subscriptions' => 'اشتراک‌های من', 'help' => 'راهنمای اتصال', 'support' => 'پشتیبانی', 'profile' => 'حساب من' ] as $view => $label ) : ?>
-						<a href="<?php echo esc_url( 'profile' === $view ? wc_get_account_endpoint_url( 'edit-account' ) : account_url( $view ) ); ?>" <?php if ( account_view() === $view ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( $label ); ?></a>
+				<nav class="artnovo-account-nav" aria-label="بخش‌های حساب آرت‌نوو">
+					<?php foreach ( $navigation['primary'] as $item ) : ?>
+						<a href="<?php echo esc_url( $item['url'] ); ?>" <?php if ( $item['current'] ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( $item['label'] ); ?></a>
 					<?php endforeach; ?>
-					<?php foreach ( wc_get_account_menu_items() as $endpoint => $label ) : ?>
-						<?php if ( in_array( $endpoint, [ 'dashboard', 'vpn-subscriptions', 'edit-account', 'edit-address', 'customer-logout' ], true ) ) { continue; } ?>
-						<a href="<?php echo esc_url( wc_get_account_endpoint_url( $endpoint ) ); ?>"><?php echo esc_html( $label ); ?></a>
-					<?php endforeach; ?>
-					<a href="<?php echo esc_url( wp_logout_url( wc_get_page_permalink( 'myaccount' ) ) ); ?>">خروج از حساب</a>
+					<details class="artnovo-account-more" <?php if ( array_filter( $navigation['secondary'], static fn( array $item ): bool => $item['current'] ) ) : ?>open<?php endif; ?>>
+						<summary>بخش‌های دیگر حساب</summary>
+						<?php foreach ( $navigation['secondary'] as $item ) : ?>
+							<a href="<?php echo esc_url( $item['url'] ); ?>" <?php if ( $item['current'] ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( $item['label'] ); ?></a>
+						<?php endforeach; ?>
+					</details>
 				</nav>
 				<div class="artnovo-account-main">
 					<?php
 					wc_print_notices();
-					if ( is_wc_endpoint_url( 'view-order' ) ) {
-						echo '<section class="artnovo-account-card woocommerce">';
+					$endpoint = WC()->query->get_current_endpoint();
+					if ( ! in_array( $endpoint, [ '', 'dashboard', 'vpn-subscriptions' ], true ) ) {
+						echo '<section class="artnovo-account-card artnovo-account-native woocommerce">';
 						do_action( 'woocommerce_account_content' );
 						echo '</section>';
-					} elseif ( is_wc_endpoint_url( 'edit-account' ) || 'profile' === account_view() ) {
+					} elseif ( 'profile' === $current ) {
 						render_account_profile();
-					} elseif ( 'help' === account_view() ) {
+					} elseif ( 'help' === $current ) {
 						render_account_help();
-					} elseif ( 'support' === account_view() ) {
+					} elseif ( 'support' === $current ) {
 						render_account_support();
 					} else {
 						render_account_subscriptions();
@@ -107,15 +141,21 @@ function render_account_subscriptions(): void {
 	do_action( 'woocommerce_account_vpn-subscriptions_endpoint', $page );
 	$html = ob_get_clean();
 	$probe = new \WP_HTML_Tag_Processor( $html );
-	$has_cards = $probe->next_tag( [ 'class_name' => 'wpvpn-subscription' ] );
+	$has_cards = false;
+	$has_error = false;
+	while ( $probe->next_tag() ) {
+		$has_cards = $has_cards || $probe->has_class( 'wpvpn-subscription' );
+		$has_error = $has_error || $probe->has_class( 'woocommerce-error' ) || 'alert' === $probe->get_attribute( 'role' );
+	}
 	$error = __( 'Subscriptions could not be loaded.', 'wp-vpn-bridge' );
-	if ( ! $has_cards && 1 === $page && ! str_contains( $html, esc_html( $error ) ) ) {
+	$empty = __( 'No subscriptions on this page.', 'wp-vpn-bridge' );
+	if ( ! $has_cards && ! $has_error && 1 === $page && str_contains( $html, esc_html( $empty ) ) && ! str_contains( $html, esc_html( $error ) ) ) {
 		?>
 		<section class="artnovo-account-card artnovo-account-empty">
-			<span class="artnovo-account-badge">اشتراک‌های من</span>
-			<h2>هنوز اشتراکی نداری</h2>
-			<p>با انتخاب یک پلن، اشتراکت اینجا نمایش داده می‌شود و لینک اتصال را از همین‌جا دریافت می‌کنی.</p>
-			<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">خرید اشتراک</a>
+			<span class="artnovo-account-badge">اکانت‌های من</span>
+			<h2>هنوز اکانتی نخریده‌ای</h2>
+			<p>یک پلن انتخاب کن؛ پس از تأیید پرداخت و آماده‌شدن اکانت، لینک اتصال را همین‌جا دریافت می‌کنی.</p>
+			<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">انتخاب اکانت</a>
 		</section>
 		<?php
 		return;
@@ -125,17 +165,20 @@ function render_account_subscriptions(): void {
 
 function render_account_profile(): void {
 	$user = wp_get_current_user();
-	if ( '' === $user->user_email ) {
-		render_account_login( true );
-		return;
-	}
+	$email_state = '' === $user->user_email ? account_auth_state( true ) : [];
+	$email_open = ( $email_state['expires'] ?? 0 ) > time() || ! empty( $email_state['message'] ) || ! empty( $email_state['error'] );
 	?>
 	<section class="artnovo-account-card">
-		<h2>حساب من</h2>
-		<p>ایمیل ورود و دریافت اطلاع‌رسانی خریدها</p>
-		<p dir="ltr" class="artnovo-account-email"><?php echo esc_html( $user->user_email ); ?></p>
-		<p class="artnovo-account-muted">با روش‌های فعال ورود سایت وارد همین حساب شوید. ایمیل سفارش می‌تواند با شناسهٔ ورود متفاوت باشد.</p>
-		<div class="artnovo-account-actions"><a href="<?php echo esc_url( account_url( 'support' ) ); ?>">درخواست بررسی اطلاعات حساب</a><a href="<?php echo esc_url( wp_logout_url( wc_get_page_permalink( 'myaccount' ) ) ); ?>">خروج از حساب</a></div>
+		<h2>اطلاعات حساب</h2>
+		<p>برای دیدن اکانت‌ها و خریدهای قبلی، همیشه با همان حساب وارد شوید.</p>
+		<?php if ( '' !== $user->user_email ) : ?>
+			<p>ایمیل ثبت‌شده در این حساب</p>
+			<p dir="ltr" class="artnovo-account-email"><?php echo esc_html( $user->user_email ); ?></p>
+		<?php else : ?>
+			<p>ثبت ایمیل برای خرید و دریافت اکانت الزامی نیست.</p>
+			<details class="artnovo-account-email-completion" <?php if ( $email_open ) : ?>open<?php endif; ?>><summary>افزودن ایمیل برای اطلاع‌رسانی خریدها</summary><?php render_account_login( true ); ?></details>
+		<?php endif; ?>
+		<div class="artnovo-account-actions"><a href="<?php echo esc_url( wc_get_account_endpoint_url( 'edit-account' ) ); ?>">ویرایش اطلاعات حساب</a><a href="<?php echo esc_url( account_url( 'support' ) ); ?>">کمک برای ورود یا اطلاعات حساب</a><a href="<?php echo esc_url( wp_logout_url( wc_get_page_permalink( 'myaccount' ) ) ); ?>">خروج از حساب</a></div>
 	</section>
 	<?php
 }
@@ -144,13 +187,13 @@ function render_account_help(): void {
 	?>
 	<section class="artnovo-account-card">
 		<h2>راهنمای اتصال</h2>
-		<p>لینک اشتراک را از کارت همان اشتراک در «اشتراک‌های من» دریافت کنید.</p>
+		<p>لینک اشتراک را از کارت همان اشتراک در «اکانت‌های من» دریافت کنید.</p>
 		<ol><li>در کارت اشتراکِ آماده، «کپی لینک اتصال» را بزنید.</li><li>در برنامهٔ اتصال خود، گزینهٔ افزودن اشتراک یا واردکردن از کلیپ‌بورد را باز کنید.</li><li>لینک را وارد و فهرست سرورها را به‌روزرسانی کنید.</li><li>یکی از سرورها را انتخاب و اتصال را برقرار کنید.</li></ol>
 		<details><summary>با کد QR چطور وصل شوم؟</summary><p>در کارت اشتراک، «نمایش QR» را بزنید و آن را با برنامهٔ اتصال دستگاه دیگر اسکن کنید.</p></details>
 		<details><summary>لینک اتصال را نمی‌بینم</summary><p>وضعیت کارت را بررسی کنید. در خرید کارت‌به‌کارت، لینک پس از تأیید پرداخت و آماده‌سازی اشتراک نمایش داده می‌شود. رسید را از «جزئیات خرید و رسید» بفرستید.</p></details>
 		<details><summary>اتصال برقرار نمی‌شود</summary><p>فهرست سرورها را به‌روزرسانی کنید، تاریخ اعتبار را بررسی کنید و در صورت ادامهٔ مشکل با شماره پیگیری خرید به پشتیبانی پیام بدهید.</p></details>
 		<p class="artnovo-account-muted">لینک و کد QR خصوصی‌اند. آن‌ها را فقط روی دستگاه‌های خود استفاده کنید.</p>
-		<a href="<?php echo esc_url( account_url() ); ?>">رفتن به اشتراک‌های من</a>
+		<a href="<?php echo esc_url( account_url() ); ?>">بازگشت به اکانت‌های من</a>
 	</section>
 	<?php
 }

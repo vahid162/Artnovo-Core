@@ -56,9 +56,14 @@ silently merge accounts or change their owner. Bridge's ready notification uses
 the customer's account email, so entering a billing address alone must not be
 treated as verified account-email completion.
 
-Core owns only its account views and plan-checkout context. Other account
-endpoints, including wallet funding and transactions, and ordinary product carts
-remain with their native WooCommerce/extension handlers. Core does not maintain a
+Core owns account presentation and plan-checkout context. The selected My Accounts
+layout uses a responsive right-side navigation and native subscription rows, with
+copy/QR and private purchase details. Usage and renewal appear only with actual
+integration data; email completion is optional. Registered order, profile and wallet
+endpoints share the presentation frame while their native WooCommerce/extension
+handlers keep processing, authorization and data ownership. Without Bridge the
+signed-in account retains the native WooCommerce fallback. Ordinary carts remain
+with their native handlers. Core does not maintain a
 second wallet balance or issue services; receipt eligibility belongs to Bridge.
 
 Service shopping keeps one current plan without a customer-facing cart. Selecting
@@ -68,7 +73,7 @@ This never deletes an existing order, a submitted wallet attempt or payment evid
 
 ## Install and update
 
-After release approval, install the verified `artnovo-core-1.3.1.zip` package from
+After release approval, install the verified `artnovo-core-1.4.0.zip` package from
 the published release. The command below builds a local candidate; a successful
 build alone does not authorize installation. The package contains an
 `artnovo-core/` plugin directory; GitHub's automatic source archives contain the
@@ -127,6 +132,7 @@ sender filter does not change SMTP credentials or delivery routing.
 python3 tools/check.py
 python3 tests/governance.py
 php tests/bootstrap.php
+php tests/account-native-login.php
 php tests/checkout-context.php
 node tests/compact-auth.js
 node tests/compact-checkout.js

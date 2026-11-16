@@ -302,6 +302,34 @@ add_action( 'elementor/frontend/after_render', static function ( $element ): voi
 } );
 
 add_filter( 'elementor/frontend/the_content', static function ( string $content ): string {
+	if ( function_exists( 'is_product' ) && is_product() ) {
+		if ( is_admin() || wp_doing_ajax() || is_preview() || isset( $_GET['elementor-preview'] ) ) {
+			return $content;
+		}
+		$html = new \WP_HTML_Tag_Processor( $content );
+		while ( $html->next_tag() ) {
+			if ( 'fcd870e' === $html->get_attribute( 'data-interaction-id' ) && in_array( $html->get_tag(), [ 'SECTION', 'MAIN' ], true ) ) {
+				$html->set_attribute( 'id', 'main' );
+				break;
+			}
+		}
+		return $html->get_updated_html();
+	}
+	$policy_roots = [ 132 => '1e5d7dad', 134 => '1af5b109', 136 => '3844fe47' ];
+	$policy_root = $policy_roots[ get_queried_object_id() ] ?? null;
+	if ( $policy_root ) {
+		if ( is_admin() || wp_doing_ajax() || is_preview() || isset( $_GET['elementor-preview'] ) ) {
+			return $content;
+		}
+		$html = new \WP_HTML_Tag_Processor( $content );
+		while ( $html->next_tag() ) {
+			if ( $policy_root === $html->get_attribute( 'data-interaction-id' ) && in_array( $html->get_tag(), [ 'ARTICLE', 'MAIN' ], true ) ) {
+				$html->set_attribute( 'id', 'content' );
+				break;
+			}
+		}
+		return $html->get_updated_html();
+	}
 	if ( ! is_page() || ! str_contains( $content, MARKERS['6ad23061'] ) ) {
 		return $content;
 	}
@@ -313,6 +341,7 @@ add_filter( 'elementor/frontend/the_content', static function ( string $content 
 			continue;
 		}
 		if ( '3ffe5619' === $id ) {
+			$html->set_attribute( 'id', 'content' );
 			$html->set_attribute( 'data-artnovo-wizard', '' );
 			$html->set_attribute( 'dir', 'rtl' );
 		} elseif ( isset( PANELS[ $id ] ) ) {
@@ -361,6 +390,9 @@ add_action( 'send_headers', static function (): void {
 } );
 
 add_action( 'wp_enqueue_scripts', static function (): void {
+	if ( ( function_exists( 'is_shop' ) && is_shop() ) || ( function_exists( 'is_product_taxonomy' ) && is_product_taxonomy() ) ) {
+		wp_enqueue_style( 'artnovo-home-wizard', plugins_url( 'artnovo-home-wizard.css', __FILE__ ), [], (string) filemtime( __DIR__ . '/artnovo-home-wizard.css' ) );
+	}
 	if ( is_page() ) {
 		$css = 'artnovo-home-wizard.css';
 		$js = 'artnovo-home-wizard.js';

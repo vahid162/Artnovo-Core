@@ -66,7 +66,7 @@ function wp_enqueue_style( string $handle, ...$args ): void { $GLOBALS['assets']
 function wp_enqueue_script( string $handle, ...$args ): void { $GLOBALS['assets'][] = $handle; }
 class IndependenceQuery {
 	public function get_current_endpoint(): string { return $GLOBALS['endpoint']; }
-	public function get_query_vars(): array { return [ 'orders' => 'orders', 'view-order' => 'view-order', 'edit-account' => 'edit-account' ]; }
+	public function get_query_vars(): array { return [ 'orders' => 'orders', 'view-order' => 'view-order', 'edit-account' => 'edit-account', 'woo-wallet' => 'woo-wallet' ]; }
 }
 function WC(): object {
 	static $woo;
@@ -228,8 +228,9 @@ try {
 } catch ( RedirectAttempt $redirect ) {
 	check( 'healthy Bridge retains the subscriptions redirect', wc_get_account_endpoint_url( 'vpn-subscriptions' ) === $redirect->getMessage() );
 }
-foreach ( [ 'orders', 'view-order', 'edit-account', 'woo-wallet', 'wallet-transactions', 'add-payment-method' ] as $endpoint ) {
-	check( 'other plugins retain the native template with Bridge: ' . $endpoint, '/native.php' === apply_filters( 'template_include', '/native.php' ) );
+foreach ( [ 'orders', 'view-order', 'edit-account', 'woo-wallet' ] as $endpoint ) {
+	check( 'registered native endpoint receives the Core frame with Bridge: ' . $endpoint, dirname( __DIR__ ) . '/modules/account/account-page.php' === apply_filters( 'template_include', '/native.php' ) );
+	check( 'registered native endpoint receives the shared frame styling: ' . $endpoint, in_array( 'artnovo-account-page', apply_filters( 'body_class', [] ), true ) );
 	try {
 		foreach ( $hooks['template_redirect'][4] ?? [] as [ $callback ] ) {
 			$callback();
@@ -237,6 +238,18 @@ foreach ( [ 'orders', 'view-order', 'edit-account', 'woo-wallet', 'wallet-transa
 		check( 'Core does not redirect native endpoint: ' . $endpoint, true );
 	} catch ( RedirectAttempt ) {
 		check( 'Core does not redirect native endpoint: ' . $endpoint, false );
+	}
+}
+foreach ( [ 'wallet-transactions', 'add-payment-method', 'artnovo-unknown-endpoint' ] as $endpoint ) {
+	check( 'unregistered endpoint retains its native template with Bridge: ' . $endpoint, '/native.php' === apply_filters( 'template_include', '/native.php' ) );
+	check( 'unregistered endpoint avoids shared frame styling: ' . $endpoint, ! in_array( 'artnovo-account-page', apply_filters( 'body_class', [] ), true ) );
+	try {
+		foreach ( $hooks['template_redirect'][4] ?? [] as [ $callback ] ) {
+			$callback();
+		}
+		check( 'Core does not redirect unregistered endpoint: ' . $endpoint, true );
+	} catch ( RedirectAttempt ) {
+		check( 'Core does not redirect unregistered endpoint: ' . $endpoint, false );
 	}
 }
 $user = 0;

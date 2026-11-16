@@ -1,0 +1,668 @@
+{
+  "format": "artnovo.elementor-reference.v1",
+  "site": "https://artnovo.ir",
+  "post_id": 132,
+  "root_id": "1e5d7dad",
+  "source": "elementor/get-page-structure",
+  "elements": [
+    {
+      "id": "1e5d7dad",
+      "elType": "e-div-block",
+      "title": "صفحه سیاست",
+      "tag": "article",
+      "editor_settings": {
+        "name": "صفحه سیاست"
+      },
+      "settings": {
+        "classes": [
+          "e-7800d3d4-69f9"
+        ],
+        "tag": "article"
+      },
+      "styles": {
+        "__style_id": "e-7800d3d4-69f9",
+        "css": "min-width: 0px; max-width: 1000px; color: #F0F9F7; direction: rtl; padding-block-start: 44px; padding-block-end: 56px; padding-inline-start: 24px; padding-inline-end: 24px; margin-block-start: 0px; margin-block-end: 0px; margin-inline-start: auto; margin-inline-end: auto; text-align: right;\n@media(--mobile) { padding-block-start: 28px; padding-block-end: 36px; padding-inline-start: 14px; padding-inline-end: 14px; }"
+      },
+      "interactions": [],
+      "elements": [
+        {
+          "id": "13b99d9e",
+          "elType": "e-div-block",
+          "title": "مقدمه صفحه",
+          "tag": "header",
+          "editor_settings": {
+            "name": "مقدمه صفحه"
+          },
+          "settings": {
+            "classes": [
+              "e-47072a1-4d5b"
+            ],
+            "tag": "header"
+          },
+          "styles": {
+            "__style_id": "e-47072a1-4d5b",
+            "css": "min-width: 0px; padding-block-start: 0px; padding-block-end: 28px; padding-inline-start: 0px; padding-inline-end: 0px; display: flex; flex-direction: column; gap: 12px;"
+          },
+          "interactions": [],
+          "elements": [
+            {
+              "id": "4a0a2789",
+              "elType": "widget",
+              "widgetType": "e-paragraph",
+              "title": "برچسب صفحه",
+              "tag": "p",
+              "editor_settings": {
+                "name": "برچسب صفحه"
+              },
+              "settings": {
+                "classes": [
+                  "e-31c97bd7-581e"
+                ],
+                "paragraph": "راهنمای خرید و حقوق مشتری",
+                "tag": "p"
+              },
+              "styles": {
+                "__style_id": "e-31c97bd7-581e",
+                "css": "font-weight: 600; font-size: 14px; color: #46D7A6; line-height: 1.8; margin: 0px;"
+              },
+              "interactions": []
+            },
+            {
+              "id": "76e24804",
+              "elType": "widget",
+              "widgetType": "e-heading",
+              "title": "عنوان صفحه",
+              "tag": "h1",
+              "editor_settings": {
+                "name": "عنوان صفحه"
+              },
+              "settings": {
+                "classes": [
+                  "e-4ac1e6a4-3b7f"
+                ],
+                "tag": "h1",
+                "title": "شرایط خرید و استفاده"
+              },
+              "styles": {
+                "__style_id": "e-4ac1e6a4-3b7f",
+                "css": "font-weight: 700; font-size: 34px; color: #F0F9F7; line-height: 1.6; margin: 0px;\n@media(--mobile) { font-size: 26px; }"
+              },
+              "interactions": []
+            },
+            {
+              "id": "7a660e4b",
+              "elType": "widget",
+              "widgetType": "e-paragraph",
+              "title": "توضیح صفحه",
+              "tag": "p",
+              "editor_settings": {
+                "name": "توضیح صفحه"
+              },
+              "settings": {
+                "classes": [
+                  "e-70f293a8-d719"
+                ],
+                "paragraph": "پیش از ثبت سفارش، مشخصات اشتراک، روش پرداخت و روند تحویل را بخوانید تا بدانید خرید شما چگونه انجام و پیگیری می‌شود.",
+                "tag": "p"
+              },
+              "styles": {
+                "__style_id": "e-70f293a8-d719",
+                "css": "font-size: 17px; color: #BDD1D0; line-height: 2; margin: 0px;\n@media(--mobile) { font-size: 16px; }"
+              },
+              "interactions": []
+            },
+            {
+              "id": "703b0a5",
+              "elType": "widget",
+              "widgetType": "e-paragraph",
+              "title": "تاریخ بازبینی",
+              "tag": "p",
+              "editor_settings": {
+                "name": "تاریخ بازبینی"
+              },
+              "settings": {
+                "classes": [
+                  "e-5bff7773-130a"
+                ],
+                "paragraph": "آخرین بازبینی: ۱۶ نوامبر ۲۰۲۶",
+                "tag": "p"
+              },
+              "styles": {
+                "__style_id": "e-5bff7773-130a",
+                "css": "font-size: 13px; color: #BDD1D0; line-height: 1.8; margin: 0px;"
+              },
+              "interactions": []
+            }
+          ]
+        },
+        {
+          "id": "12c1eaf2",
+          "elType": "e-div-block",
+          "title": "متن سیاست",
+          "tag": "div",
+          "editor_settings": {
+            "name": "متن سیاست"
+          },
+          "settings": {
+            "classes": [
+              "e-2612f434-1730"
+            ],
+            "tag": "div"
+          },
+          "styles": {
+            "__style_id": "e-2612f434-1730",
+            "css": "min-width: 0px; padding: 32px; border-radius: 20px; background-color: #0C1C29; box-shadow: 0px 12px 40px 0px rgba(0, 0, 0, 0.12); display: flex; flex-direction: column; gap: 28px;\n@media(--mobile) { padding-block-start: 22px; padding-block-end: 22px; padding-inline-start: 18px; padding-inline-end: 18px; border-radius: 16px; gap: 24px; }"
+          },
+          "interactions": [],
+          "elements": [
+            {
+              "id": "43772adf",
+              "elType": "e-div-block",
+              "title": "بخش 1",
+              "tag": "section",
+              "editor_settings": {
+                "name": "بخش 1"
+              },
+              "settings": {
+                "classes": [
+                  "e-1001b1e0-b601"
+                ],
+                "tag": "section"
+              },
+              "styles": {
+                "__style_id": "e-1001b1e0-b601",
+                "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 9px;"
+              },
+              "interactions": [],
+              "elements": [
+                {
+                  "id": "29a0d68",
+                  "elType": "widget",
+                  "widgetType": "e-heading",
+                  "title": "عنوان بخش 1",
+                  "tag": "h2",
+                  "editor_settings": {
+                    "name": "عنوان بخش 1"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-33cfd249-ff3d"
+                    ],
+                    "tag": "h2",
+                    "title": "انتخاب اشتراک"
+                  },
+                  "styles": {
+                    "__style_id": "e-33cfd249-ff3d",
+                    "css": "font-weight: 700; font-size: 21px; color: #F0F9F7; line-height: 1.8; margin: 0px;\n@media(--mobile) { font-size: 19px; }"
+                  },
+                  "interactions": []
+                },
+                {
+                  "id": "5effae95",
+                  "elType": "widget",
+                  "widgetType": "e-paragraph",
+                  "title": "متن بخش 1",
+                  "tag": "p",
+                  "editor_settings": {
+                    "name": "متن بخش 1"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-327934e5-4ab1"
+                    ],
+                    "paragraph": "محصولات آرت‌نوو اشتراک دیجیتال هستند و ارسال فیزیکی ندارند. پیش از پرداخت، حجم، مدت، تعداد و مبلغ نهایی سفارش را بررسی کنید. مشخصات پلن انتخابی و مبلغ نمایش‌داده‌شده در مرحلهٔ ثبت سفارش، مبنای خرید شماست.",
+                    "tag": "p"
+                  },
+                  "styles": {
+                    "__style_id": "e-327934e5-4ab1",
+                    "css": "font-size: 16px; color: #D8E7E5; line-height: 2.15; margin: 0px;"
+                  },
+                  "interactions": []
+                }
+              ]
+            },
+            {
+              "id": "1201f921",
+              "elType": "e-div-block",
+              "title": "بخش 2",
+              "tag": "section",
+              "editor_settings": {
+                "name": "بخش 2"
+              },
+              "settings": {
+                "classes": [
+                  "e-685a5c94-1f85"
+                ],
+                "tag": "section"
+              },
+              "styles": {
+                "__style_id": "e-685a5c94-1f85",
+                "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 9px;"
+              },
+              "interactions": [],
+              "elements": [
+                {
+                  "id": "e059e03",
+                  "elType": "widget",
+                  "widgetType": "e-heading",
+                  "title": "عنوان بخش 2",
+                  "tag": "h2",
+                  "editor_settings": {
+                    "name": "عنوان بخش 2"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-cefca21-6bfb"
+                    ],
+                    "tag": "h2",
+                    "title": "حساب کاربری و اطلاعات سفارش"
+                  },
+                  "styles": {
+                    "__style_id": "e-cefca21-6bfb",
+                    "css": "font-weight: 700; font-size: 21px; color: #F0F9F7; line-height: 1.8; margin: 0px;\n@media(--mobile) { font-size: 19px; }"
+                  },
+                  "interactions": []
+                },
+                {
+                  "id": "5bbe4c9b",
+                  "elType": "widget",
+                  "widgetType": "e-paragraph",
+                  "title": "متن بخش 2",
+                  "tag": "p",
+                  "editor_settings": {
+                    "name": "متن بخش 2"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-7540b81c-2e26"
+                    ],
+                    "paragraph": "برای خرید باید با یکی از روش‌های فعال سایت وارد حساب شوید. اطلاعات ارتباطی معتبر وارد کنید تا امکان مشاهده و پیگیری سفارش وجود داشته باشد. ایمیل سفارش ممکن است با شناسهٔ ورود شما متفاوت باشد. کد ورود و اطلاعات دسترسی حساب را در اختیار دیگران نگذارید.",
+                    "tag": "p"
+                  },
+                  "styles": {
+                    "__style_id": "e-7540b81c-2e26",
+                    "css": "font-size: 16px; color: #D8E7E5; line-height: 2.15; margin: 0px;"
+                  },
+                  "interactions": []
+                }
+              ]
+            },
+            {
+              "id": "2e08741f",
+              "elType": "e-div-block",
+              "title": "بخش 3",
+              "tag": "section",
+              "editor_settings": {
+                "name": "بخش 3"
+              },
+              "settings": {
+                "classes": [
+                  "e-3435bf28-27da"
+                ],
+                "tag": "section"
+              },
+              "styles": {
+                "__style_id": "e-3435bf28-27da",
+                "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 9px;"
+              },
+              "interactions": [],
+              "elements": [
+                {
+                  "id": "1fde30e6",
+                  "elType": "widget",
+                  "widgetType": "e-heading",
+                  "title": "عنوان بخش 3",
+                  "tag": "h2",
+                  "editor_settings": {
+                    "name": "عنوان بخش 3"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-3ee8ac34-d37d"
+                    ],
+                    "tag": "h2",
+                    "title": "پرداخت و تأیید وجه"
+                  },
+                  "styles": {
+                    "__style_id": "e-3ee8ac34-d37d",
+                    "css": "font-weight: 700; font-size: 21px; color: #F0F9F7; line-height: 1.8; margin: 0px;\n@media(--mobile) { font-size: 19px; }"
+                  },
+                  "interactions": []
+                },
+                {
+                  "id": "50c531a9",
+                  "elType": "widget",
+                  "widgetType": "e-paragraph",
+                  "title": "متن بخش 3",
+                  "tag": "p",
+                  "editor_settings": {
+                    "name": "متن بخش 3"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-2559d92d-aa93"
+                    ],
+                    "paragraph": "روش‌های قابل استفاده در مرحلهٔ پرداخت نمایش داده می‌شوند. در کارت‌به‌کارت، ثبت سفارش یا بارگذاری تصویر رسید به معنی تأیید دریافت وجه نیست؛ پرداخت پس از بررسی مدیر تأیید می‌شود. در پرداخت با کیف پول، وضعیت ثبت‌شدهٔ تراکنش و سفارش مبنای پیگیری است.",
+                    "tag": "p"
+                  },
+                  "styles": {
+                    "__style_id": "e-2559d92d-aa93",
+                    "css": "font-size: 16px; color: #D8E7E5; line-height: 2.15; margin: 0px;"
+                  },
+                  "interactions": []
+                }
+              ]
+            },
+            {
+              "id": "1adde0b2",
+              "elType": "e-div-block",
+              "title": "بخش 4",
+              "tag": "section",
+              "editor_settings": {
+                "name": "بخش 4"
+              },
+              "settings": {
+                "classes": [
+                  "e-da8c5ad-a6bf"
+                ],
+                "tag": "section"
+              },
+              "styles": {
+                "__style_id": "e-da8c5ad-a6bf",
+                "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 9px;"
+              },
+              "interactions": [],
+              "elements": [
+                {
+                  "id": "67f62301",
+                  "elType": "widget",
+                  "widgetType": "e-heading",
+                  "title": "عنوان بخش 4",
+                  "tag": "h2",
+                  "editor_settings": {
+                    "name": "عنوان بخش 4"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-115becd6-4a81"
+                    ],
+                    "tag": "h2",
+                    "title": "تحویل و شروع اعتبار"
+                  },
+                  "styles": {
+                    "__style_id": "e-115becd6-4a81",
+                    "css": "font-weight: 700; font-size: 21px; color: #F0F9F7; line-height: 1.8; margin: 0px;\n@media(--mobile) { font-size: 19px; }"
+                  },
+                  "interactions": []
+                },
+                {
+                  "id": "54660b70",
+                  "elType": "widget",
+                  "widgetType": "e-paragraph",
+                  "title": "متن بخش 4",
+                  "tag": "p",
+                  "editor_settings": {
+                    "name": "متن بخش 4"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-6f1b0bfc-a380"
+                    ],
+                    "paragraph": "پس از تأیید پرداخت و تکمیل آماده‌سازی، اطلاعات اشتراک از حساب کاربری قابل دریافت است. مدت اشتراک از زمان صدور آن شروع می‌شود، نه از اولین استفاده. بررسی دستی کارت‌به‌کارت می‌تواند زمان تأیید پرداخت را بیشتر کند. اگر وضعیت سفارش روشن نیست، همان سفارش را پیگیری کنید.",
+                    "tag": "p"
+                  },
+                  "styles": {
+                    "__style_id": "e-6f1b0bfc-a380",
+                    "css": "font-size: 16px; color: #D8E7E5; line-height: 2.15; margin: 0px;"
+                  },
+                  "interactions": []
+                }
+              ]
+            },
+            {
+              "id": "3b046ab1",
+              "elType": "e-div-block",
+              "title": "بخش 5",
+              "tag": "section",
+              "editor_settings": {
+                "name": "بخش 5"
+              },
+              "settings": {
+                "classes": [
+                  "e-7476ac2e-be8e"
+                ],
+                "tag": "section"
+              },
+              "styles": {
+                "__style_id": "e-7476ac2e-be8e",
+                "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 9px;"
+              },
+              "interactions": [],
+              "elements": [
+                {
+                  "id": "41e6311e",
+                  "elType": "widget",
+                  "widgetType": "e-heading",
+                  "title": "عنوان بخش 5",
+                  "tag": "h2",
+                  "editor_settings": {
+                    "name": "عنوان بخش 5"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-97add84-4f50"
+                    ],
+                    "tag": "h2",
+                    "title": "نگه‌داری اطلاعات و پشتیبانی"
+                  },
+                  "styles": {
+                    "__style_id": "e-97add84-4f50",
+                    "css": "font-weight: 700; font-size: 21px; color: #F0F9F7; line-height: 1.8; margin: 0px;\n@media(--mobile) { font-size: 19px; }"
+                  },
+                  "interactions": []
+                },
+                {
+                  "id": "38df2867",
+                  "elType": "widget",
+                  "widgetType": "e-paragraph",
+                  "title": "متن بخش 5",
+                  "tag": "p",
+                  "editor_settings": {
+                    "name": "متن بخش 5"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-76a80ec-6694"
+                    ],
+                    "paragraph": "اطلاعات و لینک اشتراک محرمانه‌اند؛ آن‌ها را در پیام‌های عمومی یا در اختیار دیگران قرار ندهید. در صورت تأخیر در تحویل، مغایرت مشخصات یا مشکل استفاده، شمارهٔ سفارش و شرح مشکل را برای پشتیبانی بفرستید. شرایط رسیدگی مالی در صفحهٔ «بازپرداخت و رسیدگی به مشکلات» آمده است.",
+                    "tag": "p"
+                  },
+                  "styles": {
+                    "__style_id": "e-76a80ec-6694",
+                    "css": "font-size: 16px; color: #D8E7E5; line-height: 2.15; margin: 0px;"
+                  },
+                  "interactions": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "7313927b",
+          "elType": "e-div-block",
+          "title": "راه ارتباط",
+          "tag": "aside",
+          "editor_settings": {
+            "name": "راه ارتباط"
+          },
+          "settings": {
+            "classes": [
+              "e-36fa7eca-ce88"
+            ],
+            "tag": "aside"
+          },
+          "styles": {
+            "__style_id": "e-36fa7eca-ce88",
+            "css": "min-width: 0px; padding: 24px; margin-block-start: 24px; margin-block-end: 0px; margin-inline-start: 0px; margin-inline-end: 0px; border-radius: 18px; background-color: rgba(70, 215, 166, 0.08); display: flex; flex-direction: column; gap: 10px;\n@media(--mobile) { padding-block-start: 20px; padding-block-end: 20px; padding-inline-start: 18px; padding-inline-end: 18px; }"
+          },
+          "interactions": [],
+          "elements": [
+            {
+              "id": "146a6318",
+              "elType": "widget",
+              "widgetType": "e-heading",
+              "title": "عنوان پشتیبانی",
+              "tag": "h2",
+              "editor_settings": {
+                "name": "عنوان پشتیبانی"
+              },
+              "settings": {
+                "classes": [
+                  "e-2554360f-aa22"
+                ],
+                "tag": "h2",
+                "title": "برای پیگیری سفارش"
+              },
+              "styles": {
+                "__style_id": "e-2554360f-aa22",
+                "css": "font-weight: 700; font-size: 20px; color: #F0F9F7; line-height: 1.8; margin: 0px;"
+              },
+              "interactions": []
+            },
+            {
+              "id": "4c76b719",
+              "elType": "widget",
+              "widgetType": "e-paragraph",
+              "title": "متن پشتیبانی",
+              "tag": "p",
+              "editor_settings": {
+                "name": "متن پشتیبانی"
+              },
+              "settings": {
+                "classes": [
+                  "e-7d7fc7b4-684a"
+                ],
+                "paragraph": "شمارهٔ سفارش و شرح درخواست را در ایمیل بنویسید. کد ورود، رمز بانکی و لینک محرمانهٔ اشتراک را ارسال نکنید.",
+                "tag": "p"
+              },
+              "styles": {
+                "__style_id": "e-7d7fc7b4-684a",
+                "css": "font-size: 15px; color: #BDD1D0; line-height: 2; margin: 0px;"
+              },
+              "interactions": []
+            },
+            {
+              "id": "443eff7d",
+              "elType": "widget",
+              "widgetType": "e-button",
+              "title": "پیوند پشتیبانی",
+              "tag": "a",
+              "editor_settings": {
+                "name": "پیوند پشتیبانی"
+              },
+              "settings": {
+                "classes": [
+                  "e-36aaa13-6438"
+                ],
+                "text": "ایمیل پشتیبانی سفارش‌ها",
+                "link": {
+                  "destination": "mailto:orders@artnovo.ir",
+                  "isTargetBlank": false,
+                  "tag": "a"
+                },
+                "tag": "a"
+              },
+              "styles": {
+                "__style_id": "e-36aaa13-6438",
+                "css": "&:hover { color: #9ADAF0; background-color: #142A35; } width: auto; min-height: 44px; max-width: 100%; font-weight: 600; font-size: 14px; color: #46D7A6; line-height: 1.8; text-decoration: underline; padding-block-start: 10px; padding-block-end: 10px; padding-inline-start: 14px; padding-inline-end: 14px; border-radius: 10px; border-width: 0px; background-color: transparent; display: inline-block; text-align: right; &:focus-visible { box-shadow: 0px 0px 0px 3px rgba(70, 215, 166, 0.35); }"
+              },
+              "interactions": []
+            }
+          ]
+        },
+        {
+          "id": "1ef57a93",
+          "elType": "e-div-block",
+          "title": "مطالعه بیشتر",
+          "tag": "nav",
+          "editor_settings": {
+            "name": "مطالعه بیشتر"
+          },
+          "settings": {
+            "classes": [
+              "e-3a169e3e-9bf7"
+            ],
+            "tag": "nav"
+          },
+          "styles": {
+            "__style_id": "e-3a169e3e-9bf7",
+            "css": "min-width: 0px; padding-block-start: 18px; padding-block-end: 0px; padding-inline-start: 0px; padding-inline-end: 0px; display: flex; flex-direction: row; gap: 8px; flex-wrap: wrap;"
+          },
+          "interactions": [],
+          "elements": [
+            {
+              "id": "35383380",
+              "elType": "widget",
+              "widgetType": "e-button",
+              "title": "پیوند حریم خصوصی",
+              "tag": "a",
+              "editor_settings": {
+                "name": "پیوند حریم خصوصی"
+              },
+              "settings": {
+                "classes": [
+                  "e-77963e53-1bf0"
+                ],
+                "text": "حریم خصوصی",
+                "link": {
+                  "destination": {
+                    "id": 134,
+                    "label": null
+                  },
+                  "isTargetBlank": false,
+                  "tag": "a"
+                },
+                "tag": "a"
+              },
+              "styles": {
+                "__style_id": "e-77963e53-1bf0",
+                "css": "&:hover { color: #9ADAF0; background-color: #142A35; } width: auto; min-height: 44px; max-width: 100%; font-weight: 600; font-size: 14px; color: #46D7A6; line-height: 1.8; text-decoration: underline; padding-block-start: 10px; padding-block-end: 10px; padding-inline-start: 14px; padding-inline-end: 14px; border-radius: 10px; border-width: 0px; background-color: transparent; display: inline-block; text-align: right; &:focus-visible { box-shadow: 0px 0px 0px 3px rgba(70, 215, 166, 0.35); }"
+              },
+              "interactions": []
+            },
+            {
+              "id": "589780a5",
+              "elType": "widget",
+              "widgetType": "e-button",
+              "title": "پیوند بازپرداخت و رسیدگی به مشکلات",
+              "tag": "a",
+              "editor_settings": {
+                "name": "پیوند بازپرداخت و رسیدگی به مشکلات"
+              },
+              "settings": {
+                "classes": [
+                  "e-39c4b7c8-5bbc"
+                ],
+                "text": "بازپرداخت و رسیدگی به مشکلات",
+                "link": {
+                  "destination": {
+                    "id": 136,
+                    "label": null
+                  },
+                  "isTargetBlank": false,
+                  "tag": "a"
+                },
+                "tag": "a"
+              },
+              "styles": {
+                "__style_id": "e-39c4b7c8-5bbc",
+                "css": "&:hover { color: #9ADAF0; background-color: #142A35; } width: auto; min-height: 44px; max-width: 100%; font-weight: 600; font-size: 14px; color: #46D7A6; line-height: 1.8; text-decoration: underline; padding-block-start: 10px; padding-block-end: 10px; padding-inline-start: 14px; padding-inline-end: 14px; border-radius: 10px; border-width: 0px; background-color: transparent; display: inline-block; text-align: right; &:focus-visible { box-shadow: 0px 0px 0px 3px rgba(70, 215, 166, 0.35); }"
+              },
+              "interactions": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

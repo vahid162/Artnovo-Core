@@ -74,6 +74,18 @@ function selected_plan(): ?\WC_Product {
 	return $product;
 }
 
+add_action( 'template_redirect', static function (): void {
+	if ( ! on_workflow_page() || ! in_array( $_SERVER['REQUEST_METHOD'] ?? '', [ 'GET', 'HEAD' ], true )
+		|| is_admin() || wp_doing_ajax() || is_preview() || isset( $_GET['elementor-preview'] ) ) {
+		return;
+	}
+	$plan = selected_plan();
+	$url = $plan && function_exists( '\\Artnovo\\PlanCheckout\\wizard_url' )
+		? \Artnovo\PlanCheckout\wizard_url( $plan->get_id() ) : home_url( '/#artnovo-categories' );
+	wp_safe_redirect( $url, 302 );
+	exit;
+}, 2 );
+
 function render( ?\WC_Product $plan ): string {
 	ob_start();
 	?>

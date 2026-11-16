@@ -197,7 +197,7 @@ function render_received_page(): void {
 	if ( ! $order ) {
 		?>
 		<main id="content" class="artnovo-account artnovo-received" dir="rtl">
-			<section class="artnovo-account-card"><h1>این پیوند خرید قابل مشاهده نیست</h1><p>با حساب صاحب خرید وارد شوید و پیوند موجود در ایمیل خرید را دوباره باز کنید.</p><a class="artnovo-account-button" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">رفتن به حساب کاربری</a></section>
+			<section class="artnovo-account-card"><h1>این پیوند خرید قابل مشاهده نیست</h1><p>با حساب صاحب خرید وارد شوید و این خرید را از بخش خریدهای حساب کاربری باز کنید.</p><a class="artnovo-account-button" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">رفتن به حساب کاربری</a></section>
 		</main>
 		<?php
 		return;
@@ -210,6 +210,7 @@ function render_received_page(): void {
 		wc_empty_cart();
 	}
 	$delivery = received_services( $order );
+	$billing_email = $order->get_billing_email();
 	$state = received_state( $order, $delivery );
 	$refresh = add_query_arg( 'artnovo_status', wp_generate_uuid4(), received_order_url( $order ) ) . '#artnovo-received-status';
 	$support = add_query_arg( 'order', $order->get_id(), account_url( 'support' ) );
@@ -269,7 +270,7 @@ function render_received_page(): void {
 				<?php endforeach; ?>
 				<dl><dt>شمارهٔ پیگیری</dt><dd><?php echo esc_html( $order->get_order_number() ); ?></dd>
 					<dt>مبلغ خرید</dt><dd class="artnovo-received-amount"><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></dd>
-					<dt>ایمیل خرید</dt><dd dir="ltr"><?php echo esc_html( $order->get_billing_email() ); ?></dd>
+						<?php if ( is_email( $billing_email ) ) : ?><dt>ایمیل خرید</dt><dd dir="ltr"><?php echo esc_html( $billing_email ); ?></dd><?php endif; ?>
 					<dt>روش پرداخت</dt><dd><?php echo esc_html( $order->get_payment_method_title() ); ?></dd>
 					<?php if ( $order->get_date_created() ) : ?><dt>تاریخ خرید</dt><dd><?php echo esc_html( wc_format_datetime( $order->get_date_created() ) ); ?></dd><?php endif; ?>
 				</dl>

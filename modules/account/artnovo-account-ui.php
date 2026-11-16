@@ -10,8 +10,11 @@ require_once __DIR__ . '/account-views.php';
 require_once dirname( __DIR__ ) . '/order-received/received.php';
 
 function account_view(): string {
-	if ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'edit-account' ) ) {
-		return 'profile';
+	$endpoint = WC()->query->get_current_endpoint();
+	if ( ! in_array( $endpoint, [ '', 'dashboard', 'vpn-subscriptions' ], true ) ) {
+		return match ( $endpoint ) {
+			'view-order' => 'orders', 'edit-account' => 'profile', default => $endpoint,
+		};
 	}
 	$view = $_GET['artnovo_view'] ?? '';
 	return is_string( $view ) && in_array( $view, [ 'help', 'support', 'profile' ], true ) ? $view : 'subscriptions';
@@ -30,9 +33,11 @@ function custom_account_page(): bool {
 		return false;
 	}
 	$endpoint = WC()->query->get_current_endpoint();
-	// Other plugins and WooCommerce own their registered account endpoints.
+	// Core supplies the frame; registered endpoints keep their native content/handlers.
 	if ( ! in_array( $endpoint, [ '', 'dashboard', 'vpn-subscriptions' ], true ) ) {
-		return false;
+		return is_user_logged_in() && \Artnovo\Core\bridge_available()
+			&& isset( WC()->query->get_query_vars()[ $endpoint ] )
+			&& ! in_array( $endpoint, [ 'customer-logout', 'lost-password', 'edit-address' ], true );
 	}
 	return ! is_user_logged_in() || \Artnovo\Core\bridge_available()
 		|| ( '' === $endpoint && isset( $_GET['artnovo_view'] ) && 'subscriptions' !== account_view() );
@@ -103,6 +108,9 @@ add_action( 'wp_enqueue_scripts', static function (): void {
 	}
 	wp_enqueue_style( 'artnovo-account-ui', plugins_url( 'artnovo-account.css', __FILE__ ), [], (string) filemtime( __DIR__ . '/artnovo-account.css' ) );
 	$dependencies = [ 'jquery' ];
+	if ( \Artnovo\Core\bridge_available() && wp_script_is( 'wpvpn-subscriptions', 'enqueued' ) ) {
+		$dependencies[] = 'wpvpn-subscriptions';
+	}
 	if ( received_page() ) {
 		wp_enqueue_style( 'artnovo-received-ui', plugins_url( 'modules/order-received/received.css', \Artnovo\Core\FILE ), [ 'artnovo-account-ui' ], (string) filemtime( dirname( __DIR__ ) . '/order-received/received.css' ) );
 		wp_enqueue_script( 'artnovo-received-ui', plugins_url( 'modules/order-received/received.js', \Artnovo\Core\FILE ), [], (string) filemtime( dirname( __DIR__ ) . '/order-received/received.js' ), true );
@@ -195,7 +203,7 @@ add_filter( 'gettext_wp-vpn-bridge', static function ( string $translated, strin
 		return $translated;
 	}
 	$labels = [
-		'My subscriptions' => 'اشتراک‌های من',
+		'My subscriptions' => 'اکانت‌های من',
 		'VPN subscription' => 'اشتراک VPN',
 		'%1$s · Subscription %2$d' => '%1$s · اشتراک %2$d',
 		'Subscription %d' => 'اشتراک %d',
