@@ -6,8 +6,8 @@ The owner selected **My Accounts** (اکانت‌های من), requested global 
 matching mobile/desktop presentation, minimal native Pinova login, compact checkout
 and post-order completion, and shared bottom-left customer notices. The ongoing
 scoped authority covered Core GitHub development, merge, release and installation.
-Core **1.5.0** is installed; a newly reported field-validation presentation issue
-is being corrected in **1.5.1** through the same GitHub-first delivery sequence.
+All scoped implementation, corrections and delivery are complete through
+Core **1.5.1**, published and installed through the GitHub-first sequence.
 
 Only Core runtime source changed. Bridge, Wallet and Pinova remain independent
 owners of service issuance/payment policy, balances and identity. No copied ledger,
@@ -18,16 +18,16 @@ storage or live plugin source was patched. Published tags/assets are immutable.
 
 ## Installed source and artifact
 
-PR12 merge/tag target `9cdb73196626cc881fd901dd30d74f1940217e81`, source tree
-`77718b7041853355789c6748ac19de32054cf8ff`. PR/main/publication Actions
-43942004134 /43942132451 /43942307242 passed. Official1.5.0 ZIP SHA256
-`111594a8108a99a3fb902f062a4b5256e0e4a1c60ac177350cbb03eea3104009` equals the
+PR13 merge/tag target `496583cc1fa6c62304d43a51ed51fe33b13a2dcc`, source tree
+`f4cc27e1651cb8df1c33e105c1bf30bc8f022368`. PR/main/publication Actions
+43944577362 /43944697736 /43944826163 passed. Official1.5.1 ZIP SHA256
+`ef8ede79b1421ff4c76718c78e98f24c9ba24f6506dc5da4d098d2871639bc9b` equals the
 frozen candidate and every one of35 installed files. Bridge/Wallet/Pinova source,
 activation set and wp-config hash remain unchanged. Recovery backup/rehearsal:
-`/var/backups/artnovo-core/20261116T194433Z-gm48xqfx`. Atomic exchange/drain,18 PHP
-opcode invalidations, zero cached failures, host-only cache purge and health checks
-passed; no maintenance remains. The final branch contains only delivery records,
-not another runtime release. Runtime bytes continue to match the official ZIP.
+`/var/backups/artnovo-core/20261116T195916Z-lnu19tps`. Atomic exchange/drain,18 PHP
+opcode invalidations, zero cached failures and health checks passed; no maintenance
+remains. Final delivery notes are documentation only; runtime bytes match the
+official ZIP. Existing1.5.0 and older tags/assets remain unchanged.
 
 Previously PR11/1.4.1 fixed actual-page routing for61/68; PR10 review4589577964 is
 resolved. Those fixes and regression checks are included in1.5.0. The native price
@@ -77,9 +77,15 @@ Earlier controlled customer15/order167 history and cleanup are preserved in
 [UI evidence](evidence/2026-11-16-ui-refinements.md); that order is cancelled/unpaid
 without issuance. No old test identity/token is reused or inferred to be current.
 
-PR12 review4590621008 correctly identified that Pinova field errors were classified
-as transient: after a toast closed their native source stayed hidden. PR13 now
-retains inline field-validation state until Pinova clears it, while Notyf and other
-transient messages keep the toast UI. Fresh patch59/59 standalone/lint,7/7 native integrations (357 assertions),34 notice
-assertions and independent scoped review passed after reproducing the old failure.
-CI/release/install/live QA and closure of that exact review thread remain current.
+PR12 review4590621008 identified a real post-publication Pinova field-error
+classification problem.1.5.1 removes only that field selector from temporary
+transfer, preserving its local error until native validation clears it. Notyf and
+other transient adapters remain unchanged. A red regression preceded34 passing
+notice assertions and an independent scoped review; fresh59/59 standalone/lint
+and7/7 native integrations (357 assertions) passed. The exact review thread is
+resolved after the merged fix. Live browser red/green confirms the invalid field
+remains visible/bound after5.1s while a simultaneous temporary toast expires.
+
+All owned private QA stages/browser profiles are removed and processes stopped;
+no functional work remains. New findings follow the same GitHub-first sequence and
+independent plugin ownership.
