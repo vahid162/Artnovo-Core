@@ -145,3 +145,22 @@ These use the existing unchanged SQL/mail/outbound guards. No real records were
 saved. GitHub CI, formal1.4.1 publication and exact installed asset are pending.
 The separate1.4.1 native contract proposes the final product-detail price alignment
 after release/install; it has not yet been applied.
+
+
+## Published and installed1.4.1
+
+PR11 merged as `eb9a9da0b76acc3f3a3c6322f01db2529896d894`, full tree
+`37f2cf98e5f3f531976a562d0ce27ecb2be4423e`. PR/main/publication runs
+43937059632 /43937295695 /43937456955 all passed. Official1.4.1 ZIP SHA256
+`b9954651c2488b36de64052695852cc4ded07409a572f3e0359b051d3cb2a2a3` matched the
+frozen candidate and all32 installed files; backup/recovery receipt is
+`/var/backups/artnovo-core/20261116T191624Z-zu8s2dpn`. Atomic exchange/FPM drain,
+17 opcode invalidations, zero cached failures, site health and unchanged
+Bridge/Wallet/Pinova activation/source checks passed. PR10's exact review thread
+PRRT_kwDOVqm1Ws64EB5p is resolved after the verified fix.
+
+Only afterward, the GitHub1.4.1 native price-alignment operation was applied and
+published through Elementor (undo177). Supported whole-root comparison confirmed
+only the intended card style changed. Actual Chrome1206/320 checks passed: no
+overflow, currency physically left with positive gap/whitespace, gallery placeholder
+height0. Native source references and manifest now record the observed result.

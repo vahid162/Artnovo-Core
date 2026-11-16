@@ -17,11 +17,15 @@
 			if (destination.protocol !== 'https:') continue;
 			const controls = document.createElement('div');
 			controls.className = 'wpvpn-subscription-link';
+			controls.dataset.artnovoServiceTools = '';
 			controls.dataset.copied = 'لینک اتصال کپی شد.';
 			controls.dataset.selected = 'لینک انتخاب شد. آن را با دستگاه خود کپی کنید.';
 			const existing = link.parentElement.tagName === 'P' ? link.parentElement : link;
 			existing.insertAdjacentElement('afterend', controls);
-			controls.append(existing);
+			const details = document.createElement('details');
+			const summary = document.createElement('summary');
+			summary.textContent = 'مشاهدهٔ لینک اتصال';
+			details.append(summary, existing);
 			const field = document.createElement('p');
 			const label = document.createElement('label');
 			label.textContent = 'لینک خصوصی اشتراک';
@@ -41,13 +45,23 @@
 			const status = document.createElement('span');
 			status.setAttribute('role', 'status');
 			actions.append(copy, status);
-			controls.append(field, actions);
+			details.append(field);
+			controls.append(actions, details);
+			new MutationObserver(() => {
+				if (status.textContent !== controls.dataset.selected) return;
+				details.open = true;
+				input.focus({ preventScroll: true });
+				input.select();
+			}).observe(status, { childList: true, characterData: true, subtree: true });
+			const arrange = () => controls.append(details);
+			if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrange, { once: true });
+			else setTimeout(arrange, 0);
 		}
 	}
 
 	function initBankCopy() {
 		let number = 0;
-		for (const value of root.querySelectorAll('.wc-bacs-bank-details li strong')) {
+		for (const value of root.querySelectorAll('.wc-bacs-bank-details li:is(.account_number, .iban, .sort_code, .bic) strong')) {
 			if (!value.textContent.trim() || value.parentElement.querySelector('[data-artnovo-copy]')) continue;
 			if (!value.id) {
 				let id;

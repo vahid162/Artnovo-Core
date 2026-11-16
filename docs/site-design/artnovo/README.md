@@ -23,7 +23,8 @@ manifest records observed source; the contract separately marks any proposed
 post-publication refinement until its supported readback is complete. The placeholder
 wrapper correction and currency-spacing setting are published and verified.
 [The 1.4.1 contract](planned-1.4.1.json) proposes left-aligned product-detail prices
-with currency on their left; it remains unapplied pending official patch delivery.
+with currency on their left; it was applied after official1.4.1 install and verified
+by supported source comparison and desktop/mobile geometry.
 
 Snapshots preserve native IDs, hierarchy, content/dynamic bindings, local styles
 and interactions from the supported read. Generated default styles and tool editor

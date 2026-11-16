@@ -2,7 +2,7 @@
   "format": "artnovo.native-change-contract.v1",
   "site": "https://artnovo.ir",
   "core_release": "v1.4.1",
-  "state": "proposed-before-live",
+  "state": "published-and-verified",
   "sequence": "GitHub review/tests, merge/main CI, official 1.4.1 release and exact ZIP install, supported native update/publish/readback/browser checks.",
   "changes": [
     {
@@ -24,5 +24,13 @@
       "verify": "Product price aligns left with currency physically left of amount and a positive gap at 320/1206px. Preserve all content, links, dynamic price values, product template assignment, real gallery and other styles.",
       "recovery": "Restore this exact before style through supported manage_elements and publish, never write raw storage JSON."
     }
-  ]
+  ],
+  "delivery": {
+    "proposal_pr": 11,
+    "core_commit": "eb9a9da0b76acc3f3a3c6322f01db2529896d894",
+    "core_zip_sha256": "b9954651c2488b36de64052695852cc4ded07409a572f3e0359b051d3cb2a2a3",
+    "undo_revision": 177,
+    "readback": "Only intended card style changed; all non-target source fields preserved.",
+    "browser": "1206/320px: no overflow, price currency physically left with whitespace, placeholder gallery height0."
+  }
 }

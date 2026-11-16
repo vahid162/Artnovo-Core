@@ -211,8 +211,10 @@
 		return true;
 	}
 
-	function showQuantityStatus(message) {
+	function showQuantityStatus(message, pending = false) {
 		if (!quantityStatus) return;
+		quantityStatus.toggleAttribute('data-artnovo-notice-permanent', pending);
+		quantityStatus.dataset.error = message && !pending ? '1' : '0';
 		quantityStatus.textContent = message;
 		quantityStatus.hidden = !message;
 	}
@@ -280,12 +282,12 @@
 	async function changeCheckoutQuantity(plan, nextQuantity) {
 		if (!prepare || !cartIdentity || !window.jQuery || quantityPending) return;
 		if (order.querySelector('form.processing, #order_review .blockOverlay')) {
-			showQuantityStatus('کمی صبر کنید تا مبلغ سفارش به‌روزرسانی شود.');
+			showQuantityStatus('کمی صبر کنید تا مبلغ سفارش به‌روزرسانی شود.', true);
 			return;
 		}
 		quantityPending = true;
 		updateAmounts(plan);
-		showQuantityStatus('در حال به‌روزرسانی مبلغ سفارش…');
+		showQuantityStatus('در حال به‌روزرسانی مبلغ سفارش…', true);
 		const payload = new FormData(prepare);
 		payload.set('artnovo_product', plan.id);
 		payload.set('artnovo_quantity', String(nextQuantity));
@@ -495,7 +497,7 @@
 		if ((event.target === nativeCheckout || event.target.matches('form.checkout_coupon')) && (quantityPending || !reviewCurrent)) {
 			event.preventDefault();
 			event.stopImmediatePropagation();
-			showQuantityStatus('ابتدا صبر کنید مبلغ سفارش به‌روزرسانی شود یا صفحه را تازه کنید.');
+			showQuantityStatus('ابتدا صبر کنید مبلغ سفارش به‌روزرسانی شود یا صفحه را تازه کنید.', quantityPending);
 		}
 	}, true);
 

@@ -783,6 +783,7 @@
 }
 
 [data-artnovo-wizard] .artnovo-order-coupon {
+	margin-block-end: 1.75rem;
 	font-size: .8125rem;
 }
 
@@ -790,21 +791,41 @@
 	/* Keep WooCommerce's native form visible without its disclosure animation. */
 	display: grid !important;
 	grid-template-columns: minmax(0, 1fr);
-	gap: .625rem;
+	gap: .375rem;
 	margin: 0;
 	padding: 0;
 	border: 0;
 	color: var(--artnovo-text);
 }
 
+[data-artnovo-wizard] .artnovo-coupon-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: stretch;
+	gap: .5rem;
+}
+
+[data-artnovo-wizard] .artnovo-order-native .woocommerce form.checkout_coupon > label {
+	margin: 0;
+	font-size: .8125rem;
+	line-height: 1.6;
+}
+
 [data-artnovo-wizard] .artnovo-order-native .woocommerce form.checkout_coupon .form-row {
+	min-width: 0;
 	margin: 0;
 }
 
+[data-artnovo-wizard] .artnovo-coupon-row input {
+	min-width: 0;
+	height: 100%;
+}
+
 [data-artnovo-wizard] .artnovo-order-native .woocommerce form.checkout_coupon .artnovo-coupon-apply {
-	justify-self: start;
-	min-block-size: 2.75rem;
-	padding: .5rem 1rem;
+	justify-self: stretch;
+	min-block-size: 3rem;
+	padding: .5rem .875rem;
+	white-space: nowrap;
 	border: 0;
 	border-radius: .75rem;
 	background: #233e49;

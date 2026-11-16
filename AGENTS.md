@@ -49,8 +49,10 @@ python3 tests/governance.py
 php tests/bootstrap.php
 php tests/account-native-login.php
 php tests/checkout-context.php
+php tests/notices.php
 node tests/compact-auth.js
 node tests/compact-checkout.js
+node tests/notices.js
 php tests/independence.php
 php tests/migration.php
 python3 tests/release.py
