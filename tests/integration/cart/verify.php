@@ -148,6 +148,16 @@ if ( ! $legacy ) {
 }
 
 remove_action( 'shutdown', '_wp_cron' );
+// Persisting the Blocks asset cache is outside this in-memory cart contract.
+foreach ( $GLOBALS['wp_filter']['shutdown']->callbacks ?? [] as $priority => $callbacks ) {
+	foreach ( $callbacks as $hook ) {
+		$callback = $hook['function'];
+		if ( is_array( $callback ) && $callback[0] instanceof \Automattic\WooCommerce\Blocks\Assets\Api
+			&& 'update_script_data_cache' === $callback[1] ) {
+			remove_action( 'shutdown', $callback, $priority );
+		}
+	}
+}
 
 if ( $failures ) {
 	WP_CLI::error( $failures . ' in-memory cart checks failed.' );

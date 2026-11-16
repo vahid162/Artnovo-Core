@@ -149,3 +149,95 @@ At 320/480px the measured price left is x30 (card x14 + 16px padding). No horizo
 overflow occurred. The first 320px observation ran before cards rendered and is
 not counted; the settled four-card observation replaces it. All mandatory patch
 checks passed. No new auth/payment implementation or provider test is introduced.
+
+## Installed 1.3.1 and completed cleanup
+
+PR #8 merged as `18e39aa8a40f7e6d51374f3619502c5c9bce8a46`, tree
+`ca2f7485a12fe51f23c3d70509e5be3249ddbb0d`. Tag v1.3.1 targets that commit.
+PR/main/publication runs 43897144330 / 43897136878 / 43897423853 passed. Official
+ZIP SHA-256 `db6307cb13fa35c19141ab810133e687c430d300adad86178bc33a57e9621bcf`
+and all 32 installed files match the tested package. Bridge/Wallet/Pinova full
+manifests are unchanged. Backup is `/var/backups/artnovo-core/20261116T153502Z-ty6h_nie`;
+recovery exchange was rehearsed. FPM drained with queue zero, 17 PHP scripts were
+invalidated without cached failures, and origin home/account health passed.
+
+The final public browser check at 320px confirmed four prices at x30, with each
+currency preceding the amount visually and a positive gap; document width stayed
+320px. Public native account sign-in also fit 320px, retained its required LTR
+identifier, had no hard focus outline and kept its Core email-signup alternative.
+Public screenshots and only aggregate, non-secret verification fields were saved
+outside Git. The attempted raw private-report copy was rejected; it was replaced
+with fixed validated aggregates, and raw private files were removed with the preview.
+
+Controlled customer 15 tokens/cart/persistent cart were cleared, the password was
+rotated and temporary credentials removed. Unpaid cancelled order 167 remains as
+marked audit evidence, with no issuance. The localhost preview and its private
+source/data directory were stopped/removed, the owned SSH tunnel was closed and
+the isolated Edge browser/profile were removed. Real payment, provider delivery,
+physical devices and native 200%/400% zoom are still not tested. No unchosen account
+panel was deployed; its two visual concepts remain available for owner selection.
+
+
+## GitHub/site reconciliation and complete fixture rerun
+
+The owner requested a GitHub-first delivery audit and full applicable checks under
+AI Development Governance 1.4.0. Independent inspection found no reverse Core
+code deployment. GitHub metadata and retained local installation receipts show
+this sequence on 2026-11-16 (UTC):
+
+| Version | Merge into main | Main CI completed | Formal release published | Installation receipt |
+| --- | --- | --- | --- | --- |
+| 1.3.0 | 15:00:49 | 15:01:06 | 15:03:00 | 15:08:31 |
+| 1.3.1 | 15:30:44 | 15:31:00 | 15:32:52 | 15:37:04 |
+
+The last column is the retained receipt file's write time, after installation;
+it is not a claim of the exact directory-exchange transaction time.
+
+Freshly rebuilt 1.3.1 remains the same 32-file ZIP with SHA-256
+`db6307cb13fa35c19141ab810133e687c430d300adad86178bc33a57e9621bcf`.
+Source, existing tag, official release asset and installed files match. Native
+Elementor home/header/footer changes did precede the Core release, and final
+post-install notes were uncommitted. This is the actual provenance gap. The
+public [native design references](../site-design/artnovo/README.md) now capture
+those three published documents through the supported Elementor read API,
+including stable identities, styles, bindings and public page/Theme Builder
+assignments. They are neither import files nor a complete site/database backup.
+No customer records, private options or credentials are included. Capturing them
+now does not change the historical order.
+
+Two older site fixtures had failed for harness reasons and are not retroactively
+reported as passing. The cart's SQL guard caught the unrelated Woo Blocks cache
+write at shutdown, after its cart assertions passed. It now removes that specific
+cache writer and retains the guard. The receipt fixture formerly constructed only
+an in-memory caller order; Bridge correctly rejected it when its fresh order read
+found no stored order. A read-only synthetic Woo CRUD store, like the existing
+multipart fixture, now supplies fresh order/item state without a DB save. Original
+positive checks remain, with six additional stale-owner/amount/status/existence
+and private-receipt checks. Native Bridge source and authorization remain intact.
+
+The release workflow also had a genuine assurance gap: an existing published
+release with non-empty correctly named assets could pass without comparing bytes.
+It now downloads both assets privately and requires exact candidate equality;
+wrong ZIP/checksum, partial or failed downloads fail closed. Existing tags/assets
+are never overwritten. Eighteen local cases execute the actual workflow script,
+including six unauthorized publishing contexts. These automation changes do not
+publish anything.
+
+Fresh local validation passed all 12 mandatory commands plus 35 PHP lints and two
+JavaScript syntax checks (49 commands, PHP 8.5.12 / Node 24.11.1). All seven
+site-dependent fixtures passed with process exit zero, including shutdown: auth
+25 assertions, cart 10, account render 8, received states 56, receipt 20, template
+scope 5 and actual multipart HTTP parsing 2 (126 PASS assertions). Fixtures ran
+in separate CLI processes or a loopback-only ephemeral PHP server using a private
+copy of candidate runtime/tests, guarded DB writes, intercepted/blocked mail and
+blocked external HTTP. No customer, order, subscription or receipt was saved.
+Independent cross-review found no blocker in the two repaired fixtures or the
+release workflow/negative cases. Raw synthetic HTML/logs stay outside Git.
+
+This reconciliation changes documentation, test harness and release assurance
+only. It changes no packaged runtime byte, so it neither needs a new plugin
+version nor replacement of the existing release/install. The owner's GitHub-first
+native-design sequence is now explicit in the local policy. New changes must be
+proposed in GitHub before live application. Existing real-payment/provider,
+physical-device and native-zoom limits remain as stated above; the full-site
+backup and an unchosen account-panel redesign are outside this reconciliation.

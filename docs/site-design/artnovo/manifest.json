@@ -1,0 +1,70 @@
+{
+  "format": "artnovo.site-design-manifest.v1",
+  "site": "https://artnovo.ir",
+  "core_release": "v1.3.1",
+  "core_commit": "18e39aa8a40f7e6d51374f3619502c5c9bce8a46",
+  "core_zip_sha256": "db6307cb13fa35c19141ab810133e687c430d300adad86178bc33a57e9621bcf",
+  "documents": [
+    {
+      "id": 68,
+      "type": "page",
+      "status": "publish",
+      "template": "elementor_header_footer"
+    },
+    {
+      "id": 75,
+      "type": "elementor_library",
+      "status": "publish",
+      "template": ""
+    },
+    {
+      "id": 86,
+      "type": "elementor_library",
+      "status": "publish",
+      "template": ""
+    }
+  ],
+  "page_assignments": {
+    "show_on_front": "page",
+    "page_on_front": "68",
+    "woocommerce_cart_page_id": "9",
+    "woocommerce_checkout_page_id": "10",
+    "woocommerce_myaccount_page_id": "11",
+    "woocommerce_terms_page_id": "132",
+    "wp_page_for_privacy_policy": "134"
+  },
+  "theme_builder_assignments": [
+    {
+      "id": 86,
+      "type": "footer",
+      "status": "publish",
+      "is_active": true,
+      "conditions": [
+        "include/general"
+      ]
+    },
+    {
+      "id": 75,
+      "type": "header",
+      "status": "publish",
+      "is_active": true,
+      "conditions": [
+        "include/general"
+      ]
+    }
+  ],
+  "references": {
+    "home": {
+      "file": "home.json",
+      "sha256": "5f73cf98c3400f30efb2c132fe13abce3cb360bc916a210f7985ebc5752b09f8"
+    },
+    "header": {
+      "file": "header.json",
+      "sha256": "0e055e4121488baa970bc77f22a63f160e3d176a88e1b72c2063a3f4bb824150"
+    },
+    "footer": {
+      "file": "footer.json",
+      "sha256": "fa73e6fb46788a7a049bb3ef2dce3190455f100f9d33b0fd14cbd1bfffe4d23d"
+    }
+  }
+}

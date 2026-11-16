@@ -1,0 +1,1439 @@
+{
+  "format": "artnovo.elementor-reference.v1",
+  "site": "https://artnovo.ir",
+  "post_id": 68,
+  "root_id": "3ffe5619",
+  "source": "elementor/get-page-structure",
+  "elements": [
+    {
+      "id": "3ffe5619",
+      "elType": "e-flexbox",
+      "title": "خرید مرحله‌ای",
+      "elements": [
+        {
+          "id": "6ad23061",
+          "elType": "e-div-block",
+          "title": "جای نوار پیشرفت",
+          "interactions": [],
+          "editor_settings": {
+            "name": "جای نوار پیشرفت",
+            "decorative": true
+          },
+          "settings": {
+            "classes": [
+              "e-5a64c54-f7ab"
+            ]
+          },
+          "styles": {
+            "__style_id": "e-5a64c54-f7ab",
+            "css": "height: 0px; min-width: 0px; padding: 0px;"
+          },
+          "tag": "div"
+        },
+        {
+          "id": "599de042",
+          "elType": "e-flexbox",
+          "title": "مرحله ۱ مدت اشتراک",
+          "elements": [
+            {
+              "id": "26517140",
+              "elType": "widget",
+              "widgetType": "e-heading",
+              "title": "تیتر انتخاب مدت",
+              "interactions": [],
+              "editor_settings": {
+                "name": "تیتر انتخاب مدت"
+              },
+              "settings": {
+                "classes": [
+                  "e-5b408f7f-ac31"
+                ],
+                "tag": "h2",
+                "title": "مدت اشتراک را انتخاب کن"
+              },
+              "styles": {
+                "__style_id": "e-5b408f7f-ac31",
+                "css": "font-weight: 700; font-size: 25px; color: #F0F9F7; line-height: 1.55; text-align: center; margin-block-start: 12px; margin-block-end: 20px; margin-inline-start: 0px; margin-inline-end: 0px;\n@media(--mobile) { font-size: 20px; margin-block-start: 16px; margin-block-end: 18px; margin-inline-start: 0px; margin-inline-end: 0px; }"
+              },
+              "tag": "h2"
+            },
+            {
+              "id": "24c5a782",
+              "elType": "e-div-block",
+              "title": "جای کارت‌های مدت",
+              "interactions": [],
+              "editor_settings": {
+                "name": "جای کارت‌های مدت",
+                "decorative": true
+              },
+              "settings": {
+                "classes": [
+                  "e-3d08ca0d-c397"
+                ]
+              },
+              "styles": {
+                "__style_id": "e-3d08ca0d-c397",
+                "css": "height: 0px; min-width: 0px; padding: 0px;"
+              },
+              "tag": "div"
+            },
+            {
+              "id": "5ff1b740",
+              "elType": "e-flexbox",
+              "title": "بنر خدمات بازی",
+              "elements": [
+                {
+                  "id": "a6e24e4",
+                  "elType": "e-div-block",
+                  "title": "قاب آیکون بازی",
+                  "elements": [
+                    {
+                      "id": "4d94bc0",
+                      "elType": "widget",
+                      "widgetType": "e-svg",
+                      "title": "آیکون دسته بازی",
+                      "interactions": [],
+                      "editor_settings": {
+                        "name": "آیکون دسته بازی"
+                      },
+                      "settings": {
+                        "classes": [
+                          "e-67b00275-e5e7"
+                        ],
+                        "svg": {
+                          "value": "fa-solid fa-gamepad",
+                          "library": "fa-solid"
+                        }
+                      },
+                      "styles": {
+                        "__style_id": "e-67b00275-e5e7",
+                        "css": "width: 40px; height: 40px; color: #46D7A6;\n@media(--mobile) { width: 32px; height: 32px; }"
+                      },
+                      "tag": "div"
+                    }
+                  ],
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "قاب آیکون بازی"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-30bbad96-4cd0"
+                    ],
+                    "tag": "div"
+                  },
+                  "styles": {
+                    "__style_id": "e-30bbad96-4cd0",
+                    "css": "width: 64px; height: 64px; padding: 0px; border-radius: 0px; background-color: transparent; display: flex; justify-content: center; align-items: center; cursor: default;\n@media(--mobile) { width: 56px; height: 56px; }"
+                  },
+                  "tag": "div"
+                },
+                {
+                  "id": "17146cd6",
+                  "elType": "e-flexbox",
+                  "title": "متن خدمات بازی",
+                  "elements": [
+                    {
+                      "id": "612fa0d4",
+                      "elType": "widget",
+                      "widgetType": "e-paragraph",
+                      "title": "برچسب خدمات بازی",
+                      "interactions": [],
+                      "editor_settings": {
+                        "name": "برچسب خدمات بازی"
+                      },
+                      "settings": {
+                        "classes": [
+                          "e-7d9352d9-51bb"
+                        ],
+                        "paragraph": "مخصوص بازی‌های آنلاین",
+                        "tag": "p"
+                      },
+                      "styles": {
+                        "__style_id": "e-7d9352d9-51bb",
+                        "css": "font-weight: 600; font-size: 13px; color: #46D7A6; line-height: 1.6; margin: 0px;"
+                      },
+                      "tag": "p"
+                    },
+                    {
+                      "id": "654aebd1",
+                      "elType": "widget",
+                      "widgetType": "e-heading",
+                      "title": "عنوان خدمات بازی",
+                      "interactions": [],
+                      "editor_settings": {
+                        "name": "عنوان خدمات بازی"
+                      },
+                      "settings": {
+                        "classes": [
+                          "e-2b2ace9f-8ca6"
+                        ],
+                        "tag": "h3",
+                        "title": "کاهش پینگ و سرور گیم"
+                      },
+                      "styles": {
+                        "__style_id": "e-2b2ace9f-8ca6",
+                        "css": "font-weight: 700; font-size: 24px; color: #F0F9F7; line-height: 1.55; margin: 0px;\n@media(--mobile) { font-size: 20px; }"
+                      },
+                      "tag": "h3"
+                    },
+                    {
+                      "id": "265e0333",
+                      "elType": "widget",
+                      "widgetType": "e-paragraph",
+                      "title": "توضیح خدمات بازی",
+                      "interactions": [],
+                      "editor_settings": {
+                        "name": "توضیح خدمات بازی"
+                      },
+                      "settings": {
+                        "classes": [
+                          "e-428387fa-50e2"
+                        ],
+                        "paragraph": "خدمات کاهش پینگ و سرور گیم مناسب بازی را از آرت‌نوو دریافت کنید.",
+                        "tag": "p"
+                      },
+                      "styles": {
+                        "__style_id": "e-428387fa-50e2",
+                        "css": "font-size: 15px; color: #BDD1D0; line-height: 1.9; margin: 0px;"
+                      },
+                      "tag": "p"
+                    }
+                  ],
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "متن خدمات بازی"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-15673df0-daee"
+                    ],
+                    "tag": "div"
+                  },
+                  "styles": {
+                    "__style_id": "e-15673df0-daee",
+                    "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 6px;\n@media(--mobile) { text-align: center; align-items: center; }"
+                  },
+                  "tag": "div"
+                }
+              ],
+              "interactions": [],
+              "editor_settings": {
+                "name": "بنر خدمات بازی"
+              },
+              "settings": {
+                "classes": [
+                  "e-78eaa4d4-f249"
+                ],
+                "tag": "aside"
+              },
+              "styles": {
+                "__style_id": "e-78eaa4d4-f249",
+                "css": "min-width: 0px; padding: 0px; margin-block-start: 48px; border-radius: 0px; background-color: transparent; display: grid; gap: 24px; grid-template-columns: 72px minmax(0,1fr); align-items: center; box-shadow: none; cursor: default;\n@media(--mobile) { text-align: center; padding: 0px; margin-block-start: 40px; gap: 16px; grid-template-columns: minmax(0,1fr); justify-items: center; }"
+              },
+              "tag": "aside"
+            }
+          ],
+          "interactions": [],
+          "editor_settings": {
+            "name": "مرحله ۱ مدت اشتراک"
+          },
+          "settings": {
+            "classes": [
+              "e-447298be-d024"
+            ],
+            "tag": "section"
+          },
+          "styles": {
+            "__style_id": "e-447298be-d024",
+            "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 0px;"
+          },
+          "tag": "section"
+        },
+        {
+          "id": "4ef8e004",
+          "elType": "e-flexbox",
+          "title": "مرحله ۲ پلن‌ها",
+          "elements": [
+            {
+              "id": "5eab593d",
+              "elType": "e-flexbox",
+              "title": "گروه یک‌ماهه",
+              "elements": [
+                {
+                  "id": "1da6074a",
+                  "elType": "widget",
+                  "widgetType": "e-heading",
+                  "title": "عنوان دسته یک‌ماهه",
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "عنوان دسته یک‌ماهه"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-49f3568c-fc61"
+                    ],
+                    "tag": "h2",
+                    "title": "پلن‌های یک‌ماهه"
+                  },
+                  "styles": {
+                    "__style_id": "e-49f3568c-fc61",
+                    "css": "font-weight: 700; font-size: 25px; color: #F0F9F7; line-height: 1.55; text-align: center; margin-block-start: 12px; margin-block-end: 20px; margin-inline-start: 0px; margin-inline-end: 0px;\n@media(--mobile) { font-size: 20px; margin-block-start: 16px; margin-block-end: 18px; margin-inline-start: 0px; margin-inline-end: 0px; }"
+                  },
+                  "tag": "h2"
+                },
+                {
+                  "id": "5e3a70a2",
+                  "elType": "e-collection-loop",
+                  "title": "محصولات یک‌ماهه",
+                  "elements": [
+                    {
+                      "id": "4e9e6c5f",
+                      "elType": "e-collection-loop-layout",
+                      "title": "شبکه یک‌ماهه",
+                      "elements": [
+                        {
+                          "id": "4f2c3a88",
+                          "elType": "e-collection-loop-item",
+                          "title": "تکرار پلن یک‌ماهه",
+                          "elements": [
+                            {
+                              "id": "492543a8",
+                              "elType": "e-flexbox",
+                              "title": "کارت یک‌ماهه",
+                              "elements": [
+                                {
+                                  "id": "5d717250",
+                                  "elType": "widget",
+                                  "widgetType": "theme-post-excerpt",
+                                  "title": "نام پلن یک‌ماهه",
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "نام پلن یک‌ماهه"
+                                  },
+                                  "settings": {},
+                                  "styles": {
+                                    "css": "font-weight: 600; font-size: 16px; color: #F0F9F7; line-height: 1.7;"
+                                  }
+                                },
+                                {
+                                  "id": "145cfacc",
+                                  "elType": "widget",
+                                  "widgetType": "theme-post-excerpt",
+                                  "title": "قیمت پلن یک‌ماهه",
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "قیمت پلن یک‌ماهه"
+                                  },
+                                  "settings": {},
+                                  "styles": {
+                                    "css": "font-weight: 700; font-size: 23px; color: #46D7A6; line-height: 1.45; text-align: end;"
+                                  }
+                                },
+                                {
+                                  "id": "5f6ff31",
+                                  "elType": "widget",
+                                  "widgetType": "e-button",
+                                  "title": "انتخاب پلن یک‌ماهه",
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "انتخاب پلن یک‌ماهه"
+                                  },
+                                  "settings": {
+                                    "classes": [
+                                      "e-6ac87f4c-5030"
+                                    ],
+                                    "text": "انتخاب این پلن",
+                                    "link": {
+                                      "destination": {
+                                        "name": "artnovo-wizard-plan",
+                                        "group": "post",
+                                        "settings": []
+                                      },
+                                      "isTargetBlank": null,
+                                      "tag": "a"
+                                    },
+                                    "tag": "a"
+                                  },
+                                  "styles": {
+                                    "__style_id": "e-6ac87f4c-5030",
+                                    "css": "&:hover { color: #06261B; background-color: #9ADAF0; } min-height: 44px; font-weight: 700; font-size: 15px; color: #06261B; line-height: 1.6; padding-block-start: 10px; padding-block-end: 10px; padding-inline-start: 16px; padding-inline-end: 16px; border-radius: 10px; border-width: 0px; background-color: #46D7A6;"
+                                  },
+                                  "tag": "a"
+                                },
+                                {
+                                  "id": "79177354",
+                                  "elType": "e-accordion",
+                                  "title": "جزئیات پلن یک‌ماهه",
+                                  "elements": [
+                                    {
+                                      "id": "497bd987",
+                                      "elType": "e-accordion-item",
+                                      "title": "بخش جزئیات یک‌ماهه",
+                                      "elements": [
+                                        {
+                                          "id": "7e297518",
+                                          "elType": "e-accordion-item-header",
+                                          "title": "دکمه جزئیات یک‌ماهه",
+                                          "elements": [
+                                            {
+                                              "id": "5af6b411",
+                                              "elType": "e-accordion-item-title",
+                                              "title": "برچسب جزئیات یک‌ماهه",
+                                              "elements": [
+                                                {
+                                                  "id": "61206034",
+                                                  "elType": "widget",
+                                                  "widgetType": "e-paragraph",
+                                                  "title": "متن جزئیات یک‌ماهه",
+                                                  "interactions": [],
+                                                  "editor_settings": {
+                                                    "name": "متن جزئیات یک‌ماهه"
+                                                  },
+                                                  "settings": {
+                                                    "classes": [
+                                                      "e-599eb2be-e8d9"
+                                                    ],
+                                                    "paragraph": "جزئیات پلن",
+                                                    "tag": "span"
+                                                  },
+                                                  "styles": {
+                                                    "__style_id": "e-599eb2be-e8d9",
+                                                    "css": "font-size: 14px; color: #9ADAF0; line-height: 1.55;"
+                                                  },
+                                                  "tag": "span"
+                                                }
+                                              ],
+                                              "interactions": [],
+                                              "editor_settings": {
+                                                "name": "برچسب جزئیات یک‌ماهه"
+                                              },
+                                              "settings": {},
+                                              "styles": {
+                                                "css": ""
+                                              },
+                                              "tag": "span"
+                                            }
+                                          ],
+                                          "interactions": [],
+                                          "editor_settings": {
+                                            "name": "دکمه جزئیات یک‌ماهه"
+                                          },
+                                          "settings": {
+                                            "classes": [
+                                              "e-5de23d5f-3cb7"
+                                            ]
+                                          },
+                                          "styles": {
+                                            "__style_id": "e-5de23d5f-3cb7",
+                                            "css": "min-height: 42px; color: #9ADAF0; padding-block-start: 8px; padding-block-end: 8px; padding-inline-start: 4px; padding-inline-end: 4px;"
+                                          },
+                                          "tag": "summary"
+                                        },
+                                        {
+                                          "id": "44f6df74",
+                                          "elType": "e-accordion-item-content",
+                                          "title": "محتوای جزئیات یک‌ماهه",
+                                          "elements": [
+                                            {
+                                              "id": "4b358a65",
+                                              "elType": "widget",
+                                              "widgetType": "theme-post-excerpt",
+                                              "title": "توضیحات پلن یک‌ماهه",
+                                              "interactions": [],
+                                              "editor_settings": {
+                                                "name": "توضیحات پلن یک‌ماهه"
+                                              },
+                                              "settings": {},
+                                              "styles": {
+                                                "css": "font-size: 14px; color: #BDD1D0; line-height: 1.7;"
+                                              }
+                                            }
+                                          ],
+                                          "interactions": [],
+                                          "editor_settings": {
+                                            "name": "محتوای جزئیات یک‌ماهه"
+                                          },
+                                          "settings": {
+                                            "classes": [
+                                              "e-2d11e9ef-c3f1"
+                                            ]
+                                          },
+                                          "styles": {
+                                            "__style_id": "e-2d11e9ef-c3f1",
+                                            "css": "padding-block-start: 4px; padding-block-end: 9px; padding-inline-start: 4px; padding-inline-end: 4px;"
+                                          },
+                                          "tag": "div"
+                                        }
+                                      ],
+                                      "interactions": [],
+                                      "editor_settings": {
+                                        "name": "بخش جزئیات یک‌ماهه"
+                                      },
+                                      "settings": {},
+                                      "styles": {
+                                        "css": ""
+                                      },
+                                      "tag": "details"
+                                    }
+                                  ],
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "جزئیات پلن یک‌ماهه"
+                                  },
+                                  "settings": {
+                                    "classes": [
+                                      "e-4a8b6a0-3a4b"
+                                    ],
+                                    "default_state": "all_collapsed",
+                                    "show_icon": false,
+                                    "faq_schema": false
+                                  },
+                                  "styles": {
+                                    "__style_id": "e-4a8b6a0-3a4b",
+                                    "css": "width: 100%; padding: 0px;"
+                                  },
+                                  "tag": "div"
+                                }
+                              ],
+                              "interactions": [],
+                              "editor_settings": {
+                                "name": "کارت یک‌ماهه"
+                              },
+                              "settings": {
+                                "classes": [
+                                  "e-2cab5089-298e"
+                                ],
+                                "tag": "article"
+                              },
+                              "styles": {
+                                "__style_id": "e-2cab5089-298e",
+                                "css": "height: 100%; min-width: 0px; padding: 19px; border-radius: 17px; background-color: #152735; box-shadow: 0px 12px 34px 0px rgba(0,0,0,0.16); display: flex; flex-direction: column; gap: 11px;\n@media(--mobile) { padding: 16px; }"
+                              },
+                              "tag": "article"
+                            }
+                          ],
+                          "interactions": [],
+                          "editor_settings": {
+                            "name": "تکرار پلن یک‌ماهه"
+                          },
+                          "settings": {
+                            "classes": [
+                              "e-3d494ff6-f7d8"
+                            ]
+                          },
+                          "styles": {
+                            "__style_id": "e-3d494ff6-f7d8",
+                            "css": "height: 100%;\n@media(--mobile) { padding: 0px; }"
+                          },
+                          "tag": "div"
+                        }
+                      ],
+                      "interactions": [],
+                      "editor_settings": {
+                        "name": "شبکه یک‌ماهه"
+                      },
+                      "settings": {
+                        "classes": [
+                          "e-1c87e1f8-26ff"
+                        ]
+                      },
+                      "styles": {
+                        "__style_id": "e-1c87e1f8-26ff",
+                        "css": "gap: 16px; grid-template-columns: repeat(3,minmax(0,1fr));\n@media(--tablet) { grid-template-columns: repeat(2,minmax(0,1fr)); }\n@media(--mobile) { padding: 0px; gap: 12px; grid-template-columns: 1fr; }"
+                      },
+                      "tag": "div"
+                    }
+                  ],
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "محصولات یک‌ماهه"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-420a16a9-321b"
+                    ],
+                    "query": {
+                      "template_type": "product",
+                      "posts_per_page": 100,
+                      "query_id": "artnovo-wizard-one-month",
+                      "source": "post",
+                      "selection": [],
+                      "include_filters": [],
+                      "exclude_filters": [],
+                      "avoid_duplicates": false,
+                      "offset": 0,
+                      "select_date": "anytime",
+                      "date_before": null,
+                      "date_after": null,
+                      "orderby": "post_date",
+                      "order": "desc",
+                      "ignore_sticky_posts": true,
+                      "taxonomy_source": "category",
+                      "taxonomy_filter_by": "show_all",
+                      "taxonomy_include": [],
+                      "taxonomy_exclude": [],
+                      "taxonomy_orderby": "name",
+                      "taxonomy_order": "desc",
+                      "taxonomy_avoid_duplicates": false,
+                      "taxonomy_hide_empty": false,
+                      "taxonomy_offset": 0,
+                      "taxonomy_hierarchical": false,
+                      "taxonomy_depth": "0",
+                      "product_source": "product",
+                      "product_selection": [],
+                      "product_include_filters": [],
+                      "product_exclude_filters": [],
+                      "product_orderby": "price",
+                      "product_order": "asc",
+                      "product_taxonomy_source": "product_cat",
+                      "product_taxonomy_filter_by": "show_all",
+                      "product_taxonomy_include": [],
+                      "product_taxonomy_exclude": [],
+                      "product_taxonomy_orderby": "name",
+                      "product_taxonomy_order": "desc",
+                      "product_taxonomy_avoid_duplicates": false,
+                      "product_taxonomy_hide_empty": false,
+                      "product_taxonomy_offset": 0,
+                      "product_taxonomy_hierarchical": false,
+                      "product_taxonomy_depth": "0"
+                    },
+                    "pagination": false
+                  },
+                  "styles": {
+                    "__style_id": "e-420a16a9-321b",
+                    "css": "@media(--mobile) { padding: 0px; }"
+                  },
+                  "tag": "div"
+                }
+              ],
+              "interactions": [],
+              "editor_settings": {
+                "name": "گروه یک‌ماهه"
+              },
+              "settings": {
+                "classes": [
+                  "e-9b2bac7-5358"
+                ],
+                "tag": "div"
+              },
+              "styles": {
+                "__style_id": "e-9b2bac7-5358",
+                "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 0px;"
+              },
+              "tag": "div"
+            },
+            {
+              "id": "57aa40ef",
+              "elType": "e-flexbox",
+              "title": "گروه دوماهه",
+              "elements": [
+                {
+                  "id": "1c88471f",
+                  "elType": "widget",
+                  "widgetType": "e-heading",
+                  "title": "عنوان دسته دوماهه",
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "عنوان دسته دوماهه"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-614eb3de-3aa0"
+                    ],
+                    "tag": "h2",
+                    "title": "پلن‌های دوماهه"
+                  },
+                  "styles": {
+                    "__style_id": "e-614eb3de-3aa0",
+                    "css": "font-weight: 700; font-size: 25px; color: #F0F9F7; line-height: 1.55; text-align: center; margin-block-start: 12px; margin-block-end: 20px; margin-inline-start: 0px; margin-inline-end: 0px;\n@media(--mobile) { font-size: 20px; margin-block-start: 16px; margin-block-end: 18px; margin-inline-start: 0px; margin-inline-end: 0px; }"
+                  },
+                  "tag": "h2"
+                },
+                {
+                  "id": "6d8cdb7a",
+                  "elType": "e-collection-loop",
+                  "title": "محصولات دوماهه",
+                  "elements": [
+                    {
+                      "id": "1a63f28e",
+                      "elType": "e-collection-loop-layout",
+                      "title": "شبکه دوماهه",
+                      "elements": [
+                        {
+                          "id": "493eac10",
+                          "elType": "e-collection-loop-item",
+                          "title": "تکرار پلن دوماهه",
+                          "elements": [
+                            {
+                              "id": "15d4b8b6",
+                              "elType": "e-flexbox",
+                              "title": "کارت دوماهه",
+                              "elements": [
+                                {
+                                  "id": "3b4747ff",
+                                  "elType": "widget",
+                                  "widgetType": "theme-post-excerpt",
+                                  "title": "نام پلن دوماهه",
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "نام پلن دوماهه"
+                                  },
+                                  "settings": {},
+                                  "styles": {
+                                    "css": "font-weight: 600; font-size: 16px; color: #F0F9F7; line-height: 1.7;"
+                                  }
+                                },
+                                {
+                                  "id": "38cdbd2c",
+                                  "elType": "widget",
+                                  "widgetType": "theme-post-excerpt",
+                                  "title": "قیمت پلن دوماهه",
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "قیمت پلن دوماهه"
+                                  },
+                                  "settings": {},
+                                  "styles": {
+                                    "css": "font-weight: 700; font-size: 23px; color: #46D7A6; line-height: 1.45; text-align: end;"
+                                  }
+                                },
+                                {
+                                  "id": "66620d0",
+                                  "elType": "widget",
+                                  "widgetType": "e-button",
+                                  "title": "انتخاب پلن دوماهه",
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "انتخاب پلن دوماهه"
+                                  },
+                                  "settings": {
+                                    "classes": [
+                                      "e-24f9db0f-78bd"
+                                    ],
+                                    "text": "انتخاب این پلن",
+                                    "link": {
+                                      "destination": {
+                                        "name": "artnovo-wizard-plan",
+                                        "group": "post",
+                                        "settings": []
+                                      },
+                                      "isTargetBlank": null,
+                                      "tag": "a"
+                                    },
+                                    "tag": "a"
+                                  },
+                                  "styles": {
+                                    "__style_id": "e-24f9db0f-78bd",
+                                    "css": "&:hover { color: #06261B; background-color: #9ADAF0; } min-height: 44px; font-weight: 700; font-size: 15px; color: #06261B; line-height: 1.6; padding-block-start: 10px; padding-block-end: 10px; padding-inline-start: 16px; padding-inline-end: 16px; border-radius: 10px; border-width: 0px; background-color: #46D7A6;"
+                                  },
+                                  "tag": "a"
+                                },
+                                {
+                                  "id": "5dd51944",
+                                  "elType": "e-accordion",
+                                  "title": "جزئیات پلن دوماهه",
+                                  "elements": [
+                                    {
+                                      "id": "567aee37",
+                                      "elType": "e-accordion-item",
+                                      "title": "بخش جزئیات دوماهه",
+                                      "elements": [
+                                        {
+                                          "id": "5fbb22ba",
+                                          "elType": "e-accordion-item-header",
+                                          "title": "دکمه جزئیات دوماهه",
+                                          "elements": [
+                                            {
+                                              "id": "5e8af111",
+                                              "elType": "e-accordion-item-title",
+                                              "title": "برچسب جزئیات دوماهه",
+                                              "elements": [
+                                                {
+                                                  "id": "670f6b50",
+                                                  "elType": "widget",
+                                                  "widgetType": "e-paragraph",
+                                                  "title": "متن جزئیات دوماهه",
+                                                  "interactions": [],
+                                                  "editor_settings": {
+                                                    "name": "متن جزئیات دوماهه"
+                                                  },
+                                                  "settings": {
+                                                    "classes": [
+                                                      "e-33b13676-8353"
+                                                    ],
+                                                    "paragraph": "جزئیات پلن",
+                                                    "tag": "span"
+                                                  },
+                                                  "styles": {
+                                                    "__style_id": "e-33b13676-8353",
+                                                    "css": "font-size: 14px; color: #9ADAF0; line-height: 1.55;"
+                                                  },
+                                                  "tag": "span"
+                                                }
+                                              ],
+                                              "interactions": [],
+                                              "editor_settings": {
+                                                "name": "برچسب جزئیات دوماهه"
+                                              },
+                                              "settings": {},
+                                              "styles": {
+                                                "css": ""
+                                              },
+                                              "tag": "span"
+                                            }
+                                          ],
+                                          "interactions": [],
+                                          "editor_settings": {
+                                            "name": "دکمه جزئیات دوماهه"
+                                          },
+                                          "settings": {
+                                            "classes": [
+                                              "e-649ef05c-d9b3"
+                                            ]
+                                          },
+                                          "styles": {
+                                            "__style_id": "e-649ef05c-d9b3",
+                                            "css": "min-height: 42px; color: #9ADAF0; padding-block-start: 8px; padding-block-end: 8px; padding-inline-start: 4px; padding-inline-end: 4px;"
+                                          },
+                                          "tag": "summary"
+                                        },
+                                        {
+                                          "id": "7afbfc9c",
+                                          "elType": "e-accordion-item-content",
+                                          "title": "محتوای جزئیات دوماهه",
+                                          "elements": [
+                                            {
+                                              "id": "286d84fe",
+                                              "elType": "widget",
+                                              "widgetType": "theme-post-excerpt",
+                                              "title": "توضیحات پلن دوماهه",
+                                              "interactions": [],
+                                              "editor_settings": {
+                                                "name": "توضیحات پلن دوماهه"
+                                              },
+                                              "settings": {},
+                                              "styles": {
+                                                "css": "font-size: 14px; color: #BDD1D0; line-height: 1.7;"
+                                              }
+                                            }
+                                          ],
+                                          "interactions": [],
+                                          "editor_settings": {
+                                            "name": "محتوای جزئیات دوماهه"
+                                          },
+                                          "settings": {
+                                            "classes": [
+                                              "e-6af4eb1d-9d59"
+                                            ]
+                                          },
+                                          "styles": {
+                                            "__style_id": "e-6af4eb1d-9d59",
+                                            "css": "padding-block-start: 4px; padding-block-end: 9px; padding-inline-start: 4px; padding-inline-end: 4px;"
+                                          },
+                                          "tag": "div"
+                                        }
+                                      ],
+                                      "interactions": [],
+                                      "editor_settings": {
+                                        "name": "بخش جزئیات دوماهه"
+                                      },
+                                      "settings": {},
+                                      "styles": {
+                                        "css": ""
+                                      },
+                                      "tag": "details"
+                                    }
+                                  ],
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "جزئیات پلن دوماهه"
+                                  },
+                                  "settings": {
+                                    "classes": [
+                                      "e-2d6a8e12-44a5"
+                                    ],
+                                    "default_state": "all_collapsed",
+                                    "show_icon": false,
+                                    "faq_schema": false
+                                  },
+                                  "styles": {
+                                    "__style_id": "e-2d6a8e12-44a5",
+                                    "css": "width: 100%; padding: 0px;"
+                                  },
+                                  "tag": "div"
+                                }
+                              ],
+                              "interactions": [],
+                              "editor_settings": {
+                                "name": "کارت دوماهه"
+                              },
+                              "settings": {
+                                "classes": [
+                                  "e-1f978d48-e12d"
+                                ],
+                                "tag": "article"
+                              },
+                              "styles": {
+                                "__style_id": "e-1f978d48-e12d",
+                                "css": "height: 100%; min-width: 0px; padding: 19px; border-radius: 17px; background-color: #152735; box-shadow: 0px 12px 34px 0px rgba(0,0,0,0.16); display: flex; flex-direction: column; gap: 11px;\n@media(--mobile) { padding: 16px; }"
+                              },
+                              "tag": "article"
+                            }
+                          ],
+                          "interactions": [],
+                          "editor_settings": {
+                            "name": "تکرار پلن دوماهه"
+                          },
+                          "settings": {
+                            "classes": [
+                              "e-68adc0c7-fb36"
+                            ]
+                          },
+                          "styles": {
+                            "__style_id": "e-68adc0c7-fb36",
+                            "css": "height: 100%;\n@media(--mobile) { padding: 0px; }"
+                          },
+                          "tag": "div"
+                        }
+                      ],
+                      "interactions": [],
+                      "editor_settings": {
+                        "name": "شبکه دوماهه"
+                      },
+                      "settings": {
+                        "classes": [
+                          "e-23a5605f-54f0"
+                        ]
+                      },
+                      "styles": {
+                        "__style_id": "e-23a5605f-54f0",
+                        "css": "gap: 16px; grid-template-columns: repeat(3,minmax(0,1fr));\n@media(--tablet) { grid-template-columns: repeat(2,minmax(0,1fr)); }\n@media(--mobile) { padding: 0px; gap: 12px; grid-template-columns: 1fr; }"
+                      },
+                      "tag": "div"
+                    }
+                  ],
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "محصولات دوماهه"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-16881ccd-6145"
+                    ],
+                    "query": {
+                      "template_type": "product",
+                      "posts_per_page": 100,
+                      "query_id": "artnovo-wizard-two-month",
+                      "source": "post",
+                      "selection": [],
+                      "include_filters": [],
+                      "exclude_filters": [],
+                      "avoid_duplicates": false,
+                      "offset": 0,
+                      "select_date": "anytime",
+                      "date_before": null,
+                      "date_after": null,
+                      "orderby": "post_date",
+                      "order": "desc",
+                      "ignore_sticky_posts": true,
+                      "taxonomy_source": "category",
+                      "taxonomy_filter_by": "show_all",
+                      "taxonomy_include": [],
+                      "taxonomy_exclude": [],
+                      "taxonomy_orderby": "name",
+                      "taxonomy_order": "desc",
+                      "taxonomy_avoid_duplicates": false,
+                      "taxonomy_hide_empty": false,
+                      "taxonomy_offset": 0,
+                      "taxonomy_hierarchical": false,
+                      "taxonomy_depth": "0",
+                      "product_source": "product",
+                      "product_selection": [],
+                      "product_include_filters": [],
+                      "product_exclude_filters": [],
+                      "product_orderby": "price",
+                      "product_order": "asc",
+                      "product_taxonomy_source": "product_cat",
+                      "product_taxonomy_filter_by": "show_all",
+                      "product_taxonomy_include": [],
+                      "product_taxonomy_exclude": [],
+                      "product_taxonomy_orderby": "name",
+                      "product_taxonomy_order": "desc",
+                      "product_taxonomy_avoid_duplicates": false,
+                      "product_taxonomy_hide_empty": false,
+                      "product_taxonomy_offset": 0,
+                      "product_taxonomy_hierarchical": false,
+                      "product_taxonomy_depth": "0"
+                    },
+                    "pagination": false
+                  },
+                  "styles": {
+                    "__style_id": "e-16881ccd-6145",
+                    "css": "@media(--mobile) { padding: 0px; }"
+                  },
+                  "tag": "div"
+                }
+              ],
+              "interactions": [],
+              "editor_settings": {
+                "name": "گروه دوماهه"
+              },
+              "settings": {
+                "classes": [
+                  "e-7da7587-4488"
+                ],
+                "tag": "div"
+              },
+              "styles": {
+                "__style_id": "e-7da7587-4488",
+                "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 0px;"
+              },
+              "tag": "div"
+            },
+            {
+              "id": "6f83054a",
+              "elType": "e-flexbox",
+              "title": "گروه سه‌ماهه",
+              "elements": [
+                {
+                  "id": "71aa916b",
+                  "elType": "widget",
+                  "widgetType": "e-heading",
+                  "title": "عنوان دسته سه‌ماهه",
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "عنوان دسته سه‌ماهه"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-206a07af-12ed"
+                    ],
+                    "tag": "h2",
+                    "title": "پلن‌های سه‌ماهه"
+                  },
+                  "styles": {
+                    "__style_id": "e-206a07af-12ed",
+                    "css": "font-weight: 700; font-size: 25px; color: #F0F9F7; line-height: 1.55; text-align: center; margin-block-start: 12px; margin-block-end: 20px; margin-inline-start: 0px; margin-inline-end: 0px;\n@media(--mobile) { font-size: 20px; margin-block-start: 16px; margin-block-end: 18px; margin-inline-start: 0px; margin-inline-end: 0px; }"
+                  },
+                  "tag": "h2"
+                },
+                {
+                  "id": "17e8d163",
+                  "elType": "e-collection-loop",
+                  "title": "محصولات سه‌ماهه",
+                  "elements": [
+                    {
+                      "id": "51c6ae1f",
+                      "elType": "e-collection-loop-layout",
+                      "title": "شبکه سه‌ماهه",
+                      "elements": [
+                        {
+                          "id": "30c263ae",
+                          "elType": "e-collection-loop-item",
+                          "title": "تکرار پلن سه‌ماهه",
+                          "elements": [
+                            {
+                              "id": "21611269",
+                              "elType": "e-flexbox",
+                              "title": "کارت سه‌ماهه",
+                              "elements": [
+                                {
+                                  "id": "67e0934",
+                                  "elType": "widget",
+                                  "widgetType": "theme-post-excerpt",
+                                  "title": "نام پلن سه‌ماهه",
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "نام پلن سه‌ماهه"
+                                  },
+                                  "settings": {},
+                                  "styles": {
+                                    "css": "font-weight: 600; font-size: 16px; color: #F0F9F7; line-height: 1.7;"
+                                  }
+                                },
+                                {
+                                  "id": "562fcbf4",
+                                  "elType": "widget",
+                                  "widgetType": "theme-post-excerpt",
+                                  "title": "قیمت پلن سه‌ماهه",
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "قیمت پلن سه‌ماهه"
+                                  },
+                                  "settings": {},
+                                  "styles": {
+                                    "css": "font-weight: 700; font-size: 23px; color: #46D7A6; line-height: 1.45; text-align: end;"
+                                  }
+                                },
+                                {
+                                  "id": "374b3c06",
+                                  "elType": "widget",
+                                  "widgetType": "e-button",
+                                  "title": "انتخاب پلن سه‌ماهه",
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "انتخاب پلن سه‌ماهه"
+                                  },
+                                  "settings": {
+                                    "classes": [
+                                      "e-fa73bd0-19fb"
+                                    ],
+                                    "text": "انتخاب این پلن",
+                                    "link": {
+                                      "destination": {
+                                        "name": "artnovo-wizard-plan",
+                                        "group": "post",
+                                        "settings": []
+                                      },
+                                      "isTargetBlank": null,
+                                      "tag": "a"
+                                    },
+                                    "tag": "a"
+                                  },
+                                  "styles": {
+                                    "__style_id": "e-fa73bd0-19fb",
+                                    "css": "&:hover { color: #06261B; background-color: #9ADAF0; } min-height: 44px; font-weight: 700; font-size: 15px; color: #06261B; line-height: 1.6; padding-block-start: 10px; padding-block-end: 10px; padding-inline-start: 16px; padding-inline-end: 16px; border-radius: 10px; border-width: 0px; background-color: #46D7A6;"
+                                  },
+                                  "tag": "a"
+                                },
+                                {
+                                  "id": "3afc403c",
+                                  "elType": "e-accordion",
+                                  "title": "جزئیات پلن سه‌ماهه",
+                                  "elements": [
+                                    {
+                                      "id": "f19b10f",
+                                      "elType": "e-accordion-item",
+                                      "title": "بخش جزئیات سه‌ماهه",
+                                      "elements": [
+                                        {
+                                          "id": "208f3a6e",
+                                          "elType": "e-accordion-item-header",
+                                          "title": "دکمه جزئیات سه‌ماهه",
+                                          "elements": [
+                                            {
+                                              "id": "1fe2ed38",
+                                              "elType": "e-accordion-item-title",
+                                              "title": "برچسب جزئیات سه‌ماهه",
+                                              "elements": [
+                                                {
+                                                  "id": "4c779fbb",
+                                                  "elType": "widget",
+                                                  "widgetType": "e-paragraph",
+                                                  "title": "متن جزئیات سه‌ماهه",
+                                                  "interactions": [],
+                                                  "editor_settings": {
+                                                    "name": "متن جزئیات سه‌ماهه"
+                                                  },
+                                                  "settings": {
+                                                    "classes": [
+                                                      "e-33f4f6b-3a9b"
+                                                    ],
+                                                    "paragraph": "جزئیات پلن",
+                                                    "tag": "span"
+                                                  },
+                                                  "styles": {
+                                                    "__style_id": "e-33f4f6b-3a9b",
+                                                    "css": "font-size: 14px; color: #9ADAF0; line-height: 1.55;"
+                                                  },
+                                                  "tag": "span"
+                                                }
+                                              ],
+                                              "interactions": [],
+                                              "editor_settings": {
+                                                "name": "برچسب جزئیات سه‌ماهه"
+                                              },
+                                              "settings": {},
+                                              "styles": {
+                                                "css": ""
+                                              },
+                                              "tag": "span"
+                                            }
+                                          ],
+                                          "interactions": [],
+                                          "editor_settings": {
+                                            "name": "دکمه جزئیات سه‌ماهه"
+                                          },
+                                          "settings": {
+                                            "classes": [
+                                              "e-11c291c2-ac57"
+                                            ]
+                                          },
+                                          "styles": {
+                                            "__style_id": "e-11c291c2-ac57",
+                                            "css": "min-height: 42px; color: #9ADAF0; padding-block-start: 8px; padding-block-end: 8px; padding-inline-start: 4px; padding-inline-end: 4px;"
+                                          },
+                                          "tag": "summary"
+                                        },
+                                        {
+                                          "id": "28b76764",
+                                          "elType": "e-accordion-item-content",
+                                          "title": "محتوای جزئیات سه‌ماهه",
+                                          "elements": [
+                                            {
+                                              "id": "7a6c2c49",
+                                              "elType": "widget",
+                                              "widgetType": "theme-post-excerpt",
+                                              "title": "توضیحات پلن سه‌ماهه",
+                                              "interactions": [],
+                                              "editor_settings": {
+                                                "name": "توضیحات پلن سه‌ماهه"
+                                              },
+                                              "settings": {},
+                                              "styles": {
+                                                "css": "font-size: 14px; color: #BDD1D0; line-height: 1.7;"
+                                              }
+                                            }
+                                          ],
+                                          "interactions": [],
+                                          "editor_settings": {
+                                            "name": "محتوای جزئیات سه‌ماهه"
+                                          },
+                                          "settings": {
+                                            "classes": [
+                                              "e-1984d2d5-e52c"
+                                            ]
+                                          },
+                                          "styles": {
+                                            "__style_id": "e-1984d2d5-e52c",
+                                            "css": "padding-block-start: 4px; padding-block-end: 9px; padding-inline-start: 4px; padding-inline-end: 4px;"
+                                          },
+                                          "tag": "div"
+                                        }
+                                      ],
+                                      "interactions": [],
+                                      "editor_settings": {
+                                        "name": "بخش جزئیات سه‌ماهه"
+                                      },
+                                      "settings": {},
+                                      "styles": {
+                                        "css": ""
+                                      },
+                                      "tag": "details"
+                                    }
+                                  ],
+                                  "interactions": [],
+                                  "editor_settings": {
+                                    "name": "جزئیات پلن سه‌ماهه"
+                                  },
+                                  "settings": {
+                                    "classes": [
+                                      "e-2327e744-960a"
+                                    ],
+                                    "default_state": "all_collapsed",
+                                    "show_icon": false,
+                                    "faq_schema": false
+                                  },
+                                  "styles": {
+                                    "__style_id": "e-2327e744-960a",
+                                    "css": "width: 100%; padding: 0px;"
+                                  },
+                                  "tag": "div"
+                                }
+                              ],
+                              "interactions": [],
+                              "editor_settings": {
+                                "name": "کارت سه‌ماهه"
+                              },
+                              "settings": {
+                                "classes": [
+                                  "e-4d810403-3a98"
+                                ],
+                                "tag": "article"
+                              },
+                              "styles": {
+                                "__style_id": "e-4d810403-3a98",
+                                "css": "height: 100%; min-width: 0px; padding: 19px; border-radius: 17px; background-color: #152735; box-shadow: 0px 12px 34px 0px rgba(0,0,0,0.16); display: flex; flex-direction: column; gap: 11px;\n@media(--mobile) { padding: 16px; }"
+                              },
+                              "tag": "article"
+                            }
+                          ],
+                          "interactions": [],
+                          "editor_settings": {
+                            "name": "تکرار پلن سه‌ماهه"
+                          },
+                          "settings": {
+                            "classes": [
+                              "e-711e1fac-58f9"
+                            ]
+                          },
+                          "styles": {
+                            "__style_id": "e-711e1fac-58f9",
+                            "css": "height: 100%;\n@media(--mobile) { padding: 0px; }"
+                          },
+                          "tag": "div"
+                        }
+                      ],
+                      "interactions": [],
+                      "editor_settings": {
+                        "name": "شبکه سه‌ماهه"
+                      },
+                      "settings": {
+                        "classes": [
+                          "e-7cbc78af-ff33"
+                        ]
+                      },
+                      "styles": {
+                        "__style_id": "e-7cbc78af-ff33",
+                        "css": "gap: 16px; grid-template-columns: repeat(3,minmax(0,1fr));\n@media(--tablet) { grid-template-columns: repeat(2,minmax(0,1fr)); }\n@media(--mobile) { padding: 0px; gap: 12px; grid-template-columns: 1fr; }"
+                      },
+                      "tag": "div"
+                    }
+                  ],
+                  "interactions": [],
+                  "editor_settings": {
+                    "name": "محصولات سه‌ماهه"
+                  },
+                  "settings": {
+                    "classes": [
+                      "e-e70c7c6-df9b"
+                    ],
+                    "query": {
+                      "template_type": "product",
+                      "posts_per_page": 100,
+                      "query_id": "artnovo-wizard-three-month",
+                      "source": "post",
+                      "selection": [],
+                      "include_filters": [],
+                      "exclude_filters": [],
+                      "avoid_duplicates": false,
+                      "offset": 0,
+                      "select_date": "anytime",
+                      "date_before": null,
+                      "date_after": null,
+                      "orderby": "post_date",
+                      "order": "desc",
+                      "ignore_sticky_posts": true,
+                      "taxonomy_source": "category",
+                      "taxonomy_filter_by": "show_all",
+                      "taxonomy_include": [],
+                      "taxonomy_exclude": [],
+                      "taxonomy_orderby": "name",
+                      "taxonomy_order": "desc",
+                      "taxonomy_avoid_duplicates": false,
+                      "taxonomy_hide_empty": false,
+                      "taxonomy_offset": 0,
+                      "taxonomy_hierarchical": false,
+                      "taxonomy_depth": "0",
+                      "product_source": "product",
+                      "product_selection": [],
+                      "product_include_filters": [],
+                      "product_exclude_filters": [],
+                      "product_orderby": "price",
+                      "product_order": "asc",
+                      "product_taxonomy_source": "product_cat",
+                      "product_taxonomy_filter_by": "show_all",
+                      "product_taxonomy_include": [],
+                      "product_taxonomy_exclude": [],
+                      "product_taxonomy_orderby": "name",
+                      "product_taxonomy_order": "desc",
+                      "product_taxonomy_avoid_duplicates": false,
+                      "product_taxonomy_hide_empty": false,
+                      "product_taxonomy_offset": 0,
+                      "product_taxonomy_hierarchical": false,
+                      "product_taxonomy_depth": "0"
+                    },
+                    "pagination": false
+                  },
+                  "styles": {
+                    "__style_id": "e-e70c7c6-df9b",
+                    "css": "@media(--mobile) { padding: 0px; }"
+                  },
+                  "tag": "div"
+                }
+              ],
+              "interactions": [],
+              "editor_settings": {
+                "name": "گروه سه‌ماهه"
+              },
+              "settings": {
+                "classes": [
+                  "e-776446f4-b208"
+                ],
+                "tag": "div"
+              },
+              "styles": {
+                "__style_id": "e-776446f4-b208",
+                "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 0px;"
+              },
+              "tag": "div"
+            }
+          ],
+          "interactions": [],
+          "editor_settings": {
+            "name": "مرحله ۲ پلن‌ها"
+          },
+          "settings": {
+            "classes": [
+              "e-272403ef-e9ff"
+            ],
+            "tag": "section"
+          },
+          "styles": {
+            "__style_id": "e-272403ef-e9ff",
+            "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 0px;"
+          },
+          "tag": "section"
+        },
+        {
+          "id": "ad7be96",
+          "elType": "e-flexbox",
+          "title": "مرحله ۳ مشخصات سفارش",
+          "elements": [
+            {
+              "id": "1a6e289c",
+              "elType": "e-div-block",
+              "title": "جای فرم سفارش مرحله‌ای",
+              "interactions": [],
+              "editor_settings": {
+                "name": "جای فرم سفارش مرحله‌ای",
+                "decorative": true
+              },
+              "settings": {
+                "classes": [
+                  "e-69ac0d5a-e62f"
+                ]
+              },
+              "styles": {
+                "__style_id": "e-69ac0d5a-e62f",
+                "css": "height: 0px; min-width: 0px; padding: 0px;"
+              },
+              "tag": "div"
+            }
+          ],
+          "interactions": [],
+          "editor_settings": {
+            "name": "مرحله ۳ مشخصات سفارش"
+          },
+          "settings": {
+            "classes": [
+              "e-3a340da-9970"
+            ],
+            "tag": "section"
+          },
+          "styles": {
+            "__style_id": "e-3a340da-9970",
+            "css": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 0px;"
+          },
+          "tag": "section"
+        }
+      ],
+      "interactions": [],
+      "editor_settings": {
+        "name": "خرید مرحله‌ای"
+      },
+      "settings": {
+        "classes": [
+          "e-38f027a2-9364"
+        ],
+        "tag": "main"
+      },
+      "styles": {
+        "__style_id": "e-38f027a2-9364",
+        "css": "width: 100%; max-width: 1160px; padding-block-start: 26px; padding-block-end: 52px; padding-inline-start: 24px; padding-inline-end: 24px; margin-block-start: 0px; margin-block-end: 0px; margin-inline-start: auto; margin-inline-end: auto; display: flex; flex-direction: column; gap: 18px;\n@media(--mobile) { padding-block-start: 10px; padding-block-end: 30px; padding-inline-start: 14px; padding-inline-end: 14px; gap: 14px; }"
+      },
+      "tag": "main"
+    }
+  ]
+}
