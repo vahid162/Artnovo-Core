@@ -106,7 +106,7 @@ if ( in_array( $case, [ 'legacy-mail', 'restored-mail', 'retired-loaded-mail' ],
 $entry = dirname( __DIR__ ) . '/artnovo-core.php';
 check( is_file( $entry ), 'Core entrypoint must exist' );
 require $entry;
-check( '1.2.0' === Artnovo\Core\VERSION, 'release version' );
+check( '1.3.0' === Artnovo\Core\VERSION, 'release version' );
 check( count( $hooks['plugins_loaded'][30] ?? [] ) === 1, 'one dependency-ready loader at priority 30' );
 check( count( $hooks['wp_mail_from'][10] ?? [] ) === 1, 'exactly one early sender filter' );
 check( 'orders@artnovo.ir' === mail_sender( 'wordpress@artnovo.ir' ), 'default sender retained' );
@@ -126,7 +126,7 @@ if ( $expected ) {
 	}
 	$paths = array_map( static fn( $callback ) => ( new ReflectionFunction( $callback ) )->getFileName(), $hooks['wp_enqueue_scripts'][10] ?? [] );
 	$modules = array_map( static fn( $path ) => basename( dirname( $path ) ), $paths );
-	$expected_modules = 'missing-bridge' === $case ? [ 'account', 'header', 'home', 'home' ] : [ 'account', 'header', 'home', 'home', 'checkout' ];
+	$expected_modules = 'missing-bridge' === $case ? [ 'auth', 'account', 'header', 'home', 'home' ] : [ 'auth', 'account', 'header', 'home', 'home', 'checkout' ];
 	check( $expected_modules === $modules, 'same-priority base asset callback order retained; absent service integration adds no checkout assets' );
 	check( count( $hooks['gettext_wp-vpn-bridge'][10] ?? [] ) === 1 && count( $hooks['gettext_wp-vpn-bridge'][20] ?? [] ) === 1, 'translation priorities retained' );
 	$before = array_map( static fn( $priorities ) => array_map( 'count', $priorities ), $hooks );

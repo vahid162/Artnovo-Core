@@ -120,24 +120,20 @@ function checkout_coupon_form(): void {
 		return;
 	}
 	?>
-	<details class="artnovo-order-coupon">
-		<summary>کد تخفیف دارید؟</summary>
+	<section class="artnovo-order-coupon" aria-labelledby="artnovo-coupon-label">
 		<form class="checkout_coupon woocommerce-form-coupon" id="woocommerce-checkout-form-coupon" method="post" aria-labelledby="artnovo-coupon-label">
 			<p class="form-row artnovo-order-field">
-				<label id="artnovo-coupon-label" for="coupon_code">کد تخفیف</label>
+				<label id="artnovo-coupon-label" for="coupon_code">کد تخفیف (اختیاری)</label>
 				<input type="text" name="coupon_code" class="input-text" id="coupon_code" dir="ltr" autocomplete="off">
 			</p>
-			<button type="submit" class="button" name="apply_coupon">اعمال کد</button>
+			<button type="submit" class="button artnovo-coupon-apply" name="apply_coupon">اعمال کد تخفیف</button>
 		</form>
-	</details>
+	</section>
 	<?php
 }
 
 function checkout_account_hint(): void {
-	echo '<p class="artnovo-order-account">✓ ورود انجام شد</p><p class="artnovo-order-hint">اطلاعات این خرید به ایمیل زیر ارسال می‌شود.</p>';
-	if ( '' === wp_get_current_user()->user_email ) {
-		printf( '<p class="artnovo-order-hint"><a href="%s">برای دریافت اعلان آماده‌شدن اشتراک، ایمیل همین حساب را تأیید کنید.</a> ایمیل سفارش را نیز در فرم زیر وارد کنید.</p>', esc_url( \Artnovo\AccountUI\account_url( 'profile' ) ) );
-	}
+	echo '<p class="artnovo-order-account">✓ ورود انجام شد</p><p class="artnovo-order-hint">اطلاعات اکانت پس از تأیید پرداخت در حساب کاربری شما نمایش داده می‌شود.</p>';
 }
 
 function checkout_payment_heading(): void {
@@ -201,7 +197,7 @@ function render_order( ?\WC_Product $plan ): string {
 		data-artnovo-currency="<?php echo esc_attr( $currency ); ?>">
 		<div class="artnovo-order-intro">
 			<h2 id="artnovo-order-heading">خریدتان را کامل کنید</h2>
-			<p>ورود، پرداخت و دریافت اکانت؛ از همین‌جا.</p>
+			<p><?php echo $login ? 'پلن و مبلغ را بررسی کنید، سپس روش پرداخت را انتخاب کنید.' : 'پلن و مبلغ را بررسی کنید؛ بعد از ورود، روش پرداخت را انتخاب کنید.'; ?></p>
 		</div>
 		<?php if ( $checkout && $login ) : ?>
 			<form method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>" data-artnovo-prepare hidden>

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 1.3.0 — 2026-11-16
+
+- Reuse Pinova's native sign-in component in a minimal account/login screen, with
+  one mobile/email/username field and safe customer return paths. Preserve native
+  admin/third-party routes and Core's existing email fallback when the native component is unavailable.
+- Let authenticated virtual-service customers finish the protected purchase flow
+  without contact fields or an email address. Keep an existing account email only
+  as optional order metadata; never invent addresses or update account ownership.
+- Show the native coupon form directly with a secondary action, improve consent
+  and field focus, clarify authentication text and isolate mobile notices in LTR.
+- Hide address navigation in Core's customer panel; retain native endpoint ownership.
+
 ## 1.2.0 — 2026-11-16
 
 - Present purchase completion in one responsive compact card, with the selected

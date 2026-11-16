@@ -20,7 +20,7 @@ function render_account(): void {
 						<a href="<?php echo esc_url( 'profile' === $view ? wc_get_account_endpoint_url( 'edit-account' ) : account_url( $view ) ); ?>" <?php if ( account_view() === $view ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( $label ); ?></a>
 					<?php endforeach; ?>
 					<?php foreach ( wc_get_account_menu_items() as $endpoint => $label ) : ?>
-						<?php if ( in_array( $endpoint, [ 'dashboard', 'vpn-subscriptions', 'edit-account', 'customer-logout' ], true ) ) { continue; } ?>
+						<?php if ( in_array( $endpoint, [ 'dashboard', 'vpn-subscriptions', 'edit-account', 'edit-address', 'customer-logout' ], true ) ) { continue; } ?>
 						<a href="<?php echo esc_url( wc_get_account_endpoint_url( $endpoint ) ); ?>"><?php echo esc_html( $label ); ?></a>
 					<?php endforeach; ?>
 					<a href="<?php echo esc_url( wp_logout_url( wc_get_page_permalink( 'myaccount' ) ) ); ?>">خروج از حساب</a>
@@ -50,33 +50,20 @@ function render_account(): void {
 }
 
 function render_account_login( bool $complete = false ): void {
+	if ( ! $complete && native_login_ready() && ! account_email_login_page() ) {
+		render_standalone_login();
+		return;
+	}
 	$state = account_auth_state( $complete );
 	$active = $state['expires'] > time();
-	$destination = $state['redirect'];
-	if ( $complete && '' !== account_wizard_return() ) {
-		$destination = account_auth_destination( add_query_arg( 'artnovo_resume', '1', wc_get_page_permalink( 'myaccount' ) ) );
-	} elseif ( '1' === ( $_GET['artnovo_resume'] ?? null ) ) {
-		$destination = account_auth_destination( add_query_arg( 'artnovo_resume', '1', wc_get_page_permalink( 'myaccount' ) ) );
-		if ( '' === $state['email'] ) {
-			$state['email'] = \Artnovo\PlanCheckout\wizard_draft()['billing_email'] ?? '';
-		}
-	} elseif ( isset( $_GET['artnovo_redirect'] ) && is_string( $_GET['artnovo_redirect'] ) ) {
-		$destination = account_auth_destination( wp_unslash( $_GET['artnovo_redirect'] ) );
-	} elseif ( ( empty( $state['email'] ) || is_wc_endpoint_url() || isset( $_GET['artnovo_view'] ) )
-		&& ! empty( $_SERVER['REQUEST_URI'] ) && is_string( $_SERVER['REQUEST_URI'] ) ) {
-		$destination = account_auth_destination( home_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
-	}
+	$destination = account_login_destination( $state, $complete );
 	?>
-	<div class="artnovo-account-auth-layout">
-		<section class="artnovo-account-card">
-			<p class="artnovo-account-muted">خوش آمدید به آرت‌نوو</p>
-			<?php if ( ! $complete ) : ?>
-				<p><a class="artnovo-account-button" href="<?php echo esc_url( account_native_login_url( $destination ) ); ?>">ورود با موبایل، ایمیل یا نام کاربری</a></p>
-				<p class="artnovo-account-muted">برای ثبت‌نام با موبایل یا ورود با رمز از دکمهٔ بالا استفاده کنید. ورود و ثبت‌نام با کد ایمیلی از فرم زیر هم امکان‌پذیر است.</p>
-			<?php endif; ?>
-			<?php if ( $complete ) : ?><h2 id="artnovo-account-login">تأیید ایمیل همین حساب</h2><?php else : ?><h1 id="artnovo-account-login">ورود با ایمیل</h1><?php endif; ?>
+	<div class="<?php echo $complete ? 'artnovo-account-auth-layout' : 'artnovo-standalone-login artnovo-email-login'; ?>">
+		<section class="<?php echo $complete ? 'artnovo-account-card' : 'artnovo-email-panel'; ?>">
+			<?php if ( $complete ) : ?><p class="artnovo-account-muted">خوش آمدید به آرت‌نوو</p><?php endif; ?>
+			<?php if ( $complete ) : ?><h2 id="artnovo-account-login">تأیید ایمیل همین حساب</h2><?php else : ?><h1 id="artnovo-account-login">ورود و ثبت‌نام با ایمیل</h1><?php endif; ?>
 			<p><?php echo $complete ? 'برای دریافت اعلان آماده‌شدن اشتراک، ایمیل خود را با کد تأیید به همین حساب اضافه کنید.' : 'ایمیل خریدتان را وارد کنید تا کد ورود برایتان ارسال شود. با ایمیل تازه، حساب مشتری ساخته می‌شود.'; ?></p>
-			<form class="artnovo-account-auth" method="post" action="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>" data-artnovo-expires="<?php echo esc_attr( (string) $state['expires'] ); ?>">
+			<form class="artnovo-account-auth" method="post" action="<?php echo esc_url( $complete ? wc_get_page_permalink( 'myaccount' ) : add_query_arg( 'artnovo_email_login', '1', wc_get_page_permalink( 'myaccount' ) ) ); ?>" data-artnovo-expires="<?php echo esc_attr( (string) $state['expires'] ); ?>">
 				<?php wp_nonce_field( 'artnovo_account_email_otp', 'artnovo_account_nonce', false ); ?>
 				<input type="hidden" name="artnovo_account_action" value="<?php echo $active ? 'verify' : 'send'; ?>">
 				<input type="hidden" name="artnovo_redirect" value="<?php echo esc_attr( $destination ); ?>">
@@ -96,15 +83,16 @@ function render_account_login( bool $complete = false ): void {
 				<button type="submit" class="artnovo-account-button" data-artnovo-auth-submit <?php disabled( ! account_email_login_ready() ); ?>><?php echo $active ? ( $complete ? 'تأیید و ثبت ایمیل' : 'تأیید و ورود به حساب' ) : 'ارسال کد تأیید'; ?></button>
 				<?php if ( ! account_email_login_ready() ) : ?><p role="status">ورود ایمیلی موقتاً در دسترس نیست. کمی بعد دوباره تلاش کنید.</p><?php endif; ?>
 			</form>
+			<?php if ( ! $complete && native_login_ready() ) : ?><a class="artnovo-login-alternative" href="<?php echo esc_url( account_native_login_url( $destination ) ); ?>">ورود با موبایل یا نام کاربری</a><?php endif; ?>
 			<a href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">بازگشت به انتخاب اشتراک</a>
 			<p class="artnovo-account-muted"><a href="mailto:orders@artnovo.ir?subject=Account%20login%20help">برای ورود به حساب کمک می‌خواهم</a></p>
 		</section>
-		<aside class="artnovo-account-feature">
+		<?php if ( $complete ) : ?><aside class="artnovo-account-feature">
 			<span class="artnovo-account-badge">حساب آرت‌نوو</span>
 			<h2>لینک اتصال و اشتراک‌ها همیشه در دسترس</h2>
 			<ul><li>دریافت و کپی لینک خصوصی اتصال</li><li>مشاهدهٔ اعتبار و وضعیت آماده‌سازی</li><li>ارسال رسید و پیگیری خرید</li></ul>
 			<p class="artnovo-account-muted">برای دیدن خریدهای قبلی، با همان حسابی وارد شوید که سفارش را با آن ثبت کرده‌اید.</p>
-		</aside>
+		</aside><?php endif; ?>
 	</div>
 	<?php
 }

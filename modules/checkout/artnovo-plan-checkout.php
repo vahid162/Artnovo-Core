@@ -296,11 +296,10 @@ function wizard_email_checkout(): bool {
 }
 
 add_action( 'woocommerce_checkout_process', static function (): void {
-	$wallet = class_exists( WalletPayment::class ) && WalletPayment::GATEWAY === checkout_post_value( 'payment_method' );
-	if ( ! wizard_email_checkout() || ( ! wizard_email_otp_enabled() && ! $wallet ) ) {
+	if ( ! wizard_email_checkout() ) {
 		return;
 	}
-	// This authenticated checkout form collects only an email address.
+	// Account authentication is complete before this contact-free checkout.
 	$hooks = $GLOBALS['wp_filter']['woocommerce_checkout_process']->callbacks[10] ?? [];
 	foreach ( $hooks as $hook ) {
 		$callback = $hook['function'];
@@ -315,11 +314,16 @@ add_filter( 'woocommerce_checkout_fields', static function ( array $fields ): ar
 	if ( ! wizard_email_checkout() ) {
 		return $fields;
 	}
-	$email = array_replace( $fields['billing']['billing_email'] ?? [], [
-		'type' => 'email', 'label' => 'ایمیل سفارش', 'required' => true, 'validate' => [ 'email' ],
-		'autocomplete' => 'email', 'class' => [ 'form-row-wide' ],
-	] );
-	return [ 'billing' => [ 'billing_email' => $email ], 'shipping' => [], 'account' => [], 'order' => [] ];
+	return [ 'billing' => [], 'shipping' => [], 'account' => [], 'order' => [] ];
+}, PHP_INT_MAX );
+
+add_filter( 'woocommerce_checkout_posted_data', static function ( array $data ): array {
+	if ( wizard_email_checkout() ) {
+		// Keep optional order mail with the account owner, never a hidden or stale input.
+		$email = wp_get_current_user()->user_email;
+		$data['billing_email'] = is_email( $email ) ? sanitize_email( $email ) : '';
+	}
+	return $data;
 }, PHP_INT_MAX );
 
 add_filter( 'woocommerce_enable_order_notes_field', static function ( bool $enabled ): bool {

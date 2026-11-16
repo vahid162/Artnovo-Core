@@ -17,6 +17,9 @@ namespace WPVPNBridge\Payment {
 		public static function submitted( mixed $key ): bool { return 'submitted' === $key; }
 	}
 }
+namespace Pinova\Channels { class Email { public static function send_code( string $email, int $code ): bool { return true; } } }
+namespace Pinova\Services { class UserService { public static function login( int $id ): void {} } }
+namespace Pinova\Integrations\Woocommerce { class Checkout { public function validate_checkout_phone(): void {} } }
 namespace {
 if ( PHP_VERSION_ID < 80500 || PHP_VERSION_ID >= 80600 ) { exit( 1 ); }
 define( 'ABSPATH', __DIR__ . '/unused-wordpress/' );
@@ -67,6 +70,7 @@ function is_wp_error( mixed $value ): bool { return $value instanceof WP_Error; 
 function has_term( $terms, $taxonomy, int $id ): bool { return in_array( $id, [25, 26], true ); }
 function is_user_logged_in(): bool { return $GLOBALS['current_user'] > 0; }
 function get_current_user_id(): int { return $GLOBALS['current_user']; }
+function wp_get_current_user(): object { return (object) [ 'user_email' => $GLOBALS['account_email'] ?? '' ]; }
 function is_wc_endpoint_url( ...$args ): bool { return false; }
 function wp_unslash( string $value ): string { return $value; }
 function sanitize_text_field( string $value ): string { return $value; }
@@ -74,7 +78,7 @@ function sanitize_email( string $value ): string { return $value; }
 function wp_salt( string $scheme ): string { return 'synthetic-selection-salt'; }
 function maybe_unserialize( mixed $value ): mixed { return $value; }
 function wc_coupons_enabled(): bool { return false; }
-function wc_tax_enabled(): bool { return false; }
+function wc_tax_enabled(): bool { return $GLOBALS['taxes_enabled'] ?? false; }
 function is_email( string $value ): bool { return false !== filter_var( $value, FILTER_VALIDATE_EMAIL ); }
 function post_password_required( int $id ): bool { return in_array($id,$GLOBALS['password_products']??[],true); }
 function home_url( string $path ): string { return 'https://example.test' . $path; }
@@ -84,6 +88,7 @@ function get_option( string $key, mixed $default = false ): mixed {
 	return match($key) {
 		'woocommerce_bacs_settings' => ['enabled'=>'yes'],
 		'woocommerce_bacs_accounts' => [['account_number'=>'synthetic-account']],
+		'artnovo_checkout_email_otp' => $GLOBALS['email_otp_option'] ?? 'no',
 		default => $default,
 	};
 }
@@ -365,6 +370,42 @@ $without_flag=Artnovo\PlanCheckout\wizard_update_selection(true,'');
 check('guest native AJAX exception requires its explicit AJAX marker',true===($without_flag['selection_changed']??false)&&!isset($persisted[Artnovo\PlanCheckout\WIZARD_DRAFT]));
 $prepare['artnovo_wizard_ajax']='1';$origin='https://foreign.example';$before=$persisted;$before_events=count($lock_events);$response=wizard_post($prepare);$origin='https://example.test';
 check('native guest AJAX preparation rejects a foreign origin before selection writes',false===($response['success']??null)&&403===($response['status']??0)&&$persisted===$before&&$before_events===count($lock_events));
+
+// Contact-free checkout belongs only to the authenticated, unchanged Core purchase.
+$current_user=7;$wizard_page=true;$_GET=['artnovo_plan'=>'26','artnovo_checkout'=>'1'];$_POST=['payment_method'=>'bacs'];
+$persisted=$snapshot_b;WC()->session=new WC_Session_Handler($snapshot_b);WC()->cart->items=$snapshot_b['cart'];
+$native_fields=['billing'=>['billing_email'=>['type'=>'email','required'=>true],'billing_city'=>['required'=>true]],'shipping'=>['shipping_city'=>['required'=>true]],'account'=>['account_username'=>['required'=>true]],'order'=>['order_comments'=>[]]];
+check('contact-free fixture is an authenticated current Core purchase',Artnovo\PlanCheckout\wizard_email_checkout());
+check('Core purchase displays no email or address inputs',['billing'=>[],'shipping'=>[],'account'=>[],'order'=>[]]===apply_filters('woocommerce_checkout_fields',$native_fields));
+$posted=['billing_email'=>'attacker@example.test','payment_method'=>'bacs','terms'=>1];
+$account_email='';$phone_only=apply_filters('woocommerce_checkout_posted_data',$posted);
+check('a phone-only account may order without a billing email or a forged replacement',''===($phone_only['billing_email']??null)&&'bacs'===$phone_only['payment_method']&&1===$phone_only['terms']);
+$account_email='owner@example.test';$with_email=apply_filters('woocommerce_checkout_posted_data',$posted);
+check('an existing account email is retained for native order mail without asking for it again','owner@example.test'===($with_email['billing_email']??null));
+$account_email='not-an-email';$invalid_email=apply_filters('woocommerce_checkout_posted_data',$posted);
+check('an invalid stored account email does not become an order contact',''===($invalid_email['billing_email']??null));
+check('contact-free checkout still cannot update or merge the account',false===apply_filters('woocommerce_checkout_update_customer_data',true));
+function phone_validator_state(): array {
+	$phone=[new \Pinova\Integrations\Woocommerce\Checkout(),'validate_checkout_phone'];$other=static function():void{};
+	$GLOBALS['hooks']['woocommerce_checkout_process'][10]=[[$phone,0],[$other,0]];
+	$GLOBALS['wp_filter']['woocommerce_checkout_process']=(object)['callbacks'=>[10=>[['function'=>$phone],['function'=>$other]]]];
+	foreach($GLOBALS['hooks']['woocommerce_checkout_process'][9] as [$callback])$callback();
+	$remaining=array_column($GLOBALS['hooks']['woocommerce_checkout_process'][10],0);
+	return ['pinova'=>in_array($phone,$remaining,true),'unrelated'=>in_array($other,$remaining,true)];
+}
+foreach(['no','yes'] as $enabled){
+	$email_otp_option=$enabled;
+	check("Core email proof option $enabled does not require collecting the signed-in customer's phone again",['pinova'=>false,'unrelated'=>true]===phone_validator_state());
+}
+foreach(['ordinary'=>[7,false,false,[]],'invalid nonce'=>[7,false,false,['artnovo_wizard_cart'=>'26:2','woocommerce-process-checkout-nonce'=>'wrong']],'guest'=>[0,true,false,[]],'taxed'=>[7,true,true,[]]] as $case=>[$current_user,$wizard_page,$taxes_enabled,$_POST]){
+	check("$case checkout retains native contact fields",$native_fields===apply_filters('woocommerce_checkout_fields',$native_fields));
+	check("$case checkout retains native posted contact data",$posted===apply_filters('woocommerce_checkout_posted_data',$posted));
+	check("$case checkout retains its native phone validation",['pinova'=>true,'unrelated'=>true]===phone_validator_state());
+}
+$taxes_enabled=false;$current_user=7;$wizard_page=false;$_GET=[];$_POST=['artnovo_wizard_cart'=>'26:2','woocommerce-process-checkout-nonce'=>'valid-checkout'];$account_email='owner@example.test';
+check('native checkout AJAX with the current marker and nonce gets the same contact policy','owner@example.test'===(apply_filters('woocommerce_checkout_posted_data',$posted)['billing_email']??null));
+WC()->cart->items=[['product_id'=>99,'quantity'=>1,'data'=>wc_get_product(99)]];
+check('an ordinary product or wallet top-up never inherits contact-free checkout',$native_fields===apply_filters('woocommerce_checkout_fields',$native_fields)&&$posted===apply_filters('woocommerce_checkout_posted_data',$posted));
 echo "{$assertions} selection assertions, {$failures} failures\n";
 exit($failures?1:0);
 }

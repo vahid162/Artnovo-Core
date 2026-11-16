@@ -36,14 +36,14 @@ function render_compact_auth( int $product_id, int $quantity, string $selection_
 		<input type="hidden" name="artnovo_selection_revision" value="<?php echo esc_attr( $selection_revision ); ?>">
 		<input type="hidden" name="artnovo_login_method" value="pinova">
 		<h3 class="artnovo-compact-auth-title">ورود سریع و ادامهٔ خرید</h3>
-		<p class="artnovo-compact-auth-hint" id="<?php echo esc_attr( $id . '-hint' ); ?>">وارد شوید یا حساب بسازید؛ سپس روش پرداخت را همین‌جا انتخاب کنید.</p>
-		<label class="artnovo-compact-auth-label" for="<?php echo esc_attr( $id . '-identifier' ); ?>">موبایل، ایمیل یا نام کاربری</label>
+		<p class="artnovo-compact-auth-hint" id="<?php echo esc_attr( $id . '-hint' ); ?>">جهت دسترسی همیشگی به اکانت خریداری شده وارد شوید یا ثبت نام کنید</p>
+		<label class="artnovo-compact-auth-label" for="<?php echo esc_attr( $id . '-identifier' ); ?>">موبایل، ایمیل یا نام کاربری وارد کنید <span class="required" aria-hidden="true">*</span></label>
 		<input class="artnovo-compact-auth-input" id="<?php echo esc_attr( $id . '-identifier' ); ?>" name="artnovo_auth_identifier" type="text" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="100" value="<?php echo esc_attr( $expires ? $email : '' ); ?>" aria-describedby="<?php echo esc_attr( $id . '-hint ' . $id . '-message' ); ?>" required>
 		<div data-artnovo-auth-proof hidden>
 			<label class="artnovo-compact-auth-label" data-artnovo-auth-proof-label for="<?php echo esc_attr( $id . '-proof' ); ?>">کد تأیید</label>
 			<input class="artnovo-compact-auth-input" id="<?php echo esc_attr( $id . '-proof' ); ?>" name="artnovo_auth_proof" type="text" dir="ltr" autocomplete="one-time-code" inputmode="numeric" aria-describedby="<?php echo esc_attr( $id . '-message' ); ?>" disabled>
 			<div class="artnovo-compact-auth-secondary">
-				<button type="button" data-artnovo-auth-edit>ویرایش شناسه</button>
+				<button type="button" data-artnovo-auth-edit>ویرایش اطلاعات ورود</button>
 				<button type="button" data-artnovo-auth-resend hidden>ارسال دوبارهٔ کد</button>
 			</div>
 		</div>
