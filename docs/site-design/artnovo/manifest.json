@@ -22,6 +22,30 @@
       "type": "elementor_library",
       "status": "publish",
       "template": ""
+    },
+    {
+      "id": 132,
+      "type": "page",
+      "status": "publish",
+      "template": "elementor_header_footer"
+    },
+    {
+      "id": 134,
+      "type": "page",
+      "status": "publish",
+      "template": "elementor_header_footer"
+    },
+    {
+      "id": 136,
+      "type": "page",
+      "status": "publish",
+      "template": "elementor_header_footer"
+    },
+    {
+      "id": 35,
+      "type": "elementor_library",
+      "status": "publish",
+      "template": ""
     }
   ],
   "page_assignments": {
@@ -65,6 +89,22 @@
     "footer": {
       "file": "footer.json",
       "sha256": "fa73e6fb46788a7a049bb3ef2dce3190455f100f9d33b0fd14cbd1bfffe4d23d"
+    },
+    "terms": {
+      "file": "terms.json",
+      "sha256": "c3dc5e2fa5d7a339c53249441d8fc61d0423509659ecba86726477875a842b70"
+    },
+    "privacy": {
+      "file": "privacy.json",
+      "sha256": "45f339617fd4cb5e8a60453862ca97db7a01a3f2bdb43286512e3621e00342ff"
+    },
+    "refunds": {
+      "file": "refunds.json",
+      "sha256": "d03f98ffc838f9bda0b87d641b1fd9a3032055f701a096d66e3ee258c3992281"
+    },
+    "product": {
+      "file": "product.json",
+      "sha256": "147012c166c0ee21224bcb4c03e317fa16842dc30b901168ba593dd06a5598b8"
     }
   }
 }

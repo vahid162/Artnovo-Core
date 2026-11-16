@@ -52,6 +52,20 @@ $check( 'invalid link shows no customer/order details', ! str_contains( $denied_
 	&& ! str_contains( $denied_html, 'artnovo-received-summary' ) );
 $check( 'invalid link preserves unrelated purchase session', 777 === WC()->session->get( 'order_awaiting_payment' )
 	&& $cart_before === WC()->cart->get_cart_contents() );
+$set_route( $own );
+ob_start(); \Artnovo\AccountUI\render_received_page(); $email_html = ob_get_clean();
+$check( 'real order email remains visible in the purchase summary', str_contains( $email_html, '<dt>ایمیل خرید</dt>' )
+	&& str_contains( $email_html, 'received-qa@example.invalid' ) );
+foreach ( [ '' => 'missing', 'invalid-email' => 'invalid' ] as $email => $name ) {
+	$email_filter = static fn( $value, $order ) => $own->get_id() === $order->get_id() ? $email : $value;
+	add_filter( 'woocommerce_order_get_billing_email', $email_filter, PHP_INT_MAX, 2 );
+	try {
+		ob_start(); \Artnovo\AccountUI\render_received_page(); $email_html = ob_get_clean();
+		$check( $name . ' email leaves no empty purchase-summary field', ! str_contains( $email_html, '<dt>ایمیل خرید</dt>' ) );
+	} finally {
+		remove_filter( 'woocommerce_order_get_billing_email', $email_filter, PHP_INT_MAX );
+	}
+}
 $other = artnovo_received_qa_order( 2147100090, 'on-hold', null, false, 1, [], ARTNOVO_RECEIVED_TEST_USER + 1 );
 $set_route( $other );
 $check( 'different owner denies private view', false === \Artnovo\AccountUI\received_order() );

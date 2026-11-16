@@ -150,7 +150,7 @@ body.artnovo-received-page {
 
 .artnovo-received .artnovo-received-progress li::before {
 	counter-increment: artnovo-received-step;
-	content: counter(artnovo-received-step);
+	content: counter(artnovo-received-step, persian);
 	display: inline-grid;
 	flex: 0 0 1.5rem;
 	place-items: center;

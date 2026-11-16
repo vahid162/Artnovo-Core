@@ -88,13 +88,43 @@ body.artnovo-account-page {
 	align-items: center;
 	justify-content: space-between;
 	gap: .875rem 1.25rem;
-	margin-block-end: 1.25rem;
+	margin-block-end: 2rem;
+	font-family: Vazir, Tahoma, sans-serif;
+}
+
+.artnovo-account-header h1 {
+	margin: 0;
+	font-size: clamp(1.375rem, 3vw, 1.75rem);
+	font-weight: 600;
+}
+
+.artnovo-account-header p {
+	max-width: 38em;
+	margin-block: .375rem 0;
+	font-size: .8125rem;
+}
+
+.artnovo-account .artnovo-account-header > .artnovo-account-button {
+	background: #173b3c;
+	color: var(--account-emerald);
+	font-size: .8125rem;
+	font-weight: 600;
+	box-shadow: none;
+}
+
+.artnovo-account .artnovo-account-header > .artnovo-account-button:hover {
+	background: #203f41;
+	color: #80e5c0;
 }
 
 .artnovo-account-header > *,
 .artnovo-account-main,
 .artnovo-account-grid > * {
 	min-width: 0;
+}
+
+.artnovo-account-layout {
+	font-family: Vazir, Tahoma, sans-serif;
 }
 
 .artnovo-account-layout,
@@ -111,7 +141,7 @@ body.artnovo-account-page {
 	gap: 1rem;
 }
 
-.artnovo-account :is(.artnovo-account-card, .wpvpn-subscription, .artnovo-account-nav, .artnovo-account-feature, .woocommerce-MyAccount-navigation) {
+.artnovo-account :is(.artnovo-account-card, .wpvpn-subscription, .artnovo-account-feature, .woocommerce-MyAccount-navigation) {
 	min-width: 0;
 	padding: var(--account-padding);
 	border: 0;
@@ -120,13 +150,69 @@ body.artnovo-account-page {
 	box-shadow: 0 .5rem 1.75rem #0003;
 }
 
-.artnovo-account :is(.artnovo-account-nav, .woocommerce-MyAccount-navigation) {
+.artnovo-account .artnovo-account-layout .artnovo-account-empty {
+	display: grid;
+	justify-items: center;
+	align-content: center;
+	gap: .875rem;
+	min-height: 20rem;
+	padding: 2rem 1.25rem;
+	background: transparent;
+	box-shadow: none;
+	text-align: center;
+}
+
+.artnovo-account .artnovo-account-empty > :is(h2, p) {
+	max-width: 25rem;
+	margin: 0;
+}
+
+.artnovo-account .woocommerce-MyAccount-navigation {
 	padding: .5rem;
 }
 
 .artnovo-account .artnovo-account-nav {
 	display: grid;
 	gap: .25rem;
+	padding: 0;
+	background: transparent;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.artnovo-account .artnovo-account-more {
+	grid-column: 1 / -1;
+	margin-block-start: .75rem;
+}
+
+.artnovo-account .artnovo-account-more > summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: .75rem;
+	padding: .625rem .875rem;
+	border-radius: .75rem;
+	color: var(--account-muted);
+	font-size: .8125rem;
+	list-style: none;
+}
+
+.artnovo-account .artnovo-account-more > summary:hover {
+	background: var(--account-surface);
+	color: var(--account-text);
+}
+
+.artnovo-account .artnovo-account-more > summary::-webkit-details-marker {
+	display: none;
+}
+
+.artnovo-account .artnovo-account-more > summary::after {
+	content: '+';
+	font-size: 1.125rem;
+}
+
+.artnovo-account .artnovo-account-more[open] > summary::after {
+	content: '−';
 }
 
 .artnovo-account :is(.artnovo-account-nav ul, .woocommerce-MyAccount-navigation ul) {
@@ -263,6 +349,26 @@ body.artnovo-account-page {
 	font-size: 1.0625rem;
 }
 
+.artnovo-account .artnovo-account-row .artnovo-account-metrics {
+	display: contents;
+}
+
+.artnovo-account .artnovo-account-row .artnovo-account-metric {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: .25rem .5rem;
+	padding: 0;
+	border-radius: 0;
+	background: transparent;
+	font-size: .75rem;
+}
+
+.artnovo-account .artnovo-account-row .artnovo-account-metric strong {
+	font-size: .8125rem;
+	font-weight: 500;
+}
+
 .artnovo-account-auth {
 	display: grid;
 	gap: 1rem;
@@ -362,6 +468,67 @@ body.artnovo-account-page {
 	margin: 0;
 }
 
+/* Native subscription output remains intact beneath the account presentation. */
+.artnovo-account .artnovo-account-subscriptions {
+	min-width: 0;
+}
+
+.artnovo-account .artnovo-account-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(14rem, 17rem);
+	align-items: start;
+	gap: .75rem 1.5rem;
+	margin: 0;
+	padding: 1.5rem 0;
+	border: 0;
+	border-block-end: 1px solid #bdd1d01c;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.artnovo-account .artnovo-account-row-info {
+	display: grid;
+	gap: .5rem;
+	min-width: 0;
+}
+
+.artnovo-account .artnovo-account-row-heading,
+.artnovo-account .artnovo-account-row-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	min-width: 0;
+}
+
+.artnovo-account .artnovo-account-row-heading {
+	gap: .375rem .75rem;
+}
+
+.artnovo-account .artnovo-account-row-heading > h3 {
+	min-width: 0;
+	margin: 0;
+	font-size: .9375rem;
+	font-weight: 600;
+	line-height: 1.8;
+}
+
+.artnovo-account .artnovo-account-row-meta {
+	gap: .25rem 1rem;
+	font-size: .75rem;
+}
+
+.artnovo-account .artnovo-account-row-meta > p,
+.artnovo-account .artnovo-account-row-status {
+	max-width: 100%;
+	margin: 0;
+	font-size: .75rem;
+}
+
+.artnovo-account .artnovo-account-row-status {
+	color: var(--account-focus);
+}
+
 .artnovo-account .wpvpn-subscription-link {
 	display: grid;
 	gap: .75rem;
@@ -376,6 +543,74 @@ body.artnovo-account-page {
 	display: block;
 	color: var(--account-emerald);
 	font-size: .8125rem;
+}
+
+.artnovo-account .artnovo-account-row .wpvpn-subscription-link {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	align-content: start;
+	gap: .5rem;
+	max-width: 100%;
+}
+
+.artnovo-account .artnovo-account-row .wpvpn-subscription-link > p {
+	flex: 1 1 9rem;
+	min-width: 0;
+}
+
+.artnovo-account .artnovo-account-row .wpvpn-subscription-link > p > button,
+.artnovo-account .artnovo-account-pending-action > a {
+	width: 100%;
+}
+
+.artnovo-account .artnovo-account-row .wpvpn-subscription-link button,
+.artnovo-account .artnovo-account-pending-action > a {
+	padding-inline: .875rem;
+	font-size: .8125rem;
+	font-weight: 600;
+	box-shadow: none;
+}
+
+.artnovo-account .artnovo-account-row .artnovo-account-link-details {
+	order: 1;
+	flex-basis: 100%;
+	min-width: 0;
+	font-size: .75rem;
+}
+
+.artnovo-account .artnovo-account-row [data-artnovo-qr-target] {
+	order: 2;
+}
+
+.artnovo-account .artnovo-account-row .wpvpn-subscription-link > [role="status"] {
+	order: 3;
+	flex-basis: 100%;
+}
+
+.artnovo-account .artnovo-account-row .artnovo-account-link-details p + p {
+	margin-block-start: .5rem;
+}
+
+.artnovo-account .artnovo-account-row .artnovo-account-actions {
+	gap: .25rem 1.125rem;
+	margin-block-start: .5rem;
+}
+
+.artnovo-account .artnovo-account-row .artnovo-account-actions > a {
+	width: auto;
+	padding: .375rem 0;
+	border-radius: .5rem;
+	background: transparent;
+	box-shadow: none;
+	color: var(--account-muted);
+	font-size: .75rem;
+	font-weight: 400;
+	text-decoration: none;
+}
+
+.artnovo-account .artnovo-account-row .artnovo-account-actions > a:hover {
+	color: var(--account-emerald);
 }
 
 .artnovo-account [data-artnovo-qr-target] {
@@ -424,6 +659,22 @@ body.artnovo-account-page {
 	color: var(--account-text);
 }
 
+.artnovo-account .artnovo-account-row > .artnovo-account-purchase {
+	grid-column: 1 / -1;
+	min-width: 0;
+	font-size: .8125rem;
+}
+
+.artnovo-account .artnovo-account-row .artnovo-account-purchase > summary {
+	font-size: .75rem;
+}
+
+.artnovo-account .artnovo-account-row .artnovo-account-purchase[open] {
+	padding: 1rem;
+	border-radius: .875rem;
+	background: var(--account-surface);
+}
+
 .artnovo-account table.shop_table {
 	width: 100%;
 	max-width: 100%;
@@ -461,10 +712,185 @@ body.artnovo-account-page {
 	overflow-wrap: anywhere;
 }
 
+.artnovo-account .artnovo-account-native {
+	min-width: 0;
+	max-width: 100%;
+	padding: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.artnovo-account .artnovo-account-native :is(form, fieldset, .woocommerce-MyAccount-content) {
+	min-width: 0;
+	max-width: 100%;
+}
+
+.artnovo-account .artnovo-account-native fieldset {
+	margin: 1.5rem 0;
+	padding: 0;
+	border: 0;
+}
+
+.artnovo-account .artnovo-account-native legend {
+	margin-block-end: 1rem;
+	font-size: 1rem;
+}
+
+.artnovo-account .artnovo-account-native :is(.form-row-first, .form-row-last) {
+	float: none;
+	width: 100%;
+}
+
+.artnovo-account .artnovo-account-native table {
+	width: 100%;
+	max-width: 100%;
+	table-layout: fixed;
+	border: 0;
+	border-collapse: collapse;
+	background: transparent;
+}
+
+.artnovo-account .artnovo-account-native table :is(th, td) {
+	min-width: 0;
+	padding: .875rem .5rem;
+	border: 0;
+	border-block-end: 1px solid #bdd1d01c;
+	text-align: start;
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account :is(.artnovo-account-row, .artnovo-account-native) a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 2.75rem;
+	max-width: 100%;
+	overflow-wrap: anywhere;
+}
+
+/* Wallet presentation stays inside the native Core frame. */
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container {
+	--wallet-primary-color: var(--account-emerald); --wallet-text-color: var(--account-text);
+	--wallet-bg-color: var(--account-navy); --wallet-border-color: #bdd1d01c;
+	min-width: 0; font-family: Vazir, Tahoma, sans-serif; color: var(--account-text);
+}
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container :is(.woo-wallet-top-section, .woo-wallet-content-area, .woo-wallet-stat-card, .woo-wallet-transactions-list, .woo-wallet-form-wrapper, .woo-wallet-submenu, .woo-wallet-referral-link-card, .woo-wallet-referral-stats, .woo-wallet-referral-list, .woo-wallet-referral-summary-card, .woo-wallet-referral-legacy, .woo-wallet-statement) {
+	background: var(--account-surface); border-color: var(--wallet-border-color); box-shadow: none;
+}
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container :is(.woo-wallet-header h2, .woo-wallet-section-title, .ww-txn-title, .woo-wallet-stat-card__value, .woo-wallet-referral-summary-value, .woo-wallet-form-wrapper label, .ww-txn-table .ww-txn-cell) {
+	background: transparent; color: var(--account-text);
+}
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container :is(.woo-wallet-header p, .woo-wallet-stat-card__label, .woo-wallet-referral-summary-label, .woo-wallet-referral-legacy, .ww-txn-meta, .ww-txn-empty, .ww-txn-row--head .ww-txn-cell) { color: var(--account-muted); }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-balance-card { background: #173b3c; padding: 24px 16px; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-balance-card h3 { color: var(--account-muted); font-size: .875rem; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-balance-card .woo-wallet-price { color: var(--account-emerald); font-size: clamp(1.5rem, 4vw, 2rem); overflow-wrap: anywhere; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-stats-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: .75rem; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-stat-card { min-width: 0; padding: 1rem; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-stat-card__value { font-size: 1.25rem; overflow-wrap: anywhere; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-nav-tabs {
+	display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+	gap: .25rem; padding: .5rem; background: var(--account-navy);
+}
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-nav-item-wrapper { min-width: 0; width: auto; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-nav-tab { min-height: 44px; padding: .625rem; border: 0; border-radius: .75rem; background: transparent; color: var(--account-muted); font-size: .8125rem; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container :is(.woo-wallet-nav-tab:hover, .woo-wallet-nav-tab:focus, .woo-wallet-nav-tab.active, .woo-wallet-submenu-item:hover) { background: #173b3c; color: var(--account-emerald); }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-submenu { min-width: 0; width: 100%; max-width: 100%; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-submenu .woo-wallet-submenu-item { color: var(--account-muted); }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container :is(.woo-wallet-section-title, .ww-txn-head, .ww-txn-empty) { padding: 1rem; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .ww-txn-table .ww-txn-row { min-width: 0; padding: 1rem; border-color: var(--wallet-border-color); }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container :is(.ww-txn-row:not(.ww-txn-row--head):hover, .ww-txn-row--head, .ww-stmt-table tbody tr:not(.ww-stmt-rule):hover) { background: var(--account-navy); }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .ww-txn-table .ww-txn-cell { overflow-wrap: anywhere; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .ww-txn-table .ww-txn-cell.credit { color: var(--account-emerald); }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .ww-txn-table .ww-txn-cell.debit { color: #ffb3be; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container :is(.woo-wallet-referral-stats, .woo-wallet-referral-list) :is(th, td) { background: transparent; color: var(--account-text); padding: .75rem .5rem; font-size: .8125rem; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-referral-summary { background: var(--wallet-border-color); }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-form-wrapper { padding: 1rem; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-form-wrapper .woo-wallet-section-title { padding: 0 0 1rem; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-form-wrapper :is(input[type="number"], input[type="text"], select, textarea, .select2-container .select2-selection--single) {
+	min-width: 0; min-height: 44px; background: var(--account-navy); border: 0;
+	color: var(--account-text); box-shadow: none;
+}
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-form-wrapper .select2-selection__rendered { color: var(--account-text); }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-form-wrapper :is(input, select, textarea, .select2-selection--single):focus-visible {
+	outline: 0; box-shadow: 0 0 0 2px #9adaf099, 0 0 20px #46d7a63d;
+}
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container :is(.woo-wallet-form-wrapper input[type="submit"], .woo-wallet-copy-btn, .ww-stmt-apply) { background: var(--account-emerald); color: var(--account-ink); }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-form-wrapper input[type="submit"]:hover { transform: none; background: #67e0b7; box-shadow: none; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-form-wrapper input[type="submit"]:disabled { background: #263b48; color: #b4c7ce; }
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-statement {
+	--stmt-ink: var(--account-text); --stmt-muted: var(--account-muted); --stmt-rule: #bdd1d01c;
+	--stmt-tint: var(--account-navy); --stmt-credit: var(--account-emerald); --stmt-debit: #ffb3be;
+}
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container :is(.ww-stmt-ghost, .ww-stmt-field input[type="date"]) { background: var(--account-navy); color: var(--account-text); border-color: var(--wallet-border-color); }
+/* The native referral field hard-codes these three properties with !important. */
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-referral-input-wrapper input[type="text"] {
+	background: var(--account-navy) !important; color: var(--account-text) !important; border-color: var(--wallet-border-color) !important;
+}
+@media (max-width: 640px) {
+	.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container :is(.woo-wallet-content-area, .woo-wallet-referral-stats, .ww-stmt-tablewrap) { min-width: 0; overflow-x: auto; }
+	.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .ww-txn-table .ww-txn-row { background: var(--account-surface); padding: .875rem; }
+	.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container :is(.ww-txn-cell, .ww-stmt-table td, .ww-stmt-table th) { min-width: 0; overflow-wrap: anywhere; }
+	.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .woo-wallet-referral-stats table { min-width: 0; }
+	.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container .ww-stmt-table tbody tr:not(.ww-stmt-rule) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+.artnovo-account :is(.artnovo-account-header, .artnovo-account-layout) :is(a, button, input, select, textarea, summary):focus-visible {
+	outline: 0;
+	box-shadow: 0 0 0 2px #9adaf099, 0 0 20px #46d7a63d;
+}
+
+@media (max-width: 640px) {
+	.artnovo-account .artnovo-account-row {
+		grid-template-columns: minmax(0, 1fr);
+		gap: .875rem;
+		padding-block: 1.375rem;
+	}
+
+	.artnovo-account .artnovo-account-native table.shop_table_responsive thead {
+		display: none;
+	}
+
+	.artnovo-account .artnovo-account-native table.shop_table_responsive tr {
+		display: grid;
+		padding-block: .5rem;
+		background: transparent;
+	}
+
+	.artnovo-account .artnovo-account-native table.shop_table_responsive td {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: .5rem;
+		padding: .625rem .5rem;
+		text-align: start !important;
+	}
+
+	.artnovo-account .artnovo-account-native table.shop_table_responsive td::before {
+		content: attr(data-title);
+		color: var(--account-text);
+		font-weight: 600;
+	}
+
+	.artnovo-account .artnovo-account-native .col2-set :is(.col-1, .col-2) {
+		float: none;
+		width: 100%;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.artnovo-account :is(.artnovo-account-header, .artnovo-account-layout) *,
+	.artnovo-account :is(.artnovo-account-header, .artnovo-account-layout) *::before,
+	.artnovo-account :is(.artnovo-account-header, .artnovo-account-layout) *::after {
+		animation: none !important;
+		transition: none !important;
+		scroll-behavior: auto !important;
+	}
+}
+
 @media (min-width: 900px) {
 	.artnovo-account-layout {
-		grid-template-columns: minmax(12rem, 14rem) minmax(0, 1fr);
-		gap: 1.25rem;
+		grid-template-columns: 13.125rem minmax(0, 1fr);
+		gap: 2rem;
 	}
 
 	.artnovo-account-auth-layout {
@@ -477,7 +903,22 @@ body.artnovo-account-page {
 }
 
 @media (max-width: 899px) {
-	.artnovo-account :is(.artnovo-account-nav, .artnovo-account-nav ul, .woocommerce-MyAccount-navigation ul) {
+	.artnovo-account :is(.artnovo-account-nav, .artnovo-account-nav ul) {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.artnovo-account .artnovo-account-nav a {
+		justify-content: center;
+		padding: .625rem .375rem;
+		font-size: .8125rem;
+		text-align: center;
+	}
+
+	.artnovo-account .artnovo-account-more {
+		margin-block-start: .25rem;
+	}
+
+	.artnovo-account .woocommerce-MyAccount-navigation ul {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
@@ -485,6 +926,15 @@ body.artnovo-account-page {
 @media (max-width: 479px) {
 	.artnovo-account {
 		padding: .875rem .875rem 2rem;
+	}
+
+	.artnovo-account-header {
+		align-items: flex-start;
+		margin-block-end: 1.5rem;
+	}
+
+	.artnovo-account .artnovo-account-nav {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	.artnovo-account-header > .artnovo-account-actions,
@@ -498,4 +948,18 @@ body.artnovo-account-page {
 	.artnovo-account-auth .artnovo-account-actions > button {
 		flex: 1 1 9rem;
 	}
+}
+
+/* Keep monetary values native while separating their currency visually. */
+.artnovo-account .woocommerce-Price-amount bdi {
+	display: inline-flex;
+	flex-direction: row-reverse;
+	align-items: baseline;
+	gap: .3em;
+	direction: ltr;
+}
+
+/* The shared account heading already names this native Wallet page. */
+.artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container > .woo-wallet-header {
+	display: none;
 }

@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 1.4.0 — 2026-11-16
+
+- Implement the selected My Accounts layout with responsive native subscription
+  rows, copy/QR details, product-focused navigation and a shared frame for registered
+  WooCommerce and wallet endpoints. Keep their native handlers and absent-Bridge fallback.
+- Show usage/renewal only when actual integration data exists. Keep email completion
+  optional, preserve its active/error state and link to native account editing.
+- Distinguish an empty account from provider errors/unknown output. Redirect the old
+  preview purchase page to the current journey and repair scoped skip-link targets.
+- Align receipt copy with phone-only purchases and use Persian progress counters.
+- Style native catalog and Wallet surfaces to match desktop/mobile account and
+  purchase screens, preserving real product images, filters and native handlers.
+- Record GitHub-first native header/semantic-page operations separately from runtime
+  packaging; no Bridge, Wallet or Pinova source is changed.
+
 ## 1.3.1 — 2026-11-16
 
 - Align plan prices to the physical left in dynamic Elementor cards. The saved

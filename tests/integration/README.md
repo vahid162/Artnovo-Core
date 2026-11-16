@@ -66,7 +66,10 @@ status and existence to check stale caller rejection. These stores delegate
 non-fixture identities to WooCommerce and abort on an allocated fixture ID.
 
 The auth check captures its synthetic OTP in memory and verifies incorrect-code,
-scope and replay handling. It does not deliver an email. The account/received
+scope and replay handling. It does not deliver an email. The account check also runs native order/edit-account/Wallet GET callbacks with a
+process-local fake-user cache. Only Wallet's exact connection SET is intercepted
+as SELECT1; persistent SQL writes remain blocked and its transient cache stays in
+memory. The original object cache and flag are restored. Account/received
 checks write synthetic HTML, with local assets inlined, only under
 `ARTNOVO_FIXTURE_OUTPUT_DIR` (or `/tmp/artnovo-core-fixtures` by default). Do not
 commit these HTML files or operational test logs.

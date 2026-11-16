@@ -2,20 +2,38 @@
 
 ## Current mission and authority
 
-The owner requested reconciliation of GitHub with the installed artnovo.ir site,
-audit of GitHub-first delivery order, and all applicable checks under AI
-Development Governance. Preserve the Core-only plugin-code boundary and independent
-Bridge/Wallet/Pinova ownership. No direct live plugin edits, overwritten published
-assets, version churn or reinstall of identical code. Native Elementor design and
-configuration must also be proposed in GitHub before future live application.
+The owner explicitly selected **My Accounts** (اکانت‌های من) and requested its
+implementation, a site-wide UX/UI audit and fixes, and equivalent desktop/mobile
+improvements. The human selection overrides an earlier untrusted prototype-tool
+selection of the other concept. Apply AI Development Governance and UI UX Designer
+methods, retaining the navy/mint palette, Vazir, native Elementor header/footer and
+independent Bridge/Wallet/Pinova code/ownership.
 
-This mission records the existing public native design, repairs two invalid
-integration fixtures and strengthens immutable-release asset verification. It
-changes only documentation, tests and CI, outside the packaged runtime. Previous
-authority for the scoped Core GitHub delivery remains applicable; validation is
-read-only, and no new live code/configuration or release dispatch is needed.
-Preserve nonces, rate limits, stale-selection/duplicate-payment checks, receipt
-validation and owner checks. No other plugin source edits or real payments.
+GitHub-first delivery remains mandatory for Core and associated native changes:
+review/test the branch, merge and validate main, publish the official runtime ZIP,
+install that exact asset, then apply the recorded supported native operations and
+verify. Prior scoped release/install authority remains applicable to this ongoing
+UX delivery. Do not edit live plugin source, overwrite old assets, change another
+plugin's code, create a second ledger/issuer or add a mandatory dependency. Tests
+use synthetic records; no real payment or provider issuance is needed.
+
+Candidate **1.4.0**, branch `work/accounts-ui-audit`, is not yet released or installed.
+The selected layout uses right-side navigation and flat native subscription rows,
+copy/QR and private purchase details, known-empty versus error states, optional
+email completion and native endpoint handlers inside the same frame. Native order,
+profile and Wallet callbacks retain authorization and processing. Without Bridge,
+signed-in native WooCommerce remains the fallback. No guessed usage/renewal data.
+
+Additional proven audit fixes: obsolete page 61 redirects to the current purchase
+journey; skip-link targets are scoped to home/legal roots; receipt wording and
+summary support phone-only buyers and Persian progress numbers. The recorded
+native operation contract in `docs/site-design/artnovo/planned-1.4.0.json` aligns
+the header consistently on desktop/mobile, gives legal/product roots main tags
+and removes only product-gallery placeholders. Native catalog styling preserves
+real images and all catalog processing. Native operations have not been applied. All seven synthetic integration commands
+passed229 assertions, including actual native order/edit/Wallet handlers; final
+GitHub CI and live artifact verification remain delivery gates. See
+[account-design evidence](evidence/2026-11-16-account-design.md).
 
 ## Installed baseline and workspace
 
@@ -66,7 +84,7 @@ this docs/tests/CI change. There are no plugin-runtime changes.
   account/order/wallet routes.
 - Account concepts: throwaway responsive mockups in the thread visualization
   directory, with realistic empty/active/multiple-account states, customer-service
-  navigation and no address UI. Await the owner's concept choice for deployment.
+  navigation and no address UI. The owner selected My Accounts; implement its real native rows and endpoints, without prototype data.
 
 ## Verification and remaining work
 
@@ -92,9 +110,8 @@ this docs/tests/CI change; no runtime release/reinstall is required.
 
 The clear home/purchase/standalone sign-in changes are delivered. Native Elementor
 changes on #68/#75/#86 are published with preserved element identities, product
-queries and link destinations. The two account-panel concepts are ready in the
-thread visualization directory, awaiting the owner's choice before implementation;
-no unchosen account-panel design is installed. Address navigation was hidden only
+queries and link destinations. The two account-panel concepts remain historical design references; the owner has
+now selected My Accounts. The installed baseline still predates that new layout. Address navigation was hidden only
 inside Core's presentation.
 
 Required checks and independent reviews passed. 1.3.0 passed 17 loopback HTTP checks
@@ -119,4 +136,4 @@ reports and test credentials were not copied into durable artifacts.
 
 See [UI refinement evidence](evidence/2026-11-16-ui-refinements.md). Actual browser
 zoom at 200%/400%, physical devices, real payment and provider delivery remain
-untested. The next product decision is the account-panel concept choice.
+untested. The owner has now selected My Accounts; its new candidate and delivery state are recorded above.

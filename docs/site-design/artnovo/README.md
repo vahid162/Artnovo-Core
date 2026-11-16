@@ -6,11 +6,21 @@ Elementor import files, a database dump, a migration or a complete site backup.
 Never write them into `_elementor_data` or treat them as an automatic restore.
 
 `manifest.json` records site identity, document types/templates, public page
-assignments, active header/footer conditions and SHA-256 of three references:
+assignments, active header/footer conditions and SHA-256 of the public references:
 
 - `home.json`: document 68, root `3ffe5619`, 63 nodes.
 - `header.json`: document 75, root `422c4365`, 5 nodes.
 - `footer.json`: document 86, root `42e566cc`, 13 nodes.
+- `terms.json`, `privacy.json`, `refunds.json`: published legal pages 132/134/136.
+- `product.json`: native product template 35, root `fcd870e`; its saved conditions
+  remain product categories 18/19. The site-part tool's context-dependent active flag
+  is not proof that it is unused; public product HTML renders document 35.
+
+[The 1.4.0 native operation contract](planned-1.4.0.json) records the proposed
+header desktop alignment, product-template presentation and main landmarks, including supported inverse
+settings/styles. At proposal time these operations are **not applied**; the
+manifest remains a reference to the observed installed baseline. Native completion
+and fresh readback are recorded separately in the delivery evidence.
 
 Snapshots preserve native IDs, hierarchy, content/dynamic bindings, local styles
 and interactions from the supported read. Generated default styles and tool editor
