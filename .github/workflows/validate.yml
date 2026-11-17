@@ -36,6 +36,7 @@ jobs:
           node --check modules/home/artnovo-home-wizard.js
           node tests/compact-auth.js
           node tests/compact-checkout.js
+          node tests/integration/received/verify-tools.js
           node --check modules/notices/notices.js
           node tests/notices.js
           php tests/checkout-context.php

@@ -43,7 +43,7 @@ check( 'the form does not opt into the old parallel OTP interceptor', ! str_cont
 preg_match( '/data-artnovo-auth-config="([^"]+)"/', $html, $match );
 $config = json_decode( html_entity_decode( $match[1] ?? '', ENT_QUOTES, 'UTF-8' ), true );
 check( 'escaped configuration remains valid and carries only native destinations', is_array( $config ) && 'https://example.test/wp-json/pinova/user/authenticate' === ( $config['authenticateUrl'] ?? null ) && 'https://example.test/wp-json/pinova/user/login/password' === ( $config['passwordUrl'] ?? null ) && 'nonce-<&"-wp_rest' === ( $config['restNonce'] ?? null ) );
-check( 'post-login return refreshes authenticated state through the canonical account route', 'https://example.test/my-account/?artnovo_resume=1' === ( $config['resumeUrl'] ?? null ) );
+check( 'post-login return fetches the current purchase with authenticated nonces and the stale-selection guard', 'https://example.test/?artnovo_plan=26&artnovo_checkout=1#artnovo-order' === ( $config['resumeUrl'] ?? null ) );
 check( 'native code length and Core email capability remain separately owned', 4 === ( $config['nativeCodeLength'] ?? null ) && 6 === ( $config['emailCodeLength'] ?? null ) && true === ( $config['emailOtp'] ?? null ) );
 check( 'initial proof input is disabled until an authentication challenge exists', 1 === preg_match( '/<input[^>]+name="artnovo_auth_proof"[^>]*disabled/', $html ) );
 $draft = [ 'billing_email' => '"/><script>bad()</script>' ];

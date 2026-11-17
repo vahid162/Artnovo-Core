@@ -115,15 +115,32 @@ function wallet_ready(): bool {
 	return wallet_configured() && WalletPayment::allowed_customer( get_current_user_id() );
 }
 
+function filter_payment_methods( array $gateways, \WC_Product $product, int $quantity ): array {
+	foreach ( $gateways as $method => $gateway ) {
+		if ( $quantity < 1 || $quantity > method_quantity_limit( $product, $method )
+			|| ( 'bacs' === $method && ! transfer_ready() )
+			|| ( 'wpvpn_wallet' === $method && ! wallet_ready() ) ) {
+			unset( $gateways[ $method ] );
+		}
+	}
+	return $gateways;
+}
+
+function payment_candidates( \WC_Product $product, int $quantity ): array {
+	if ( ! \Artnovo\Core\bridge_available() || $quantity < 1 || ! $product->is_in_stock() || ! $product->is_purchasable() || ! function_exists( 'WC' ) || ! WC()->session ) {
+		return [];
+	}
+	// A gateway can require a prepared cart before is_available() becomes true.
+	// These candidates permit preparation only; native availability authorizes the resulting cart.
+	$gateways = array_filter( WC()->payment_gateways()->payment_gateways(), static fn( $gateway ): bool => 'yes' === $gateway->enabled );
+	return array_keys( filter_payment_methods( $gateways, $product, $quantity ) );
+}
+
 function payment_methods( \WC_Product $product, int $quantity ): array {
-	$methods = [];
-	if ( transfer_ready() ) {
-		$methods[] = 'bacs';
+	if ( ! \Artnovo\Core\bridge_available() || $quantity < 1 || ! $product->is_in_stock() || ! $product->is_purchasable() || ! function_exists( 'WC' ) || ! WC()->session ) {
+		return [];
 	}
-	if ( $quantity > 0 && wallet_ready() && $quantity <= quantity_limit( $product, WalletPayment::GATEWAY ) ) {
-		$methods[] = WalletPayment::GATEWAY;
-	}
-	return $methods;
+	return array_keys( filter_payment_methods( WC()->payment_gateways()->get_available_payment_gateways(), $product, $quantity ) );
 }
 
 function plan_configured( \WC_Product $product ): bool {
@@ -134,20 +151,29 @@ function plan_configured( \WC_Product $product ): bool {
 }
 
 function plan_purchasable( bool $purchasable, \WC_Product $product ): bool {
-	return $purchasable && ( ! is_plan( $product ) || ( plan_configured( $product ) && [] !== payment_methods( $product, 1 ) ) );
+	// Native gateway availability may ask whether a product is purchasable.
+	return $purchasable && ( ! is_plan( $product ) || plan_configured( $product ) );
 }
 add_filter( 'woocommerce_is_purchasable', __NAMESPACE__ . '\\plan_purchasable', PHP_INT_MAX, 2 );
 
-function quantity_limit( \WC_Product $product, ?string $method = null ): int {
+function method_quantity_limit( \WC_Product $product, ?string $method = null ): int {
+	if ( ! \Artnovo\Core\bridge_available() ) {
+		return 0;
+	}
 	$bridge_limit = 1;
 	if ( is_callable( [ Orders::class, 'max_purchase_quantity' ] ) ) {
-		$bridge_limit = null !== $method ? Orders::max_purchase_quantity( $product, $method ) : max(
-			transfer_ready() ? Orders::max_purchase_quantity( $product, 'bacs' ) : 1,
-			wallet_ready() ? Orders::max_purchase_quantity( $product, WalletPayment::GATEWAY ) : 1
-		);
+		$bridge_limit = Orders::max_purchase_quantity( $product, $method );
 	}
 	$stock_limit = (int) $product->get_max_purchase_quantity();
 	return -1 === $stock_limit ? $bridge_limit : min( $bridge_limit, max( 0, $stock_limit ) );
+}
+
+function quantity_limit( \WC_Product $product, ?string $method = null ): int {
+	if ( null !== $method ) {
+		return method_quantity_limit( $product, $method );
+	}
+	$methods = payment_candidates( $product, 1 );
+	return $methods ? max( array_map( static fn( string $id ): int => method_quantity_limit( $product, $id ), $methods ) ) : 0;
 }
 
 function cart_has_plan(): bool {
@@ -212,13 +238,11 @@ add_filter( 'woocommerce_available_payment_gateways', static function ( array $g
 		if ( ! $product->is_in_stock() || ! $product->is_purchasable() ) {
 			return array();
 		}
-		if ( ! transfer_ready() ) {
-			unset( $gateways['bacs'] );
+		$quantity = $item['quantity'] ?? 0;
+		if ( ! is_numeric( $quantity ) || (float) (int) $quantity !== (float) $quantity ) {
+			return [];
 		}
-		if ( ! wallet_ready() ) {
-			unset( $gateways['wpvpn_wallet'] );
-		}
-		break;
+		return filter_payment_methods( $gateways, $product, (int) $quantity );
 	}
 	return $gateways;
 }, PHP_INT_MAX );
@@ -253,13 +277,21 @@ function wizard_draft(): array {
 }
 
 function wizard_checkout_active(): bool {
-	if ( ! wizard_page() || '1' !== ( $_GET['artnovo_checkout'] ?? null ) || ! is_user_logged_in() ) {
+	if ( ! wizard_page() || ! is_user_logged_in() ) {
 		return false;
 	}
 	$draft = wizard_draft();
-	return isset( $draft['product'], $draft['quantity'] )
-		&& (string) $draft['product'] === ( $_GET['artnovo_plan'] ?? null )
-		&& 'same' === cart_selection( $draft['product'], $draft['quantity'] );
+	if ( ! is_int( $draft['product'] ?? null ) || $draft['product'] < 1
+		|| ! is_int( $draft['quantity'] ?? null ) || $draft['quantity'] < 1
+		|| ! is_int( $draft['expires'] ?? null )
+		|| (string) $draft['product'] !== ( $_GET['artnovo_plan'] ?? null )
+		|| 'same' !== cart_selection( $draft['product'], $draft['quantity'] ) ) {
+		return false;
+	}
+	$product = wc_get_product( $draft['product'] );
+	return is_plan( $product ) && ! post_password_required( $draft['product'] ) && plan_configured( $product )
+		&& $product->is_in_stock() && $product->is_purchasable()
+		&& $draft['quantity'] <= method_quantity_limit( $product );
 }
 
 add_filter( 'woocommerce_is_checkout', static function ( bool $checkout ): bool {
@@ -543,7 +575,7 @@ function wizard_process_selection( bool $ajax, string $otp_action ): array {
 	if ( ! is_plan( $product ) || post_password_required( $product_id ) || ! $product->is_in_stock() || ! $product->is_purchasable() ) {
 		return [ 'product' => $product_id ?: 0, 'error' => 'این پلن در حال حاضر قابل خرید نیست.' ];
 	}
-	$methods = $quantity ? payment_methods( $product, $quantity ) : [];
+	$methods = $quantity ? payment_candidates( $product, $quantity ) : [];
 	if ( ! $quantity || $quantity > quantity_limit( $product ) || ! $methods || ( '' !== $requested_method && ! in_array( $requested_method, $methods, true ) ) ) {
 		return [ 'product' => $product_id, 'error' => 'تعداد یا روش پرداخت انتخاب‌شده در دسترس نیست.' ];
 	}

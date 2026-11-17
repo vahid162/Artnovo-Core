@@ -7,8 +7,12 @@ namespace Artnovo\AccountUI {
 	function account_native_login_url( string $return ): string { return 'https://example.test/login?back_url=' . rawurlencode( $return ); }
 }
 namespace WPVPNBridge\Commerce {
-	class Orders { public static function max_purchase_quantity( $product, string $method ): int { return 10; } }
+	class Orders {
+		public static function max_purchase_quantity( $product, ?string $method = null ): int { return 10; }
+		public static function product_terms( $product ): array { return []; }
+	}
 }
+namespace WPVPNBridge { class Settings { public function ready(): bool { return true; } } }
 namespace WPVPNBridge\Payment {
 	class WalletPayment {
 		public const GATEWAY = 'wpvpn_wallet';
@@ -100,6 +104,7 @@ class WC_Product {
 	public function is_type( string $type ): bool { return 'simple' === $type; }
 	public function get_id(): int { return $this->id; }
 	public function get_status(): string { return $GLOBALS['product_status'][$this->id]??'publish'; }
+	public function get_meta( string $key, bool $single = true ): string { return 'yes'; }
 	public function is_virtual(): bool { return true; }
 	public function is_in_stock(): bool { return true; }
 	public function is_purchasable(): bool { return true; }
@@ -144,7 +149,10 @@ class WC_Cart_Session {
 }
 function WC(): object { return $GLOBALS['woo']; }
 $woo=(object)['session'=>new WC_Session_Handler(),'cart'=>new WC_Cart()];
-$woo->payment_gateways= new class { public function get_available_payment_gateways(): array { return apply_filters('woocommerce_available_payment_gateways',['bacs'=>(object)['id'=>'bacs']]); } };
+$woo->payment_gateways= new class {
+	public function payment_gateways(): array { return ['bacs'=>(object)['id'=>'bacs','enabled'=>'yes']]; }
+	public function get_available_payment_gateways(): array { return apply_filters('woocommerce_available_payment_gateways',$this->payment_gateways()); }
+};
 // WC() normally returns a class with payment_gateways(); the fixture keeps that public API.
 class SyntheticWoo {
 	public WC_Session_Handler $session;

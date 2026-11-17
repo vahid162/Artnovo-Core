@@ -15,8 +15,8 @@
 .artnovo-toast {
 	--notice-accent: #46d7a6;
 	box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) 44px;
-	gap: 8px; min-width: 0; padding: 12px 12px 0; border: 0; border-radius: 16px;
-	background: #152735; color: #f0f9f7; box-shadow: 0 12px 36px #0005;
+	gap: 8px; min-width: 0; padding: 12px 12px 0; border: 1px solid #9adaf03d; border-radius: 19px;
+	background: #214354; color: #f0f9f7; box-shadow: 0 8px 24px #0000002e;
 	font-size: 13px; line-height: 1.9; text-align: start; pointer-events: auto;
 }
 .artnovo-toast[data-kind="error"] { --notice-accent: #ffb3be; }
@@ -33,9 +33,12 @@
 .artnovo-toast button.artnovo-toast-close:hover { background: #203c49; color: #f0f9f7; }
 .artnovo-toast :is(button.artnovo-toast-close, a):focus-visible { outline: 0; box-shadow: 0 0 0 2px #9adaf099, 0 0 20px #46d7a63d; }
 .artnovo-toast-progress { grid-column: 1 / -1; height: 3px; margin-top: 4px; overflow: hidden; border-radius: 3px; background: #223a48; }
-.artnovo-toast-progress::before { content: ""; display: block; height: 100%; background: var(--notice-accent); transform-origin: left; animation: artnovo-toast-countdown 5s linear forwards; }
+.artnovo-toast-progress::before { content: ""; display: block; height: 100%; background: var(--notice-accent); transform-origin: left; animation: artnovo-toast-countdown 8s linear forwards; }
 .artnovo-toast[data-paused="1"] .artnovo-toast-progress::before { animation-play-state: paused; }
 .artnovo-toast-announcer { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @keyframes artnovo-toast-countdown { to { transform: scaleX(0); } }
-@media (max-width: 479px) { .artnovo-toasts { left: 14px; bottom: 14px; } }
+@media (max-width: 767px) {
+	.artnovo-toasts { left: max(14px, env(safe-area-inset-left)); bottom: max(14px, env(safe-area-inset-bottom)); }
+	.artnovo-toast { border-radius: 23px 23px 23px 10px; }
+}
 @media (prefers-reduced-motion: reduce) { .artnovo-toast-progress::before { animation: none; } }

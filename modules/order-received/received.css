@@ -1,45 +1,53 @@
 body.artnovo-received-page { background: #0c1723; color: #f0f9f7; }
-.artnovo-account.artnovo-received { max-width: 56rem; padding: 1.25rem 1.5rem 3rem; }
+.artnovo-account.artnovo-received { max-width: 640px; padding: 1.5rem 1.5rem 3rem; font-family: Vazir, Tahoma, sans-serif; }
 .artnovo-received :is(h1,h2,h3,p,a) { overflow-wrap: anywhere; }
-.artnovo-received h1 { font-size: clamp(1.25rem,3vw,1.5rem); line-height: 1.65; }
+.artnovo-received h1 { font-size: 1.25rem; line-height: 1.65; }
 .artnovo-received h2 { font-size: 1rem; line-height: 1.7; }
-.artnovo-received-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-block-end: .875rem; font-size: .8125rem; }
+.artnovo-received-header { max-width: 592px; margin-inline: auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-block-end: .875rem; font-size: .8125rem; }
 .artnovo-received-header :is(p,a) { margin: 0; }
 .artnovo-received-header a { min-height: 2.75rem; display: inline-flex; align-items: center; text-decoration: none; }
-.artnovo-received-summary { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; padding: .25rem 0 1.125rem; }
+.artnovo-received-summary { display: flex; align-items: start; justify-content: space-between; gap: 1.25rem; padding: 0 0 1rem; }
 .artnovo-received-plans { display: grid; gap: .625rem; min-width: 0; }
 .artnovo-received-plans p { display: flex; align-items: baseline; gap: .5rem 1rem; flex-wrap: wrap; margin: 0; }
 .artnovo-received-plans strong { font-size: .9375rem; }
 .artnovo-received-plans span { color: var(--account-muted); font-size: .8125rem; }
 .artnovo-received-total { display: grid; gap: .25rem; flex-shrink: 0; text-align: left; font-size: .75rem; color: var(--account-muted); }
 .artnovo-received-amount { color: var(--account-emerald); font-size: 1.125rem; white-space: nowrap; }
-.artnovo-received .woocommerce-Price-amount bdi { display: inline-flex; direction: rtl; gap: .3em; align-items: baseline; }
-.artnovo-received .woocommerce-Price-currencySymbol { font-size: .75em; font-weight: 400; }
+.artnovo-received .woocommerce-Price-amount bdi { display: inline-flex; direction: ltr; gap: .3em; align-items: baseline; }
+.artnovo-received .woocommerce-Price-currencySymbol { order: -1; direction: rtl; font-size: .75em; font-weight: 400; }
 .artnovo-received-layout,.artnovo-received-main { display: grid; grid-template-columns: minmax(0,1fr); gap: .75rem; min-width: 0; }
-.artnovo-received .artnovo-received-focus { padding: 1.5rem; border: 0; border-radius: 1.25rem; box-shadow: 0 .75rem 2.5rem #00000012; }
+.artnovo-received-main { width: 100%; max-width: 592px; margin-inline: auto; }
+.artnovo-received .artnovo-received-focus { width: 100%; max-width: 592px; padding: 1.25rem 1.5rem; border: 1px solid #9adaf017; border-radius: 1.375rem; box-shadow: 0 .75rem 2.5rem #00000012; }
 .artnovo-received { --received-state-background: #403923; --received-state-text: #f6df9b; }
 .artnovo-received[data-state="issuing"] { --received-state-background: #172e41; --received-state-text: #d0edff; }
-.artnovo-received[data-state="ready"] { --received-state-background: #173b3c; --received-state-text: #b8f4db; }
+.artnovo-received:is([data-state="ready"],[data-state="partial"]) { --received-state-background: #173b3c; --received-state-text: #b8f4db; }
 .artnovo-received:is([data-state="failed"],[data-state="review"],[data-state="unavailable"]) { --received-state-background: #392934; --received-state-text: #ffd5dd; }
 .artnovo-received[data-state="closed"] { --received-state-background: #203440; --received-state-text: #bdd1d0; }
 .artnovo-received-status { display: grid; grid-template-columns: 2.5rem minmax(0,1fr); align-items: start; gap: .875rem; scroll-margin-top: 1rem; }
 .artnovo-received-status h1 { margin: 0 0 .35rem; }
 .artnovo-received-status p { margin: 0; font-size: .875rem; line-height: 1.9; }
 .artnovo-received-state-mark { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--received-state-background); color: var(--received-state-text); font-size: 1.25rem; }
-.artnovo-received .artnovo-received-progress { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .5rem; list-style: none; padding: 0; margin: 1.125rem 0; counter-reset: received-step; }
-.artnovo-received-progress li { display: flex; align-items: center; gap: .375rem; min-width: 0; margin: 0; color: var(--account-muted); font-size: .75rem; line-height: 1.7; }
+.artnovo-received .artnovo-received-progress { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .5rem; list-style: none; padding: .875rem 0 1rem; margin: 0 0 1rem; border-block-start: 1px solid #bdd1d026; counter-reset: received-step; }
+.artnovo-received-progress li { display: flex; align-items: center; justify-content: center; gap: .375rem; min-width: 0; margin: 0; color: var(--account-muted); font-size: .75rem; line-height: 1.7; }
 .artnovo-received-progress li::before { counter-increment: received-step; content: counter(received-step,persian); display: inline-grid; place-items: center; width: 1.25rem; height: 1.25rem; flex: 0 0 1.25rem; border-radius: 50%; background: var(--account-navy); font-size: .6875rem; }
 .artnovo-received-progress li[data-complete="true"] { color: #b8f4db; }
 .artnovo-received-progress li[aria-current="step"] { color: var(--account-emerald); font-weight: 700; }
 .artnovo-received-progress li[aria-current="step"]::before { background: var(--account-emerald); color: var(--account-ink); }
 .artnovo-received-primary { margin-block: 1rem .25rem; }
-.artnovo-received-primary .artnovo-account-button { min-width: 13rem; }
-.artnovo-received-payment { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: start; gap: 1.5rem; padding-block-start: .75rem; }
+.artnovo-received-primary .artnovo-account-button { width: 100%; min-height: 50px; }
+.artnovo-received-fact { padding: .625rem .75rem; margin-block: 1rem; border-radius: .75rem; background: #10212f; color: var(--account-muted); font-size: .75rem; }
+.artnovo-received-payment { display: grid; grid-template-columns: minmax(0,1fr); align-items: start; gap: 1rem; padding-block-start: .75rem; }
 .artnovo-received .artnovo-received-receipt { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; scroll-margin-top: 1rem; }
 .artnovo-received-receipt :is(h2,p) { margin-block-end: .625rem; }
 .artnovo-received-receipt > .artnovo-account-muted { font-size: .8125rem; }
 .artnovo-received-receipt-form { display: grid; gap: .625rem; }
 .artnovo-received-receipt-form label { font-size: .8125rem; }
+.artnovo-received-receipt-form button[type="submit"] { width: 100%; min-height: 50px; }
+.artnovo-received .artnovo-received-file { position: relative; display: grid; place-items: center; min-height: 86px; padding: .75rem; border: 1px dashed #9adaf066; border-radius: .875rem; background: #10212f; color: var(--account-focus); text-align: center; cursor: pointer; }
+.artnovo-received-file :is(strong,small) { display: block; overflow-wrap: anywhere; }
+.artnovo-received-file small { font-size: .6875rem; }
+.artnovo-received .artnovo-received-file input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.artnovo-received-file:focus-within { box-shadow: 0 0 0 2px #9adaf099, 0 0 20px #46d7a63d; }
 .artnovo-received-bank { min-width: 0; }
 .artnovo-received-bank p { margin-block-end: .625rem; font-size: .8125rem; }
 .artnovo-received-bank :is(h2,h3) { margin-block-end: .625rem; font-size: .9375rem; }
@@ -61,7 +69,14 @@ body.artnovo-received-page { background: #0c1723; color: #f0f9f7; }
 .artnovo-received [data-artnovo-service-tools] > details { flex-basis: 100%; min-width: 0; }
 .artnovo-received [data-artnovo-service-tools] > [role="status"] { flex-basis: 100%; }
 .artnovo-received [data-artnovo-service-tools] > details :is(p,label) { margin-block-end: .5rem; font-size: .8125rem; }
-.artnovo-received[data-state="issuing"] [data-artnovo-service-tools] .button { background: #203c49; color: var(--account-focus); }
+.artnovo-received[data-artnovo-received-multi="1"] [data-artnovo-service-tools] .button { background: #203c49; color: var(--account-focus); }
+.artnovo-received-batch { display: grid; gap: .75rem; margin-block-start: 1rem; }
+.artnovo-received-batch > button { width: 100%; min-height: 50px; }
+.artnovo-received-batch label { display: block; margin-block-end: .375rem; font-size: .75rem; }
+.artnovo-received-batch textarea { min-height: 7rem; direction: ltr; text-align: left; }
+.artnovo-received [data-artnovo-service-tools] > p { flex: 1 1 12rem; }
+.artnovo-received [data-artnovo-service-tools] > p > button { width: 100%; min-height: 50px; }
+.artnovo-received [data-artnovo-service-tools] [data-artnovo-qr] { min-height: 50px; }
 .artnovo-received-links { display: flex; flex-wrap: wrap; gap: .125rem 1.25rem; padding-inline: .25rem; }
 .artnovo-received-links a { display: inline-flex; align-items: center; min-height: 2.75rem; font-size: .8125rem; text-decoration: none; }
 .artnovo-received .artnovo-received-details { min-width: 0; padding: 0 .25rem; border: 0; background: transparent; box-shadow: none; }
@@ -74,6 +89,28 @@ body.artnovo-received-page { background: #0c1723; color: #f0f9f7; }
 .artnovo-received-details .artnovo-received-receipt { margin-block: 1rem; }
 .artnovo-received-details .artnovo-received-receipt button[type="submit"] { background: #203c49; color: var(--account-focus); }
 .artnovo-received-details .woocommerce-order-details { margin-block-start: 1rem; }
+.artnovo-received :is(a,button,input,textarea,summary,select):focus-visible { outline: 0; box-shadow: 0 0 0 2px #9adaf099, 0 0 20px #46d7a63d; }
+.artnovo-order-pay .artnovo-received-focus { margin-inline: auto; }
+.artnovo-order-pay-heading { margin-block: 0 1rem; }
+.artnovo-order-pay-heading h2 { margin-block-end: .375rem; font-size: 1.25rem; }
+.artnovo-order-pay-heading p { margin: 0; font-size: .8125rem; }
+.artnovo-order-pay #order_review { display: grid; gap: 1rem; }
+.artnovo-order-pay table.shop_table { background: #10212f; font-size: .75rem; }
+.artnovo-order-pay table.shop_table :is(th,td) { padding: .5rem .375rem; font-size: .75rem; }
+.artnovo-order-pay #payment { padding: 0; background: transparent; }
+.artnovo-order-pay #payment ul.payment_methods { display: grid; gap: .5rem; margin: 0 0 1rem; padding: 0; border: 0; list-style: none; }
+.artnovo-order-pay #payment li.wc_payment_method { padding: .75rem; border: 1px solid #bdd1d026; border-radius: .8125rem; background: transparent; }
+.artnovo-order-pay #payment li.wc_payment_method:has(input:checked) { border-color: #46d7a67a; background: #46d7a609; }
+.artnovo-order-pay #payment label { min-height: 44px; font-size: .8125rem; }
+.artnovo-order-pay #payment .wc_payment_method > label { display: inline-flex; align-items: center; }
+.artnovo-order-pay #payment input[type="radio"] { accent-color: var(--account-emerald); }
+.artnovo-order-pay #payment .payment_box { margin: .5rem 0 0; background: #10212f; color: var(--account-muted); font-size: .8125rem; }
+.artnovo-order-pay #payment .payment_box::before { display: none; }
+.artnovo-order-pay #payment > .form-row { padding: 0; margin: 0; }
+.artnovo-order-pay #place_order { width: 100%; min-height: 50px; }
+.artnovo-order-pay .woocommerce-terms-and-conditions-wrapper { font-size: .75rem; }
+.artnovo-order-pay .woocommerce-form__label-for-checkbox { display: flex; align-items: start; gap: .625rem; padding: .75rem; border-radius: .75rem; background: #10212f; }
+.artnovo-order-pay input[type="checkbox"] { accent-color: var(--account-emerald); }
 @media (max-width: 680px) {
  .artnovo-account.artnovo-received { padding: .875rem .875rem 2rem; }
  .artnovo-received-summary { align-items: flex-start; gap: .75rem; }

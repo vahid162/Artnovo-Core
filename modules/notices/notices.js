@@ -97,7 +97,7 @@
 		toast.append(content, close, progress);
 		const previousFocus = document.activeElement;
 		const pauses = new Set();
-		let remaining = 5000;
+		let remaining = 8000;
 		let started;
 		let timer;
 		let dismissed = false;

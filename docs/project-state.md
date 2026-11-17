@@ -1,6 +1,40 @@
 # Current project state
 
-## Completed outcome and authority
+## Active development: continuous purchase (2026-11-17)
+
+The owner approved the mobile/desktop continuous purchase preview and authorized
+implementation in Core and GitHub with passing tests. This mission covers a branch
+and PR, not a new merge, release or installation. Only Core source changes. The
+owner explicitly assigned Bridge's online-payment policy change to separate work;
+Core must prepare native gateway presentation without bypassing that policy.
+
+Branch work/continuous-checkout starts from main 5b38833. Runtime implements the
+shared compact summary/card, exact-draft checkout reuse, one fresh post-login
+purchase GET, registry-based preselection versus final native availability,
+partial ready-link copy, native existing-order payment skin, equal-height coupon
+controls and eight-second contrasting/mobile-bubble notices. Existing owner/key,
+receipt, revision, nonce, selection-lock and original-method fences remain.
+
+The final standalone batch passed 62/62 commands: 15 mandatory gates/build,
+39 PHP lints and 8 JavaScript syntax checks. Independent reviewer
+/root/sync_governance_review found no actionable runtime defect; the reviewed
+modules diff SHA256 is 8e8be2ad88709a73c1b8916433c69c7f0161749f87e3a77019e25fe8baab85a4.
+This is code/synthetic assurance, not native WordPress or live payment acceptance.
+
+Native fixtures remain blocked before execution: the unprivileged runner could
+not read wp-config.php, so all six processes failed during bootstrap with zero
+assertions. Automatic approval review then rejected the proposed root WP-CLI run
+against the live WordPress/database. It was not executed or bypassed. The earlier
+attempt verified installed Core/Bridge/Wallet/Pinova payloads were unchanged.
+Browser/native integration and real gateway callbacks are not claimed passed.
+Keep the development PR draft until authorized native checks and affected browser
+verification are complete. No tag, release, installation or site setting changed.
+
+See [development evidence](evidence/2026-11-17-continuous-purchase.md) for check scope,
+recovery and the remaining approval boundary. Prior completed delivery below remains
+the installed baseline; this development ZIP must not replace published 1.5.1 assets.
+
+## Previously completed outcome and authority
 
 The owner selected **My Accounts** (اکانت‌های من), requested global UX/UI fixes,
 matching mobile/desktop presentation, minimal native Pinova login, compact checkout

@@ -81,15 +81,15 @@ initial.advance(0);
 check(initial.toasts().length === 1 && initial.announcer().textContent === 'خطای اولیه', 'server-rendered error is announced after takeover');
 check(initial.before.parentElement === initial.document.body && initial.before.getAttribute('role') === 'alert' && initial.before.id === 'original-error', 'original notice, role and ID remain');
 check(initial.before.dataset.artnovoToastSource === '1' && initial.before.getAttribute('aria-live') === 'off', 'only transferred source is hidden and muted');
-initial.advance(4999); check(initial.toasts().length === 1, 'toast lasts five seconds');
-initial.advance(1); check(initial.toasts().length === 0, 'toast expires at five seconds');
+initial.advance(7999); check(initial.toasts().length === 1, 'toast lasts eight seconds');
+initial.advance(1); check(initial.toasts().length === 0, 'toast expires at eight seconds');
 initial.update(initial.before, 'خطای اولیه'); check(initial.toasts().length === 1, 'identical repeated errors still notify');
 initial.emit(initial.before, 'attributes'); check(initial.toasts().length === 1, 'attribute refresh does not duplicate a notice');
 const timer = fixture(({ element }) => element('div', { class: 'woocommerce-message' }, 'انجام شد'));
 timer.advance(1000); const toast = timer.toasts()[0]; toast.fire('mouseenter'); timer.advance(6000);
 check(timer.toasts().length === 1 && toast.dataset.paused === '1', 'hover pauses countdown');
 toast.fire('focusin'); toast.fire('mouseleave'); timer.advance(6000); check(timer.toasts().length === 1, 'focus continues pause after hover leaves');
-toast.fire('focusout', { relatedTarget: timer.document.body }); timer.advance(3999); check(timer.toasts().length === 1, 'remaining time resumes accurately');
+toast.fire('focusout', { relatedTarget: timer.document.body }); timer.advance(6999); check(timer.toasts().length === 1, 'remaining time resumes accurately');
 timer.document.hidden = true; timer.document.listeners.visibilitychange(); timer.advance(6000); check(timer.toasts().length === 1, 'hidden document pauses countdown');
 timer.document.hidden = false; timer.document.listeners.visibilitychange(); timer.advance(1); check(timer.toasts().length === 0, 'countdown resumes when document returns');
 const auth = fixture(({ element }) => { const form = element('form', { 'aria-busy': 'true' }); return { form, status: element('p', { 'data-artnovo-auth-message': '', role: 'status' }, 'در حال ورود…', form) }; });
@@ -104,7 +104,7 @@ const native = fixture(({ element }) => {
 });
 native.update(native.before.status, 'لینک انتخاب شد. دستی کپی کنید.');
 check(native.toasts().length === 1 && native.before.status.parentElement === native.before.controls && native.before.input.parentElement === native.before.controls, 'Bridge manual-copy source inside real account wrapper remains intact');
-native.advance(5000); native.update(native.before.status, 'لینک انتخاب شد. دستی کپی کنید.'); check(native.toasts().length === 1, 'repeated Bridge copy fallback still notifies');
+native.advance(8000); native.update(native.before.status, 'لینک انتخاب شد. دستی کپی کنید.'); check(native.toasts().length === 1, 'repeated Bridge copy fallback still notifies');
 const permanent = fixture(({ element }) => {
 	element('p', { class: 'woocommerce-info' }, 'هنوز خریدی ندارید'); const toggle = element('div', { class: 'woocommerce-form-login-toggle' }); element('div', { class: 'woocommerce-info' }, 'وارد شوید', toggle);
 	return element('div', { class: 'artnovo-received-status', role: 'status' }, 'در انتظار تأیید پرداخت');
@@ -134,17 +134,18 @@ const inline = fixture(({ element }) => {
 	return { form, field, error };
 });
 check(inline.toasts().length === 0 && !inline.before.error.dataset.artnovoToastSource, 'Pinova field validation stays inline instead of becoming a temporary notice');
-inline.advance(5001);
+inline.advance(8001);
 check(inline.before.error.parentElement === inline.before.form && inline.before.error.textContent === 'شماره درست نیست'
-	&& inline.before.error.getAttribute('aria-hidden') === null && !inline.before.error.dataset.artnovoToastSource, 'Pinova field error stays visible and accessible after five seconds');
+	&& inline.before.error.getAttribute('aria-hidden') === null && !inline.before.error.dataset.artnovoToastSource, 'Pinova field error stays visible and accessible after eight seconds');
 check(inline.before.field.getAttribute('aria-describedby') === inline.before.error.id && inline.before.field.getAttribute('aria-invalid') === 'true', 'native field/error relationship and invalid state remain intact');
 inline.update(inline.before.error, 'شماره هنوز کامل نیست');
 check(inline.before.error.getAttribute('pinova-text') === 'forms.authenticate.inputs.identifier.errorMsg'
 	&& inline.before.error.getAttribute('role') === 'alert' && inline.toasts().length === 0, 'native Pinova binding and announcement semantics survive repeated validation');
-inline.advance(5001);
+inline.advance(8001);
 check(inline.before.error.textContent === 'شماره هنوز کامل نیست' && inline.before.error.getAttribute('aria-hidden') === null, 'updated field validation has no toast expiration');
 const close = block.toasts()[0].querySelector('button'); check(close.type === 'button' && close.getAttribute('aria-label') === 'بستن اعلان', 'dismiss has an explicit non-submit type and Persian label');
 close.click(); check(block.toasts().length === 0, 'dismiss closes the toast immediately');
 const css = fs.readFileSync(require('node:path').join(__dirname, '../modules/notices/notices.css'), 'utf8');
 check(css.includes('prefers-reduced-motion: reduce') && css.includes('animation: none') && css.includes('min-height: 44px'), 'reduced-motion and minimum touch size styles exist');
+check(css.includes('artnovo-toast-countdown 8s') && css.includes('background: #214354') && css.includes('border-radius: 23px 23px 23px 10px'), 'countdown CSS shares the eight-second lifetime and the contrasting mobile bubble');
 console.log(`PASS ${checks} notice lifecycle, ownership, security and accessibility assertions`);

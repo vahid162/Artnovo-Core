@@ -47,6 +47,7 @@ test CLI process. Leave the external functional dependencies loaded.
 ```sh
 wp --path="$ARTNOVO_WP_ROOT" --skip-plugins=artnovo-core,artnovo-account-ui,artnovo-header-ui,artnovo-home-order-ui,artnovo-plan-checkout,wordfence eval-file "$ARTNOVO_TEST_ROOT/account/verify-auth.php"
 wp --path="$ARTNOVO_WP_ROOT" --skip-plugins=artnovo-core,artnovo-account-ui,artnovo-header-ui,artnovo-home-order-ui,artnovo-plan-checkout,wordfence eval-file "$ARTNOVO_TEST_ROOT/cart/verify.php"
+wp --path="$ARTNOVO_WP_ROOT" --skip-plugins=artnovo-core,artnovo-account-ui,artnovo-header-ui,artnovo-home-order-ui,artnovo-plan-checkout,wordfence eval-file "$ARTNOVO_TEST_ROOT/cart/verify-ui.php"
 wp --path="$ARTNOVO_WP_ROOT" --skip-plugins=artnovo-core,artnovo-account-ui,artnovo-header-ui,artnovo-home-order-ui,artnovo-plan-checkout,wordfence eval-file "$ARTNOVO_TEST_ROOT/account/verify-render.php"
 wp --path="$ARTNOVO_WP_ROOT" --skip-plugins=artnovo-core,artnovo-account-ui,artnovo-header-ui,artnovo-home-order-ui,artnovo-plan-checkout,wordfence eval-file "$ARTNOVO_TEST_ROOT/received/verify-received.php"
 wp --path="$ARTNOVO_WP_ROOT" --skip-plugins=artnovo-core,artnovo-account-ui,artnovo-header-ui,artnovo-home-order-ui,artnovo-plan-checkout,wordfence eval-file "$ARTNOVO_TEST_ROOT/received/verify-receipt.php"
@@ -73,6 +74,12 @@ memory. The original object cache and flag are restored. Account/received
 checks write synthetic HTML, with local assets inlined, only under
 `ARTNOVO_FIXTURE_OUTPUT_DIR` (or `/tmp/artnovo-core-fixtures` by default). Do not
 commit these HTML files or operational test logs.
+
+The checkout UI fixture reuses the guarded cart setup, renders the actual guest and
+signed-in native checkout, checks exact-draft reuse without a preparation flag,
+and writes synthetic browser previews. Set `ARTNOVO_FIXTURE_FONT` to the local public
+WOFF2 font when inspecting typography. The previews do not run gateway checkout or
+authentication requests; they do not establish an actual payment or delivery.
 
 ## Actual multipart parsing with synthetic storage
 

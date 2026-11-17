@@ -52,6 +52,7 @@ php tests/checkout-context.php
 php tests/notices.php
 node tests/compact-auth.js
 node tests/compact-checkout.js
+node tests/integration/received/verify-tools.js
 node tests/notices.js
 php tests/independence.php
 php tests/migration.php
