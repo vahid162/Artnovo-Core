@@ -49,6 +49,29 @@
 	let quantityPending = false;
 	let reviewCurrent = true;
 	let authPending = form?.dataset.artnovoAuthPending === '1';
+	let historyRecovering = false;
+
+	function recoverPurchaseHistory(persisted = false) {
+		if (!prepare || !persisted && window.performance?.getEntriesByType?.('navigation')?.[0]?.type !== 'back_forward') return false;
+		if (historyRecovering) return true;
+		let url;
+		try {
+			url = new URL(location.href);
+			const action = new URL(prepare.action, location.href);
+			if (url.origin !== location.origin || action.origin !== location.origin || url.pathname !== action.pathname
+				|| url.username || url.password || action.username || action.password
+				|| !/^[1-9][0-9]*$/.test(url.searchParams.get('artnovo_plan') || '')) return false;
+		} catch { return false; }
+		// History can restore an old plan with a fresh revision; let the server recover before any prepare POST.
+		url.searchParams.set('artnovo_checkout', '1');
+		url.searchParams.set('artnovo_refresh', String(Date.now()));
+		url.hash = 'artnovo-order';
+		historyRecovering = true;
+		location.replace(url.href);
+		return true;
+	}
+	if (recoverPurchaseHistory()) return;
+	window.addEventListener('pageshow', (event) => { if (event.persisted) recoverPurchaseHistory(true); });
 
 	function selectionBadge() {
 		const badge = document.createElement('span');

@@ -156,7 +156,7 @@ function render_order( ?\WC_Product $plan ): string {
 		if ( $product && '' !== $product->get_price() ) {
 			$prices[ $id ] = (int) round( wc_add_number_precision( wc_get_price_to_display( $product ) ) );
 			$limits[ $id ] = $checkout ? PlanCheckout\quantity_limit( $product ) : 1;
-			if ( $checkout && $limits[ $id ] > 0 && $product->is_purchasable() ) {
+			if ( $checkout && $limits[ $id ] > 0 && $product->is_purchasable() && [] !== PlanCheckout\payment_candidates( $product, 1 ) ) {
 				$ready[] = (string) $id;
 			}
 		}
@@ -196,8 +196,7 @@ function render_order( ?\WC_Product $plan ): string {
 		data-artnovo-price-decimals="<?php echo esc_attr( (string) $decimals ); ?>"
 		data-artnovo-currency="<?php echo esc_attr( $currency ); ?>">
 		<div class="artnovo-order-intro">
-			<h2 id="artnovo-order-heading">خریدتان را کامل کنید</h2>
-			<p><?php echo $login ? 'پلن و مبلغ را بررسی کنید، سپس روش پرداخت را انتخاب کنید.' : 'پلن و مبلغ را بررسی کنید؛ بعد از ورود، روش پرداخت را انتخاب کنید.'; ?></p>
+			<h2 id="artnovo-order-heading">خرید و دریافت اکانت</h2>
 		</div>
 		<?php if ( $checkout && $login ) : ?>
 			<form method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>" data-artnovo-prepare hidden>
@@ -220,20 +219,20 @@ function render_order( ?\WC_Product $plan ): string {
 					<div><h3 id="artnovo-summary-heading">انتخاب شما</h3><strong class="artnovo-order-plan" data-artnovo-title><?php echo $plan ? esc_html( $plan->get_name() ) : ''; ?></strong></div>
 					<a class="artnovo-order-change" href="#artnovo-plans">تغییر پلن <span aria-hidden="true">←</span></a>
 				</div>
+				<div class="artnovo-order-total" aria-live="polite" aria-atomic="true"><span>مبلغ خرید</span><div data-artnovo-total><?php echo $formatted_total; ?></div></div>
 				<div class="screen-reader-text">
 					<span>قیمت هر اشتراک</span>
 					<strong data-artnovo-price data-artnovo-unit-price><?php echo $formatted_price; ?></strong>
 				</div>
-				<div class="artnovo-order-quantity">
-					<span id="artnovo-order-quantity-label">تعداد اکانت</span>
-					<div class="artnovo-order-quantity-control" role="group" aria-labelledby="artnovo-order-quantity-label" dir="ltr">
+				<details class="artnovo-order-quantity">
+					<summary id="artnovo-order-quantity-label">تعداد اکانت: <span data-artnovo-quantity><?php echo esc_html( persian_number( $quantity ) ); ?></span> <span class="artnovo-order-change">· تغییر تعداد</span></summary>
+					<div class="artnovo-order-quantity-control" role="group" aria-label="تغییر تعداد اکانت" dir="ltr">
 						<button type="button" data-artnovo-quantity-step="-1" aria-label="کم‌کردن تعداد اشتراک" disabled>−</button>
-						<span data-artnovo-quantity dir="auto"><?php echo esc_html( persian_number( $quantity ) ); ?></span>
+						<span>تعداد اکانت</span>
 						<button type="button" data-artnovo-quantity-step="1" aria-label="زیادکردن تعداد اشتراک" disabled>+</button>
 					</div>
-				</div>
+				</details>
 				<div data-artnovo-adjustments class="artnovo-order-adjustments"></div>
-				<div class="artnovo-order-total" aria-live="polite" aria-atomic="true"><span>مبلغ قابل پرداخت</span><div data-artnovo-total><?php echo $formatted_total; ?></div></div>
 				<?php if ( $review ) : ?>
 					<p data-artnovo-quantity-status class="artnovo-order-hint" role="status" hidden></p>
 				<?php endif; ?>
@@ -274,8 +273,9 @@ function render_order( ?\WC_Product $plan ): string {
 				</div>
 			<?php elseif ( $login ) : ?>
 				<div class="artnovo-order-panel">
-					<p role="status"><?php echo $auto_prepare ? 'در حال آماده‌سازی فرم ثبت سفارش.' : ( $can_checkout ? 'فرم سفارش آماده نشد. دوباره تلاش کنید.' : 'خرید این پلن در حال حاضر در دسترس نیست.' ); ?></p>
-					<button type="button" data-artnovo-retry-prepare class="artnovo-order-submit" <?php disabled( ! $can_checkout ); ?> <?php echo $auto_prepare ? 'hidden' : ''; ?>>باز کردن فرم ثبت سفارش</button>
+					<h3>آماده‌سازی پرداخت</h3>
+					<p role="status" data-artnovo-notice-permanent><?php echo $auto_prepare ? 'انتخاب شما حفظ شده است؛ فرم پرداخت در حال آماده‌سازی است.' : ( $can_checkout ? 'فرم پرداخت آماده نشد. برای ادامهٔ همین خرید دوباره تلاش کنید.' : 'روش پرداخت مجاز برای این پلن در دسترس نیست. کمی بعد دوباره بررسی کنید.' ); ?></p>
+					<button type="button" data-artnovo-retry-prepare class="artnovo-order-submit" <?php disabled( ! $can_checkout ); ?> <?php echo $auto_prepare ? 'hidden' : ''; ?>>ادامهٔ همین خرید</button>
 					<noscript>
 						<form method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>">
 							<?php wp_nonce_field( 'artnovo_wizard_checkout', 'artnovo_wizard_nonce', false ); ?>

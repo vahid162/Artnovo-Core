@@ -28,7 +28,7 @@ function account_wizard_return(): string {
 	$draft = Checkout\wizard_draft();
 	return is_int( $draft['product'] ?? null ) && $draft['product'] > 0
 		&& is_int( $draft['quantity'] ?? null ) && $draft['quantity'] > 0
-		? Checkout\wizard_url( $draft['product'] ) : '';
+		? Checkout\wizard_url( $draft['product'], true ) : '';
 }
 
 function account_native_login_url( string $destination = '' ): string {

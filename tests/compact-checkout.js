@@ -178,3 +178,66 @@ assert.equal(sync(state), true);
 assert.equal(state.totals[0].textContent, '۱٬۰۰۰٬۰۰۰ تومان');
 assert.equal(state.adjustments.childNodes.length, 0, 'حذف کوپن، مالیات و هزینه از fragment در خلاصه هم منعکس می‌شود');
 console.log('آزمون همگام‌سازی مبلغ، تخفیف، مالیات، هزینه، fragment و حذف کوپن موفق بود.');
+
+// Run the actual history recovery and its initialization/pageshow wiring before the real prepare helper.
+const recoveryStart = source.indexOf('\tfunction recoverPurchaseHistory(');
+const recoveryEnd = source.indexOf('\n\tfunction selectionBadge()', recoveryStart);
+assert.ok(recoveryStart >= 0 && recoveryEnd > recoveryStart, 'بازیابی واقعی تاریخچه پیش از آماده‌سازی خرید وجود دارد');
+const historyFixture = ({ type = 'navigate', prepare = true, href = 'https://example.test/?artnovo_plan=25#artnovo-order', action = 'https://example.test/' } = {}) => {
+	const replaced = [];
+	const events = new Map();
+	const location = { href, origin: 'https://example.test', replace: (url) => replaced.push(url) };
+	const context = vm.createContext({
+		prepare: prepare ? { action } : null, historyRecovering: false,
+		location, URL, Date: { now: () => 1730000000000 },
+		window: { performance: { getEntriesByType: () => [{ type }] }, addEventListener: (name, listener) => events.set(name, listener) }
+	});
+	// Production's early return exits its enclosing IIFE, so execute the captured block inside the same shape.
+	new vm.Script('(() => {' + source.slice(recoveryStart, recoveryEnd) + '\nglobalThis.readyForPrepare = true; })();').runInContext(context, { timeout: 1000 });
+	return { context, replaced, events, location };
+};
+for (const type of ['navigate', 'reload']) {
+	const normal = historyFixture({ type });
+	assert.equal(normal.context.readyForPrepare, true, 'انتخاب عادی و reload مسیر مستقیم خود را حفظ می‌کنند');
+	assert.deepEqual(normal.replaced, []);
+}
+const back = historyFixture({ type: 'back_forward' });
+assert.equal(back.context.readyForPrepare, undefined, 'بازگشت تاریخچه پیش از auto-prepare قدیمی متوقف می‌شود');
+assert.equal(back.replaced.length, 1);
+const guarded = new URL(back.replaced[0]);
+assert.equal(guarded.searchParams.get('artnovo_plan'), '25');
+assert.equal(guarded.searchParams.get('artnovo_checkout'), '1', 'سرور انتخاب فعلی را در GET محافظت‌شده تعیین می‌کند');
+assert.equal(guarded.searchParams.get('artnovo_refresh'), '1730000000000');
+assert.equal(guarded.hash, '#artnovo-order');
+const cached = historyFixture();
+cached.events.get('pageshow')({ persisted: false });
+assert.deepEqual(cached.replaced, [], 'pageshow عادی رفت‌وبرگشت اضافه نمی‌سازد');
+cached.events.get('pageshow')({ persisted: true });
+cached.events.get('pageshow')({ persisted: true });
+assert.equal(cached.replaced.length, 1, 'بازگشت BFCache فقط یک GET تازه می‌گیرد و فرم قدیمی را POST نمی‌کند');
+assert.equal(new URL(cached.replaced[0]).searchParams.get('artnovo_checkout'), '1');
+for (const options of [
+	{ prepare: false },
+	{ href: 'https://example.test/#artnovo-categories' },
+	{ href: 'https://example.test/?artnovo_plan=0' },
+	{ href: 'https://example.test/?artnovo_plan=25x' },
+	{ href: 'https://external.test/?artnovo_plan=25' },
+	{ href: 'http://example.test/?artnovo_plan=25' },
+	{ href: 'javascript:alert(1)' },
+	{ action: 'https://external.test/' },
+	{ action: 'javascript:alert(1)' },
+	{ action: 'https://example.test/other-route/' },
+	{ action: 'https://user:password@example.test/' }
+]) {
+	const ignored = historyFixture({ type: 'back_forward', ...options });
+	assert.deepEqual(ignored.replaced, [], 'مهمان، نبود پلن و نشانی نامعتبر نباید به بازیابی خرید تبدیل شوند');
+	assert.equal(ignored.context.readyForPrepare, true);
+	ignored.events.get('pageshow')({ persisted: true });
+	assert.deepEqual(ignored.replaced, [], 'BFCache نیز همان مرزهای نشانی و وجود فرم واردشده را حفظ می‌کند');
+}
+const noNavigationApi = historyFixture();
+noNavigationApi.context.window.performance = undefined;
+assert.doesNotThrow(() => noNavigationApi.events.get('pageshow')({ persisted: true }));
+assert.equal(noNavigationApi.replaced.length, 1, 'BFCache برای بازیابی به Navigation Timing وابسته نیست');
+assert.ok(source.indexOf('if (recoverPurchaseHistory()) return;') < source.indexOf("if (order.dataset.artnovoAutoPrepare === '1')"));
+console.log('آزمون بازیابی GET تاریخچه و BFCache، انتخاب عادی، reload و مرزهای نشانی موفق بود.');

@@ -4,6 +4,7 @@
 
 	initServiceLinks();
 	initBankCopy();
+	initReadyCopy();
 
 	function initServiceLinks() {
 		for (const link of root.querySelectorAll('.wpvpn-service a[rel~="noreferrer"]')) {
@@ -25,7 +26,9 @@
 			const details = document.createElement('details');
 			const summary = document.createElement('summary');
 			summary.textContent = 'مشاهدهٔ لینک اتصال';
+			const reference = existing.previousElementSibling?.previousElementSibling;
 			details.append(summary, existing);
+			if (reference?.tagName === 'P' && reference.querySelector('code')) details.append(reference);
 			const field = document.createElement('p');
 			const label = document.createElement('label');
 			label.textContent = 'لینک خصوصی اشتراک';
@@ -39,7 +42,8 @@
 			const actions = document.createElement('p');
 			const copy = document.createElement('button');
 			copy.type = 'button';
-			copy.className = 'button';
+			copy.className = root.dataset.artnovoReceivedMulti === '1' ? 'button artnovo-account-button-secondary' : 'button';
+			if (root.dataset.artnovoReceivedMulti !== '1') copy.dataset.artnovoReceivedPrimary = '';
 			copy.hidden = true;
 			copy.textContent = 'کپی لینک اتصال';
 			const status = document.createElement('span');
@@ -57,6 +61,28 @@
 			if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrange, { once: true });
 			else setTimeout(arrange, 0);
 		}
+	}
+
+	function initReadyCopy() {
+		const button = root.querySelector('[data-artnovo-copy-ready]');
+		const fallback = root.querySelector('[data-artnovo-ready-fallback]');
+		const field = fallback?.querySelector('textarea');
+		if (!button || !field?.value.trim()) return;
+		const status = button.parentElement.querySelector('[data-artnovo-copy-status]');
+		button.hidden = false;
+		button.addEventListener('click', async () => {
+			let message;
+			try {
+				await navigator.clipboard.writeText(field.value);
+				message = 'لینک اکانت‌های آماده کپی شد.';
+			} catch {
+				fallback.hidden = false;
+				field.focus({ preventScroll: true });
+				field.select();
+				message = 'لینک‌های آماده انتخاب شدند؛ آن‌ها را با دستگاه خود کپی کنید.';
+			}
+			if (status) { status.hidden = false; status.textContent = message; }
+		});
 	}
 
 	function initBankCopy() {
@@ -118,6 +144,11 @@
 	for (const form of root.querySelectorAll('[data-artnovo-receipt-form]')) {
 		const submit = form.querySelector('button[type="submit"], input[type="submit"]');
 		const status = form.querySelector('[data-artnovo-upload-status]');
+		const file = form.querySelector('input[type="file"]');
+		const filename = form.querySelector('[data-artnovo-receipt-filename]');
+		file?.addEventListener('change', () => {
+			if (filename) filename.textContent = file.files?.[0]?.name || 'انتخاب تصویر رسید';
+		});
 		form.addEventListener('submit', (event) => {
 			if (form.dataset.artnovoSubmitting === 'true') {
 				event.preventDefault();

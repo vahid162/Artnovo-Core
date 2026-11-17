@@ -47,3 +47,9 @@ function artnovo_fixture_write( string $filename, string $document ): void {
 		throw new RuntimeException( 'Fixture output requires a writable private directory outside the repository.' );
 	}
 }
+
+function artnovo_fixture_font_css(): string {
+	$font = getenv( 'ARTNOVO_FIXTURE_FONT' ) ?: '';
+	return $font && is_readable( $font ) && 'woff2' === pathinfo( $font, PATHINFO_EXTENSION )
+		? '@font-face{font-family:Vazir;src:url(data:font/woff2;base64,' . base64_encode( file_get_contents( $font ) ) . ')}' : '';
+}

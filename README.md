@@ -4,12 +4,27 @@ The site-specific WordPress plugin for ArtNovo. It combines the purchase wizard,
 hidden-cart checkout, sign-in presentation, customer panel, order confirmation,
 receipt form, header behavior and default sender in one package.
 
-Customer-facing transient notices share a bottom-left five-second toast with a
+Customer-facing transient notices share a bottom-left eight-second toast with a
 close control and countdown. Hover/focus and a hidden tab pause its reading time.
 Native validation nodes and handlers remain in place; order/payment state, field
 errors and permanent guidance remain accessible in their local context. The
 post-order service screen keeps the private native URL, receipt and delivery APIs
 inside a compact layout; no payment or issuance is moved into Core.
+
+The purchase and private post-payment screens share a compact navy/mint card and
+one primary action for the current state. Authentication returns through one fresh
+purchase request; an exact, unexpired signed-in cart/draft reuses the native checkout
+without another preparation POST. Separate gateway/return and receipt URLs retain
+their native processing and private authorization.
+
+Payment methods are discovered from WooCommerce's registered gateways. Preselection
+only checks enabled candidates; after preparing the cart, the native availability
+filters and method-specific purchase rules determine which methods can actually be
+shown and submitted. Gateway titles, descriptions, custom fields, fees and processing
+remain native. Installing an enabled, eligible gateway needs no Core-specific ID.
+Bridge 0.2.8 still restricts service payments to bank transfer and its wallet method;
+online service payments require a separately compatible Bridge release. Core never
+restores a gateway removed by another plugin's payment policy.
 
 ## Requirements
 
@@ -80,7 +95,7 @@ This never deletes an existing order, a submitted wallet attempt or payment evid
 
 ## Install and update
 
-After release approval, install the verified `artnovo-core-1.5.1.zip` package from
+After release approval, install the verified `artnovo-core-1.6.0.zip` package from
 the published release. The command below builds a local candidate; a successful
 build alone does not authorize installation. The package contains an
 `artnovo-core/` plugin directory; GitHub's automatic source archives contain the
@@ -143,6 +158,7 @@ php tests/account-native-login.php
 php tests/checkout-context.php
 node tests/compact-auth.js
 node tests/compact-checkout.js
+node tests/integration/received/verify-tools.js
 php tests/independence.php
 php tests/migration.php
 python3 tests/release.py

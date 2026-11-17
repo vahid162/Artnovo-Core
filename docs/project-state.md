@@ -1,6 +1,45 @@
 # Current project state
 
-## Completed outcome and authority
+## Current delivery: continuous purchase 1.6.0 (2026-11-17)
+
+The owner now explicitly requests completion of issues 15/16/17, all remaining
+checks, merge/publication and installation on artnovo.ir. Reuse PR18 and branch
+work/continuous-checkout; only Core may change. Bridge online-payment policy is
+assigned to separate work by the owner. No real charge or message is needed.
+
+The 1.6.0 candidate includes the approved continuous purchase design, native
+WooCommerce gateway discovery, exact-draft reuse/direct fresh auth return, partial
+ready-link copying, native retry-payment skin, eight-second mobile/desktop notices
+and equal-height coupon controls. A fresh regression found wallet-only guest
+preselection blocked before sign-in; the candidate now permits sign-in only, while
+real gateway availability still requires the original customer authorization.
+
+All 62 final standalone/lint/build commands passed, including119 payment
+assertions. All8 native integration commands passed550 executed assertions on an
+independent temporary WordPress/MariaDB clone;32 runtime files match final source.
+Independent final review found no blocking issue. Actual Chrome verified native
+sign-in/payment rendering, coupons, received-copy/manual fallback and responsive
+geometry. Paired valid-draft traces remove the old prepare POST:3 document requests
+become1. Chrome also exposed an old Back page resurrecting an earlier plan; the
+final history/BFCache guard passed the same replay and preserved the newest plan.
+
+Automatic approval review rejected root live-database tests and required isolation;
+those commands were not executed or bypassed. The isolated clone has independent
+credentials/socket and blocked mail/HTTP/cron. All synthetic records stay there.
+No real charge, outbound message, provider issuance or production DB test occurred.
+Published1.5.1 remains installed. PR18 initial CI is green; the reviewed1.6.0 source
+and final evidence are ready to be submitted together.
+
+Next, already authorized: require green checks on final PR18 head, merge, validate
+main, manually publish official1.6.0 ZIP/checksum, atomically install that exact
+artifact with private recovery and verify all35 installed payload files plus
+unchanged Bridge/Wallet/Pinova, activation/wp-config and affected live UI. Then close
+issues15/16/17, record delivery and remove this mission's private QA environment.
+Do not claim publication/installation complete before readback.
+
+See [development/delivery evidence](evidence/2026-11-17-continuous-purchase.md).
+
+## Previously completed outcome and authority
 
 The owner selected **My Accounts** (اکانت‌های من), requested global UX/UI fixes,
 matching mobile/desktop presentation, minimal native Pinova login, compact checkout

@@ -19,7 +19,7 @@ function render_compact_auth( int $product_id, int $quantity, string $selection_
 		'otpUrl' => rest_url( 'pinova/user/login/otp' ),
 		'passwordUrl' => rest_url( 'pinova/user/login/password' ),
 		'restNonce' => wp_create_nonce( 'wp_rest' ),
-		'resumeUrl' => add_query_arg( 'artnovo_resume', '1', wc_get_page_permalink( 'myaccount' ) ),
+		'resumeUrl' => Checkout\wizard_url( $product_id, true ),
 		'refreshUrl' => Checkout\wizard_url( $product_id, true ),
 		'emailOtp' => $email_otp,
 		'emailCodeLength' => Checkout\EMAIL_OTP_DIGITS,
@@ -35,7 +35,7 @@ function render_compact_auth( int $product_id, int $quantity, string $selection_
 		<input type="hidden" name="artnovo_quantity" value="<?php echo esc_attr( (string) $quantity ); ?>">
 		<input type="hidden" name="artnovo_selection_revision" value="<?php echo esc_attr( $selection_revision ); ?>">
 		<input type="hidden" name="artnovo_login_method" value="pinova">
-		<h3 class="artnovo-compact-auth-title">ورود سریع و ادامهٔ خرید</h3>
+		<h3 class="artnovo-compact-auth-title">وارد شوید یا حساب بسازید</h3>
 		<p class="artnovo-compact-auth-hint" id="<?php echo esc_attr( $id . '-hint' ); ?>">جهت دسترسی همیشگی به اکانت خریداری شده وارد شوید یا ثبت نام کنید</p>
 		<label class="artnovo-compact-auth-label" for="<?php echo esc_attr( $id . '-identifier' ); ?>">موبایل، ایمیل یا نام کاربری وارد کنید <span class="required" aria-hidden="true">*</span></label>
 		<input class="artnovo-compact-auth-input" id="<?php echo esc_attr( $id . '-identifier' ); ?>" name="artnovo_auth_identifier" type="text" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="100" value="<?php echo esc_attr( $expires ? $email : '' ); ?>" aria-describedby="<?php echo esc_attr( $id . '-hint ' . $id . '-message' ); ?>" required>

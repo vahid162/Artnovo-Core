@@ -55,9 +55,11 @@ function render_received_receipt( \WC_Order $order ): void {
 				<?php wp_nonce_field( 'artnovo_received_receipt_' . $order->get_id(), 'artnovo_received_receipt_nonce', false ); ?>
 				<input type="hidden" name="artnovo_received_receipt" value="1">
 				<input type="hidden" name="MAX_FILE_SIZE" value="2097152">
-				<label for="artnovo-received-receipt-file">تصویر رسید پرداخت</label>
-				<input id="artnovo-received-receipt-file" type="file" name="wpvpn_receipt" accept="image/jpeg,image/png" required>
-				<button type="submit" class="artnovo-account-button"><?php echo $exists ? 'جایگزینی رسید برای بررسی' : 'ارسال رسید برای بررسی'; ?></button>
+				<label class="artnovo-received-file" for="artnovo-received-receipt-file">
+					<span><strong data-artnovo-receipt-filename>انتخاب تصویر رسید</strong><small>JPG یا PNG · حداکثر ۲ مگابایت</small></span>
+					<input id="artnovo-received-receipt-file" type="file" name="wpvpn_receipt" accept="image/jpeg,image/png" required>
+				</label>
+				<button type="submit" class="artnovo-account-button" <?php if ( ! $exists ) : ?>data-artnovo-received-primary<?php endif; ?>><?php echo $exists ? 'جایگزینی رسید برای بررسی' : 'ارسال رسید برای بررسی'; ?></button>
 				<p data-artnovo-upload-status role="status" hidden></p>
 			</form>
 		<?php endif; ?>

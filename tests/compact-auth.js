@@ -32,7 +32,7 @@ async function testCompactAuth(source, assert) {
 			authenticateUrl: 'https://example.test/wp-json/pinova/user/authenticate',
 			otpUrl: 'https://example.test/wp-json/pinova/user/login/otp',
 			passwordUrl: 'https://example.test/wp-json/pinova/user/login/password',
-			restNonce: 'native-rest-nonce', resumeUrl: 'https://example.test/my-account/?artnovo_resume=1',
+			restNonce: 'native-rest-nonce', resumeUrl: 'https://example.test/?artnovo_plan=26&artnovo_checkout=1#artnovo-order',
 			refreshUrl: 'https://example.test/?artnovo_plan=26&artnovo_checkout=1#artnovo-order',
 			emailOtp: options.emailOtp !== false, emailCodeLength: 6, nativeCodeLength: 4
 		};
@@ -109,7 +109,7 @@ async function testCompactAuth(source, assert) {
 	email.responses.push({ success: true, data: { redirect: 'https://example.test/?artnovo_plan=26' } });
 	await email.submit();
 	check(email.requests[1].body.artnovo_otp_code === '123456' && email.requests[1].body.artnovo_selection_revision === newRevision, 'email proof normalizes digits and posts the latest selection revision');
-	check(email.redirects[0] === 'https://example.test/my-account/?artnovo_resume=1', 'authenticated continuation fetches fresh nonces through canonical resume');
+	check(email.redirects[0] === 'https://example.test/?artnovo_plan=26&artnovo_checkout=1#artnovo-order', 'authenticated continuation makes one fresh purchase GET without the account redirect hop');
 
 	const mobile = fixture({ identifier: '۰۹۱۲۰۰۰۰۰۰۰' });
 	mobile.responses.push(prepared, { success: true, data: { login_method: 'otp', jwt: 'test-native-challenge', ttl: 120 } });
@@ -119,10 +119,12 @@ async function testCompactAuth(source, assert) {
 	check(!mobile.redirects.length && mobile.controls.artnovo_auth_proof.maxLength === 4, 'prepare does not redirect to the full native login page');
 	check(mobile.nodes.edit.textContent === 'ویرایش شماره موبایل', 'mobile proof names the phone editing action');
 	mobile.controls.artnovo_quantity.value = '2';
+	mobile.controls.artnovo_product.value = '27';
 	mobile.controls.artnovo_auth_proof.value = '۱۲۳۴';
 	mobile.responses.push(prepared, { success: true, data: {} });
 	await mobile.submit();
 	check(mobile.requests[2].body.artnovo_quantity === '2' && mobile.requests[3].body.jwt === 'test-native-challenge' && mobile.requests[3].body.code === '1234', 'a changed quantity is prepared before native proof while JWT stays in the verification body');
+	check(new URL(mobile.redirects[0]).searchParams.get('artnovo_plan') === '27' && new URL(mobile.redirects[0]).searchParams.get('artnovo_checkout') === '1', 'the fresh GET follows the prepared current product and retains the server selection guard');
 	check(mobile.busy.join(',') === 'true,false,true', 'selection stays locked through successful native verification and redirect');
 
 	const username = fixture({ identifier: 'returning_user' });

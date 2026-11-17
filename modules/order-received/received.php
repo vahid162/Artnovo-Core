@@ -42,12 +42,61 @@ function received_order(): \WC_Order|false {
 	return $order && get_current_user_id() === $order->get_customer_id() ? $order : false;
 }
 
+function received_payment_order(): \WC_Order|false {
+	if ( ! \Artnovo\Core\bridge_available() || ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'order-pay' ) || get_current_user_id() < 1 ) {
+		return false;
+	}
+	$id = get_query_var( 'order-pay' );
+	$key = $_GET['key'] ?? null;
+	if ( ! is_scalar( $id ) || ! ctype_digit( (string) $id ) || (int) $id < 1 || ! is_string( $key ) || '' === $key ) {
+		return false;
+	}
+	$order = Orders::fresh_order( (int) $id );
+	$snapshot = $order instanceof \WC_Order ? $order->get_meta( '_wpvpn_snapshot', true ) : null;
+	return $order instanceof \WC_Order && get_current_user_id() === $order->get_customer_id()
+		&& hash_equals( $order->get_order_key(), wp_unslash( $key ) ) && \Artnovo\Core\is_service_order( $order )
+		&& is_array( $snapshot ) && Orders::matches_purchase( $order, $snapshot ) && $order->needs_payment() ? $order : false;
+}
+
 add_action( 'template_redirect', static function (): void {
-	if ( received_page() ) {
+	if ( received_page() || received_payment_order() ) {
 		nocache_headers();
 		header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0' );
 	}
 }, 5 );
+
+add_action( 'wp_enqueue_scripts', static function (): void {
+	if ( ! received_payment_order() ) {
+		return;
+	}
+	wp_enqueue_style( 'artnovo-account-ui', plugins_url( '../account/artnovo-account.css', __FILE__ ), [], (string) filemtime( dirname( __DIR__ ) . '/account/artnovo-account.css' ) );
+	wp_enqueue_style( 'artnovo-received-ui', plugins_url( 'received.css', __FILE__ ), [ 'artnovo-account-ui' ], (string) filemtime( __DIR__ . '/received.css' ) );
+}, 20 );
+
+$received_payment_skin = false;
+add_action( 'woocommerce_before_template_part', static function ( string $name, string $path, string $located, array $args ) use ( &$received_payment_skin ): void {
+	if ( 'checkout/form-pay.php' !== $name || ! ( ( $args['order'] ?? null ) instanceof \WC_Order ) ) {
+		return;
+	}
+	$order = received_payment_order();
+	if ( ! $order || $order->get_id() !== $args['order']->get_id() ) {
+		return;
+	}
+	$received_payment_skin = true;
+	?>
+	<section class="artnovo-account artnovo-received artnovo-order-pay" dir="rtl" data-artnovo-native-order-pay>
+		<div class="artnovo-account-card artnovo-received-focus">
+			<?php render_received_summary( $order ); ?>
+			<?php render_received_steps( 2 ); ?>
+			<header class="artnovo-order-pay-heading"><h2>پرداخت همین سفارش را ادامه دهید</h2><p>مبلغ و روش پرداخت این خرید حفظ شده است. پرداخت را با گزینهٔ مجاز همین سفارش ادامه دهید.</p></header>
+	<?php
+}, 10, 4 );
+add_action( 'woocommerce_after_template_part', static function ( string $name ) use ( &$received_payment_skin ): void {
+	if ( 'checkout/form-pay.php' === $name && $received_payment_skin ) {
+		$received_payment_skin = false;
+		echo '</div></section>';
+	}
+}, 10 );
 
 add_filter( 'template_include', static function ( string $template ): string {
 	if ( ! received_page() ) {
@@ -118,15 +167,19 @@ function received_state( \WC_Order $order, ?array $delivery = null ): array {
 	$delivery ??= received_services( $order );
 	$expected = Orders::snapshot_quantity( $snapshot );
 	if ( $order->is_paid() && count( $delivery['links'] ) === $expected ) {
-		return [ 'state' => 'ready', 'title' => $expected > 1 ? 'اشتراک‌هایت آماده‌اند' : 'اشتراکت آماده است', 'message' => 'لینک خصوصی اتصال را از همین صفحه دریافت کن. اشتراک‌ها در پنل کاربری‌ات هم در دسترس هستند.', 'step' => 4 ];
+		return [ 'state' => 'ready', 'title' => $expected > 1 ? 'اکانت‌های شما آماده‌اند' : 'اکانت شما آماده است', 'message' => 'لینک اتصال را کپی کنید و در برنامهٔ خود اضافه کنید. اکانت در «اکانت‌های من» هم در دسترس است.', 'step' => 4 ];
+	}
+	if ( $order->is_paid() && count( $delivery['links'] ) > 0 && count( $delivery['links'] ) < $expected ) {
+		return [ 'state' => 'partial', 'title' => sprintf( '%s از %s اکانت آماده است', number_format_i18n( count( $delivery['links'] ) ), number_format_i18n( $expected ) ),
+			'message' => 'از اکانت‌های آماده استفاده کنید. وضعیت باقی اکانت‌های همین سفارش را از این صفحه پیگیری کنید.', 'step' => 3 ];
 	}
 	if ( ! $order->is_paid() ) {
 		if ( received_receipt_exists( $order ) ) {
-			return [ 'state' => 'receipt', 'title' => 'رسیدت دریافت شد', 'message' => 'رسید برای بررسی پرداخت ثبت شده است. بعد از تأیید پرداخت، آماده‌سازی اشتراک شروع می‌شود.', 'step' => 2 ];
+			return [ 'state' => 'receipt', 'title' => 'رسید ثبت شد؛ منتظر تأیید پرداخت', 'message' => 'رسید شما برای بررسی دریافت شد. پس از تأیید پرداخت، آماده‌سازی اکانت انجام می‌شود.', 'step' => 2 ];
 		}
-		return [ 'state' => 'pending', 'title' => 'سفارشت ثبت شد', 'message' => 'bacs' === $order->get_payment_method()
-			? 'اطلاعات واریز و ارسال رسید همین‌جاست. اگر واریز را انجام داده‌ای، رسید آن را بفرست.'
-			: 'پرداخت این خرید هنوز تأیید نشده است. وضعیت را از همین صفحه پیگیری کن.', 'step' => 2 ];
+		return [ 'state' => 'pending', 'title' => 'bacs' === $order->get_payment_method() ? 'واریز کنید و رسید را بفرستید' : 'تأیید پرداخت هنوز دریافت نشده است', 'message' => 'bacs' === $order->get_payment_method()
+			? 'سفارش ثبت شده است. پس از واریز مبلغ خرید، تصویر رسید را ارسال کنید.'
+			: 'پرداخت این سفارش هنوز تأیید نشده است. وضعیت را تازه کنید یا در صورت امکان، پرداخت همین سفارش را ادامه دهید.', 'step' => 2 ];
 	}
 	$store = new Store();
 	$operation = $store->get_by_order( $order->get_id() );
@@ -149,9 +202,7 @@ function received_state( \WC_Order $order, ?array $delivery = null ): array {
 		return [ 'state' => 'closed', 'title' => 'اعتبار این اشتراک به پایان رسیده است', 'message' => 'می‌توانید اشتراک تازه‌ای از صفحهٔ خرید انتخاب کنید یا خریدهای دیگر را در پنل ببینید.', 'step' => 4 ];
 	}
 	if ( $issuing ) {
-		return [ 'state' => 'issuing', 'title' => 'اشتراک در حال آماده‌سازی است', 'message' => $delivery['links']
-			? 'بخشی از اشتراک‌ها آماده شده است. وضعیت بقیه را همین‌جا پیگیری کن.'
-			: 'پرداخت تأیید شده و آماده‌سازی در جریان است. با دکمهٔ به‌روزرسانی، وضعیت تازه را ببین.', 'step' => 3 ];
+		return [ 'state' => 'issuing', 'title' => 'اکانت در حال آماده‌سازی است', 'message' => 'پرداخت تأیید شده است. لینک اتصال پس از آماده‌شدن در همین بخش نمایش داده می‌شود.', 'step' => 3 ];
 	}
 	return [ 'state' => 'review', 'title' => 'آماده‌سازی نیاز به بررسی دارد', 'message' => 'برای پیگیری وضعیت پرداخت یا تحویل اشتراک، شمارهٔ خرید را به پشتیبانی بفرست.', 'step' => 3 ];
 }
@@ -192,6 +243,27 @@ function received_integrations( \WC_Order $order ): void {
 	}
 }
 
+function render_received_summary( \WC_Order $order ): void {
+	?>
+	<section class="artnovo-received-summary" aria-label="خلاصهٔ خرید">
+		<div class="artnovo-received-plans"><?php foreach ( $order->get_items() as $item ) : ?>
+			<p><strong><?php echo esc_html( $item->get_name() ); ?></strong><span><?php echo esc_html( 'تعداد ' . number_format_i18n( $item->get_quantity() ) ); ?></span></p>
+		<?php endforeach; ?></div>
+		<div class="artnovo-received-total"><span>مبلغ خرید</span><strong class="artnovo-received-amount"><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></strong></div>
+	</section>
+	<?php
+}
+
+function render_received_steps( int $current, bool $ready = false ): void {
+	?>
+	<ol class="artnovo-received-progress" aria-label="مراحل خرید">
+		<?php foreach ( [ 1 => 'ورود', 2 => 'پرداخت', 3 => 'دریافت اکانت' ] as $number => $label ) : ?>
+			<li <?php if ( $number < $current || $ready ) : ?>data-complete="true"<?php endif; ?> <?php if ( $number === $current ) : ?>aria-current="step"<?php endif; ?>><?php echo esc_html( $label ); ?></li>
+		<?php endforeach; ?>
+	</ol>
+	<?php
+}
+
 function render_received_page(): void {
 	$order = received_order();
 	if ( ! $order ) {
@@ -215,42 +287,41 @@ function render_received_page(): void {
 	$can_upload = received_receipt_can_upload( $order );
 	$has_receipt = received_receipt_exists( $order );
 	$has_services = $order->is_paid() && '' !== $delivery['html'];
+	$snapshot = $order->get_meta( '_wpvpn_snapshot', true );
+	$expected = is_array( $snapshot ) && class_exists( Orders::class ) ? Orders::snapshot_quantity( $snapshot ) : 1;
+	$ready_count = $order->is_paid() ? count( $delivery['links'] ) : 0;
+	$multi = $expected > 1;
+	$journey_step = $state['step'] >= 3 ? 3 : 2;
 	$refresh = add_query_arg( 'artnovo_status', wp_generate_uuid4(), received_order_url( $order ) ) . '#artnovo-received-status';
 	$support = add_query_arg( 'order', $order->get_id(), account_url( 'support' ) );
 	$primary = match ( $state['state'] ) {
-		'pending' => $can_upload ? [ '#artnovo-received-receipt', 'ارسال رسید پرداخت' ] : [ $refresh, 'به‌روزرسانی وضعیت' ],
-		'receipt', 'issuing' => [ $refresh, 'به‌روزرسانی وضعیت' ],
+		'pending' => $can_upload ? [ '#artnovo-received-receipt', 'ارسال رسید پرداخت' ]
+			: ( $order->needs_payment() && ! in_array( $order->get_payment_method(), [ 'bacs', 'wpvpn_wallet' ], true )
+				? [ $order->get_checkout_payment_url(), 'ادامهٔ پرداخت همین سفارش' ] : [ $refresh, 'به‌روزرسانی وضعیت' ] ),
+		'receipt', 'issuing', 'partial' => [ $refresh, 'به‌روزرسانی وضعیت' ],
 		'ready' => [ '#artnovo-received-services', 'دریافت لینک اتصال' ],
 		'failed' => $order->needs_payment() && 'wpvpn_wallet' !== $order->get_payment_method()
 			? [ $order->get_checkout_payment_url(), 'ادامهٔ پرداخت همین خرید' ] : [ $support, 'پیگیری پرداخت با پشتیبانی' ],
 		default => [ $support, 'پشتیبانی این خرید' ],
 	};
 	?>
-	<main id="content" class="artnovo-account artnovo-received" dir="rtl" data-state="<?php echo esc_attr( $state['state'] ); ?>">
+		<main id="content" class="artnovo-account artnovo-received" dir="rtl" data-state="<?php echo esc_attr( $state['state'] ); ?>" data-artnovo-received-multi="<?php echo $multi ? '1' : '0'; ?>">
 		<header class="artnovo-received-header">
 			<p class="artnovo-account-muted">خرید <bdi><?php echo esc_html( $order->get_order_number() ); ?></bdi></p>
 			<a href="<?php echo esc_url( account_url() ); ?>">اکانت‌های من</a>
 		</header>
-		<section class="artnovo-received-summary" aria-label="خلاصهٔ خرید">
-			<div class="artnovo-received-plans"><?php foreach ( $order->get_items() as $item ) : ?>
-				<p><strong><?php echo esc_html( $item->get_name() ); ?></strong><span><?php echo esc_html( 'تعداد ' . number_format_i18n( $item->get_quantity() ) ); ?></span></p>
-			<?php endforeach; ?></div>
-			<div class="artnovo-received-total"><span>مبلغ خرید</span><strong class="artnovo-received-amount"><?php echo wp_kses_post( $order->get_formatted_order_total() ); ?></strong></div>
-		</section>
-		<div class="artnovo-received-layout">
-			<div class="artnovo-received-main">
-				<section class="artnovo-account-card artnovo-received-focus">
+			<div class="artnovo-received-layout">
+				<div class="artnovo-received-main">
+					<section class="artnovo-account-card artnovo-received-focus">
+						<?php render_received_summary( $order ); ?>
+						<?php render_received_steps( $journey_step, 'ready' === $state['state'] ); ?>
 					<div class="artnovo-received-status" id="artnovo-received-status" data-state="<?php echo esc_attr( $state['state'] ); ?>">
 						<span class="artnovo-received-state-mark" aria-hidden="true"><?php echo 'ready' === $state['state'] ? '✓' : '•'; ?></span>
 						<div><h1><?php echo esc_html( $state['title'] ); ?></h1><p><?php echo esc_html( $state['message'] ); ?></p></div>
 					</div>
-					<ol class="artnovo-received-progress" aria-label="وضعیت خرید">
-						<?php foreach ( [ 1 => 'ثبت خرید', 2 => 'تأیید پرداخت', 3 => 'آماده‌سازی', 4 => 'دریافت اکانت' ] as $number => $label ) : ?>
-							<li <?php if ( $number < $state['step'] || 'ready' === $state['state'] ) : ?>data-complete="true"<?php endif; ?> <?php if ( $number === $state['step'] ) : ?>aria-current="step"<?php endif; ?>><?php echo esc_html( $label ); ?></li>
-						<?php endforeach; ?>
-					</ol>
+						<p class="artnovo-received-fact" data-artnovo-notice-permanent><?php echo esc_html( in_array( $state['state'], [ 'issuing', 'partial', 'ready' ], true ) ? 'پرداخت تأیید شده است.' : ( 'receipt' === $state['state'] ? 'پرداخت در انتظار بررسی است.' : 'شمارهٔ پیگیری: ' . $order->get_order_number() ) ); ?></p>
 					<?php wc_print_notices(); ?>
-					<?php if ( ! ( 'pending' === $state['state'] && $can_upload ) && ! ( 'ready' === $state['state'] && $has_services ) ) : ?>
+						<?php if ( ! ( 'pending' === $state['state'] && $can_upload ) && 0 === $ready_count ) : ?>
 						<div class="artnovo-received-primary"><a class="artnovo-account-button" data-artnovo-received-primary href="<?php echo esc_url( $primary[0] ); ?>"><?php echo esc_html( $primary[1] ); ?></a></div>
 					<?php endif; ?>
 					<?php if ( 'pending' === $state['state'] && $can_upload ) : ?>
@@ -265,11 +336,18 @@ function render_received_page(): void {
 						</div>
 					<?php endif; ?>
 					<?php if ( $has_services ) : ?>
+							<?php if ( $multi && $ready_count > 0 ) : ?>
+								<div class="artnovo-received-batch">
+									<button type="button" class="artnovo-account-button" data-artnovo-copy-ready data-artnovo-received-primary hidden>کپی لینک‌های آماده · <?php echo esc_html( number_format_i18n( $ready_count ) . ' از ' . number_format_i18n( $expected ) ); ?></button>
+									<div data-artnovo-ready-fallback hidden><label for="artnovo-received-ready-links">لینک اکانت‌های آماده</label><textarea id="artnovo-received-ready-links" dir="ltr" readonly><?php echo esc_textarea( implode( "\n", $delivery['links'] ) ); ?></textarea></div>
+									<p data-artnovo-copy-status role="status" hidden></p>
+								</div>
+							<?php endif; ?>
 						<section id="artnovo-received-services" class="artnovo-received-services" aria-label="اکانت‌های این خرید"><?php echo $delivery['html']; ?></section>
 					<?php endif; ?>
 				</section>
 				<nav class="artnovo-received-links" aria-label="پیگیری و راهنمای خرید">
-					<?php if ( $primary[0] !== $refresh ) : ?><a href="<?php echo esc_url( $refresh ); ?>">به‌روزرسانی وضعیت</a><?php endif; ?>
+						<?php if ( $primary[0] !== $refresh || $ready_count > 0 ) : ?><a href="<?php echo esc_url( $refresh ); ?>"><?php echo 'partial' === $state['state'] ? 'بررسی باقی اکانت‌ها' : 'به‌روزرسانی وضعیت'; ?></a><?php endif; ?>
 					<a href="<?php echo esc_url( account_url( 'help' ) ); ?>">راهنمای اتصال</a>
 					<?php if ( $primary[0] !== $support ) : ?><a href="<?php echo esc_url( $support ); ?>">پشتیبانی این خرید</a><?php endif; ?>
 				</nav>

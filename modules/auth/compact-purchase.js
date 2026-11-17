@@ -88,7 +88,12 @@
 		};
 		const complete = () => {
 			const url = safeUrl(config.resumeUrl, config.resumeUrl);
-			if (!url) throw new Error('ورود انجام شد؛ صفحهٔ خرید را دوباره باز کنید.');
+			const product = form.elements.namedItem('artnovo_product')?.value;
+			if (!url || !/^[1-9][0-9]*$/.test(product || '')) throw new Error('ورود انجام شد؛ صفحهٔ خرید را دوباره باز کنید.');
+			// Fetch the authenticated session once; the server resolves any newer selection.
+			url.searchParams.set('artnovo_plan', product);
+			url.searchParams.set('artnovo_checkout', '1');
+			url.hash = 'artnovo-order';
 			challengeJwt = '';
 			proof.value = '';
 			leaving = true;

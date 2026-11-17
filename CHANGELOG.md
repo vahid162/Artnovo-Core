@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+## 1.6.0 — 2026-11-17
+
+- Implement the approved continuous purchase design on mobile and desktop: a
+  shared compact card, stable order summary and one primary action per state.
+- Discover native WooCommerce gateways without a fixed Core list; retain native
+  fields, availability filters, quantity constraints and original-order payment
+  authorization. Bridge's existing service-payment policy remains authoritative.
+- Reuse a valid authenticated checkout draft and return directly from compact
+  authentication with a fresh purchase GET, preserving nonce/revision/selection
+  guards and silent replacement of an unpaid plan. Recover history/BFCache through
+  a guarded GET before an old page can replay its prepare POST.
+- Allow a guest to sign in before wallet customer eligibility is known when the
+  wallet is the only configured payment candidate; authorize payment only after
+  authentication through the original strict native/Bridge rules.
+- Distinguish partial service delivery and copy only ready private links, with
+  secondary per-account controls and a manual selection fallback.
+- Align coupon field/action heights and extend transient notices to eight seconds,
+  with a contrasting surface, thin stroke, soft shadow and mobile bubble shape.
+
 ## 1.5.1 — 2026-11-16
 
 - Keep Pinova field-validation errors beside their input until native validation
