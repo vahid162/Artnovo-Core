@@ -57,6 +57,7 @@ function do_action( string $hook, ...$args ): void {
 }
 function remove_action(string $name,callable $callback,int $priority=10):void{foreach($GLOBALS['hooks'][$name][$priority]??[] as $i=>$hook){if($hook[0]===$callback)unset($GLOBALS['hooks'][$name][$priority][$i]);}}
 function wp_verify_nonce( string $nonce, string $action ): bool { return ('valid-checkout' === $nonce && 'woocommerce-process_checkout' === $action)||('valid-review'===$nonce&&'update-order-review'===$action)||('valid-wizard'===$nonce&&'artnovo_wizard_checkout'===$action); }
+function wp_create_nonce( string $action ): string { return 'fresh-' . $action; }
 class SyntheticResponse extends RuntimeException { public function __construct(public array $payload){parent::__construct('Synthetic response');} }
 function wp_send_json(array $payload):never{throw new SyntheticResponse($payload);}
 function wp_send_json_error(array $data,int $status=200):never{throw new SyntheticResponse(['success'=>false,'data'=>$data,'status'=>$status]);}
@@ -378,6 +379,48 @@ $without_flag=Artnovo\PlanCheckout\wizard_update_selection(true,'');
 check('guest native AJAX exception requires its explicit AJAX marker',true===($without_flag['selection_changed']??false)&&!isset($persisted[Artnovo\PlanCheckout\WIZARD_DRAFT]));
 $prepare['artnovo_wizard_ajax']='1';$origin='https://foreign.example';$before=$persisted;$before_events=count($lock_events);$response=wizard_post($prepare);$origin='https://example.test';
 check('native guest AJAX preparation rejects a foreign origin before selection writes',false===($response['success']??null)&&403===($response['status']??0)&&$persisted===$before&&$before_events===count($lock_events));
+
+// Explicit asynchronous selection has the same origin/revision/lock fences as native preparation.
+$persisted=[];WC()->session=new WC_Session_Handler();WC()->cart->items=[];$current_user=0;
+$instant=['artnovo_wizard_nonce'=>'valid-wizard','artnovo_wizard_ajax'=>'1','artnovo_wizard_select'=>'1','artnovo_product'=>'25','artnovo_quantity'=>'2','artnovo_selection_revision'=>Artnovo\PlanCheckout\wizard_selection_revision()];
+$response=wizard_post($instant);
+check('explicit guest selection returns canonical identity and fresh authentication nonces without preparing payment',true===($response['success']??false)&&25===($response['data']['product']??0)&&'25:2'===($response['data']['cart_identity']??'')&&''===($response['data']['checkout_html']??null)&&''===($response['data']['checkout_assets']??null)&&'fresh-wp_rest'===($response['data']['rest_nonce']??'')&&'fresh-artnovo_wizard_checkout'===($response['data']['wizard_nonce']??'')&&[]===WC()->cart->items&&0===$current_user);
+finish_request();$before=$persisted;$response=wizard_post($instant);
+check('old explicit selection cannot replace a newer revision',true===($response['data']['selection_changed']??false)&&$persisted===$before);
+finish_request();
+$current_user=7;WC()->session=new WC_Session_Handler($snapshot_b);WC()->cart->items=$snapshot_b['cart'];$persisted=$snapshot_b;
+$instant['artnovo_selection_revision']=Artnovo\PlanCheckout\wizard_selection_revision();$_POST=$instant;
+$selected=Artnovo\PlanCheckout\wizard_update_selection(true,'');
+check('an explicit signed-in asynchronous card selection silently replaces another plan',25===($selected['product']??0)&&'same'===Artnovo\PlanCheckout\cart_selection(25,2)&&1===count(WC()->cart->items));
+finish_request();$before=$persisted;$instant['artnovo_selection_revision']=Artnovo\PlanCheckout\wizard_selection_revision();
+$origin='https://foreign.example';$response=wizard_post($instant);$origin='https://example.test';
+check('signed-in asynchronous selection rejects foreign origin and creates no order or charge',false===($response['success']??null)&&403===($response['status']??0)&&$before===$persisted&&1===$native_creates&&1===$native_charges);
+finish_request();
+
+// Rejected requests may already have loaded A while another tab persisted B.
+// Shutdown must not write that old snapshot, even though rejection happens before the lock.
+foreach ( [
+	'foreign signed-in selection' => [ 7, 'https://foreign.example', [ 'artnovo_wizard_select' => '1' ] ],
+	'foreign guest native preparation' => [ 0, 'https://foreign.example', [ 'artnovo_login_method' => 'pinova' ] ],
+	'foreign guest OTP request' => [ 0, 'https://foreign.example', [ 'artnovo_otp_action' => 'send' ] ],
+	'signed-in OTP request' => [ 7, 'https://example.test', [ 'artnovo_otp_action' => 'send' ] ],
+] as $case => [ $current_user, $origin, $extra ] ) {
+	$persisted = $snapshot_b;
+	WC()->session = new WC_Session_Handler( $snapshot_a );
+	WC()->cart->items = $snapshot_a['cart'];
+	$before_events = count( $lock_events );
+	$response = wizard_post( $extra + [
+		'artnovo_wizard_nonce' => 'valid-wizard', 'artnovo_wizard_ajax' => '1',
+		'artnovo_product' => '25', 'artnovo_quantity' => '1', 'artnovo_selection_revision' => $token_a,
+	] );
+	check( "$case is rejected without mutating the loaded session, cart or payment boundary",
+		false === ( $response['success'] ?? null ) && 403 === ( $response['status'] ?? 0 )
+		&& $snapshot_a === WC()->session->data && $snapshot_a['cart'] === WC()->cart->items
+		&& $before_events === count( $lock_events ) && 1 === $native_creates && 1 === $native_charges );
+	finish_request();
+	check( "$case shutdown preserves the newer selection B", $snapshot_b === $persisted );
+}
+$origin = 'https://example.test';
 
 // Contact-free checkout belongs only to the authenticated, unchanged Core purchase.
 $current_user=7;$wizard_page=true;$_GET=['artnovo_plan'=>'26','artnovo_checkout'=>'1'];$_POST=['payment_method'=>'bacs'];

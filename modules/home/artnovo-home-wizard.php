@@ -80,7 +80,7 @@ function state(): array {
 }
 
 function persian_number( int $number ): string {
-	return strtr( (string) $number, [ '0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴', '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹' ] );
+	return \Artnovo\Core\display_digits( (string) $number );
 }
 
 function progress( int $step, int $month, ?\WC_Product $plan ): string {
@@ -133,11 +133,42 @@ function checkout_coupon_form(): void {
 }
 
 function checkout_account_hint(): void {
-	echo '<p class="artnovo-order-account">✓ ورود انجام شد</p><p class="artnovo-order-hint">اطلاعات اکانت پس از تأیید پرداخت در حساب کاربری شما نمایش داده می‌شود.</p>';
+	echo '<div class="artnovo-order-heading-group artnovo-order-login-confirmation" data-artnovo-notice-permanent><h3 class="artnovo-order-account">✓ ورود انجام شد</h3><p class="artnovo-order-hint">اطلاعات اکانت پس از تأیید پرداخت در حساب کاربری شما نمایش داده می‌شود.</p></div>';
 }
 
 function checkout_payment_heading(): void {
 	echo '<h3 class="artnovo-payment-heading">روش پرداخت را انتخاب کنید</h3>';
+}
+
+function render_native_checkout(): string {
+	$open_review = static function (): void {
+		echo '<section class="artnovo-checkout-review" aria-labelledby="order_review_heading">';
+	};
+	$close_review = static function (): void {
+		echo '</section>';
+	};
+	$default_coupon_form = remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form' );
+	add_action( 'woocommerce_before_checkout_form', __NAMESPACE__ . '\\checkout_coupon_form', 20 );
+	add_action( 'woocommerce_before_checkout_billing_form', __NAMESPACE__ . '\\checkout_account_hint' );
+	add_action( 'woocommerce_checkout_before_order_review_heading', $open_review );
+	add_action( 'woocommerce_checkout_after_order_review', $close_review, 5 );
+	add_action( 'woocommerce_review_order_before_payment', __NAMESPACE__ . '\\checkout_payment_heading' );
+	ob_start();
+	try {
+		echo do_shortcode( '[woocommerce_checkout]' );
+		$content = (string) ob_get_contents();
+	} finally {
+		ob_end_clean();
+		remove_action( 'woocommerce_review_order_before_payment', __NAMESPACE__ . '\\checkout_payment_heading' );
+		remove_action( 'woocommerce_checkout_after_order_review', $close_review, 5 );
+		remove_action( 'woocommerce_checkout_before_order_review_heading', $open_review );
+		remove_action( 'woocommerce_before_checkout_billing_form', __NAMESPACE__ . '\\checkout_account_hint' );
+		remove_action( 'woocommerce_before_checkout_form', __NAMESPACE__ . '\\checkout_coupon_form', 20 );
+		if ( $default_coupon_form ) {
+			add_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form' );
+		}
+	}
+	return $content;
 }
 
 function render_order( ?\WC_Product $plan ): string {
@@ -179,8 +210,8 @@ function render_order( ?\WC_Product $plan ): string {
 	$can_checkout = in_array( (string) $plan_id, $ready, true );
 	$auto_prepare = $login && $can_checkout && ! $review && '1' !== ( $_GET['artnovo_prepare_failed'] ?? null );
 	$unit_price = $plan ? ( $prices[ $plan->get_id() ] ?? 0 ) / ( 10 ** $decimals ) : 0;
-	$formatted_price = $plan ? wp_kses_post( wc_price( $unit_price ) ) : '';
-	$formatted_total = $review && WC()->cart ? wp_kses_post( WC()->cart->get_total() ) : ( $plan ? wp_kses_post( wc_price( $quantity * $unit_price ) ) : '' );
+	$formatted_price = $plan ? \Artnovo\Core\display_number_html( wp_kses_post( wc_price( $unit_price ) ), true ) : '';
+	$formatted_total = $review && WC()->cart ? \Artnovo\Core\display_number_html( wp_kses_post( WC()->cart->get_total() ), true ) : ( $plan ? \Artnovo\Core\display_number_html( wp_kses_post( wc_price( $quantity * $unit_price ) ), true ) : '' );
 
 	ob_start();
 	?>
@@ -194,6 +225,8 @@ function render_order( ?\WC_Product $plan ): string {
 		data-artnovo-draft-plan="<?php echo esc_attr( $draft_plan ? (string) $draft_plan : '' ); ?>"
 		data-artnovo-draft-quantity="<?php echo esc_attr( (string) $draft_quantity ); ?>"
 		data-artnovo-price-decimals="<?php echo esc_attr( (string) $decimals ); ?>"
+		data-artnovo-price-thousand-separator="<?php echo esc_attr( $woocommerce ? wc_get_price_thousand_separator() : ',' ); ?>"
+		data-artnovo-price-decimal-separator="<?php echo esc_attr( $woocommerce ? wc_get_price_decimal_separator() : '.' ); ?>"
 		data-artnovo-currency="<?php echo esc_attr( $currency ); ?>">
 		<div class="artnovo-order-intro">
 			<h2 id="artnovo-order-heading">خرید و دریافت اکانت</h2>
@@ -216,77 +249,48 @@ function render_order( ?\WC_Product $plan ): string {
 		<div class="artnovo-order-layout" data-artnovo-selected <?php echo $plan ? '' : 'hidden'; ?>>
 			<aside class="artnovo-order-summary" aria-labelledby="artnovo-summary-heading">
 				<div class="artnovo-order-product">
-					<div><h3 id="artnovo-summary-heading">انتخاب شما</h3><strong class="artnovo-order-plan" data-artnovo-title><?php echo $plan ? esc_html( $plan->get_name() ) : ''; ?></strong></div>
+					<div><h3 id="artnovo-summary-heading">انتخاب شما</h3><strong class="artnovo-order-plan" data-artnovo-title><?php echo $plan ? esc_html( \Artnovo\Core\display_digits( $plan->get_name() ) ) : ''; ?></strong></div>
 					<a class="artnovo-order-change" href="#artnovo-plans">تغییر پلن <span aria-hidden="true">←</span></a>
 				</div>
-				<div class="artnovo-order-total" aria-live="polite" aria-atomic="true"><span>مبلغ خرید</span><div data-artnovo-total><?php echo $formatted_total; ?></div></div>
 				<div class="screen-reader-text">
 					<span>قیمت هر اشتراک</span>
 					<strong data-artnovo-price data-artnovo-unit-price><?php echo $formatted_price; ?></strong>
 				</div>
-				<details class="artnovo-order-quantity">
-					<summary id="artnovo-order-quantity-label">تعداد اکانت: <span data-artnovo-quantity><?php echo esc_html( persian_number( $quantity ) ); ?></span> <span class="artnovo-order-change">· تغییر تعداد</span></summary>
-					<div class="artnovo-order-quantity-control" role="group" aria-label="تغییر تعداد اکانت" dir="ltr">
+				<div class="artnovo-order-quantity">
+					<span id="artnovo-order-quantity-label">تعداد اکانت</span>
+					<div class="artnovo-order-quantity-control" role="group" aria-labelledby="artnovo-order-quantity-label" dir="ltr">
 						<button type="button" data-artnovo-quantity-step="-1" aria-label="کم‌کردن تعداد اشتراک" disabled>−</button>
-						<span>تعداد اکانت</span>
+						<span data-artnovo-quantity><?php echo esc_html( persian_number( $quantity ) ); ?></span>
 						<button type="button" data-artnovo-quantity-step="1" aria-label="زیادکردن تعداد اشتراک" disabled>+</button>
 					</div>
-				</details>
+				</div>
+				<div class="artnovo-order-total" aria-live="polite" aria-atomic="true"><span>مبلغ قابل پرداخت</span><div data-artnovo-total><?php echo $formatted_total; ?></div></div>
 				<div data-artnovo-adjustments class="artnovo-order-adjustments"></div>
-				<?php if ( $review ) : ?>
-					<p data-artnovo-quantity-status class="artnovo-order-hint" role="status" hidden></p>
-				<?php endif; ?>
+				<p data-artnovo-quantity-status class="artnovo-order-hint" role="status" hidden></p>
 			</aside>
 			<ol class="artnovo-order-steps" aria-label="مراحل تکمیل خرید">
 				<li <?php echo $login ? 'data-complete="true"' : 'aria-current="step"'; ?>><span aria-hidden="true"><?php echo $login ? '✓' : '۱'; ?></span>ورود</li>
 				<li <?php echo $login ? 'aria-current="step"' : ''; ?>><span aria-hidden="true">۲</span>پرداخت</li>
 				<li><span aria-hidden="true">۳</span>دریافت اکانت</li>
 			</ol>
-			<?php if ( $review ) : ?>
-				<div class="artnovo-order-native">
-					<?php
-					$open_review = static function (): void {
-						echo '<section class="artnovo-checkout-review" aria-labelledby="order_review_heading">';
-					};
-					$close_review = static function (): void {
-						echo '</section>';
-					};
-					$default_coupon_form = remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form' );
-					add_action( 'woocommerce_before_checkout_form', __NAMESPACE__ . '\\checkout_coupon_form', 20 );
-					add_action( 'woocommerce_before_checkout_billing_form', __NAMESPACE__ . '\\checkout_account_hint' );
-					add_action( 'woocommerce_checkout_before_order_review_heading', $open_review );
-					add_action( 'woocommerce_checkout_after_order_review', $close_review, 5 );
-					add_action( 'woocommerce_review_order_before_payment', __NAMESPACE__ . '\\checkout_payment_heading' );
-					try {
-						echo do_shortcode( '[woocommerce_checkout]' );
-					} finally {
-						remove_action( 'woocommerce_review_order_before_payment', __NAMESPACE__ . '\\checkout_payment_heading' );
-						remove_action( 'woocommerce_checkout_after_order_review', $close_review, 5 );
-						remove_action( 'woocommerce_checkout_before_order_review_heading', $open_review );
-						remove_action( 'woocommerce_before_checkout_billing_form', __NAMESPACE__ . '\\checkout_account_hint' );
-						remove_action( 'woocommerce_before_checkout_form', __NAMESPACE__ . '\\checkout_coupon_form', 20 );
-						if ( $default_coupon_form ) {
-							add_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form' );
-						}
-					}
-					?>
-				</div>
-			<?php elseif ( $login ) : ?>
-				<div class="artnovo-order-panel">
-					<h3>آماده‌سازی پرداخت</h3>
-					<p role="status" data-artnovo-notice-permanent><?php echo $auto_prepare ? 'انتخاب شما حفظ شده است؛ فرم پرداخت در حال آماده‌سازی است.' : ( $can_checkout ? 'فرم پرداخت آماده نشد. برای ادامهٔ همین خرید دوباره تلاش کنید.' : 'روش پرداخت مجاز برای این پلن در دسترس نیست. کمی بعد دوباره بررسی کنید.' ); ?></p>
-					<button type="button" data-artnovo-retry-prepare class="artnovo-order-submit" <?php disabled( ! $can_checkout ); ?> <?php echo $auto_prepare ? 'hidden' : ''; ?>>ادامهٔ همین خرید</button>
-					<noscript>
-						<form method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>">
-							<?php wp_nonce_field( 'artnovo_wizard_checkout', 'artnovo_wizard_nonce', false ); ?>
-							<input type="hidden" name="artnovo_selection_revision" value="<?php echo esc_attr( $selection_revision ); ?>">
-							<input type="hidden" name="artnovo_product" value="<?php echo esc_attr( (string) $plan_id ); ?>">
-							<input type="hidden" name="artnovo_quantity" value="<?php echo esc_attr( (string) $quantity ); ?>">
-							<button type="submit" <?php disabled( ! $can_checkout ); ?>>باز کردن فرم ثبت سفارش</button>
-						</form>
-					</noscript>
-				</div>
-			<?php else : ?>
+			<div class="artnovo-order-native" data-artnovo-native-checkout <?php echo $review ? '' : 'hidden'; ?>>
+				<?php if ( $review ) { echo render_native_checkout(); } ?>
+			</div>
+			<div class="artnovo-order-panel" data-artnovo-preparation <?php echo $login && ! $review ? '' : 'hidden'; ?>>
+				<h3>آماده‌سازی پرداخت</h3>
+				<p role="status" data-artnovo-prepare-status data-artnovo-notice-permanent><?php echo $auto_prepare ? 'انتخاب شما حفظ شده است؛ فرم پرداخت در حال آماده‌سازی است.' : ( $can_checkout ? 'فرم پرداخت آماده نشد. برای ادامهٔ همین خرید دوباره تلاش کنید.' : 'روش پرداخت مجاز برای این پلن در دسترس نیست. کمی بعد دوباره بررسی کنید.' ); ?></p>
+				<button type="button" data-artnovo-retry-prepare class="artnovo-order-submit" <?php disabled( ! $can_checkout ); ?> <?php echo $auto_prepare ? 'hidden' : ''; ?>>ادامهٔ همین خرید</button>
+				<noscript>
+					<form method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>">
+						<?php wp_nonce_field( 'artnovo_wizard_checkout', 'artnovo_wizard_nonce', false ); ?>
+						<input type="hidden" name="artnovo_selection_revision" value="<?php echo esc_attr( $selection_revision ); ?>">
+						<input type="hidden" name="artnovo_product" value="<?php echo esc_attr( (string) $plan_id ); ?>">
+						<input type="hidden" name="artnovo_quantity" value="<?php echo esc_attr( (string) $quantity ); ?>">
+						<button type="submit" <?php disabled( ! $can_checkout ); ?>>باز کردن فرم ثبت سفارش</button>
+					</form>
+				</noscript>
+			</div>
+			<?php if ( ! $login ) : ?>
 				<?php render_compact_auth( $plan_id, $quantity, $selection_revision, $can_checkout ); ?>
 			<?php endif; ?>
 		</div>

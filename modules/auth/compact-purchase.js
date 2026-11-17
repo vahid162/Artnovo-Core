@@ -2,8 +2,9 @@
 	'use strict';
 	if (typeof fetch !== 'function' || typeof FormData !== 'function' || typeof AbortController !== 'function') return;
 	const digits = (value) => value.replace(/[۰-۹٠-٩]/g, (digit) => String(digit.charCodeAt(0) % 16));
+	const displayDigits = (value) => value.replace(/[0-9٠-٩]/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[digit.charCodeAt(0) % 16]);
 	const number = new Intl.NumberFormat('fa-IR');
-	const mobileHint = 'شمارهٔ موبایل ایران باید ۱۱ رقم و با ۰۹ شروع شود؛ مانند 09123456789. بدون صفر یا با پیش‌شمارهٔ ۹۸ هم می‌توانید وارد کنید.';
+	const mobileHint = 'شمارهٔ موبایل ایران باید ۱۱ رقم و با ۰۹ شروع شود؛ مانند ۰۹۱۲۳۴۵۶۷۸۹. بدون صفر یا با پیش‌شمارهٔ ۹۸ هم می‌توانید وارد کنید.';
 	document.querySelectorAll('.artnovo-compact-auth').forEach((form) => {
 		if (form.dataset.artnovoAuthInitialized) return;
 		let config;
@@ -26,7 +27,8 @@
 		let expires = 0;
 		let timer;
 		let preparedIdentity = '';
-		const available = () => form.dataset.artnovoAuthAvailable !== '0';
+		let selectionPending = false;
+		const available = () => !selectionPending && form.dataset.artnovoAuthAvailable !== '0';
 		const identity = () => ['artnovo_product', 'artnovo_quantity'].map((name) => form.elements.namedItem(name)?.value).join(':');
 		const show = (text, error = false) => {
 			const template = document.createElement('template');
@@ -42,7 +44,7 @@
 					parts.push(document.createTextNode(plain.slice(end, match.index)));
 					const phone = document.createElement('bdi');
 					phone.dir = 'ltr';
-					phone.textContent = match[0];
+					phone.textContent = displayDigits(match[0]);
 					parts.push(phone);
 					end = match.index + match[0].length;
 				}
@@ -56,7 +58,7 @@
 		const countdown = () => {
 			window.clearTimeout(timer);
 			const remaining = Math.max(0, Math.ceil(expires - Date.now() / 1000));
-			resend.disabled = pending || remaining > 0;
+			resend.disabled = pending || selectionPending || remaining > 0;
 			if (method === 'otp' && remaining > 0) timer = window.setTimeout(countdown, 1000);
 			resend.textContent = remaining > 0 ? `ارسال دوباره تا ${number.format(remaining)} ثانیهٔ دیگر` : 'ارسال دوبارهٔ کد';
 		};
@@ -245,6 +247,45 @@
 				(method ? proof : identifier).focus();
 			} finally { if (!leaving) busy(false); }
 		};
+		form.addEventListener('artnovo:selection-busy', (event) => {
+			selectionPending = Boolean(event.detail?.pending);
+			if (selectionPending) {
+				const nextIdentity = `${event.detail?.product}:${event.detail?.quantity}`;
+				if (method && preparedIdentity !== nextIdentity) {
+					// An email proof can be scoped to the previous draft; retain the typed identifier only.
+					method = engine = challengeJwt = '';
+					expires = 0;
+					fields.hidden = true;
+					proof.value = '';
+					proof.required = false;
+					proof.disabled = true;
+					identifier.readOnly = false;
+					submit.textContent = 'ادامهٔ خرید';
+					show('');
+				}
+				preparedIdentity = '';
+			}
+			// Selection preparation must not prevent the guest from typing an identifier.
+			submit.disabled = pending || !available();
+			countdown();
+		});
+		form.addEventListener('artnovo:selection-ready', (event) => {
+			const data = event.detail || {};
+			if (`${data.product}:${data.quantity}` !== identity()
+				|| !/^[a-f0-9]{64}$/.test(data.selection_revision || '')
+				|| typeof data.wizard_nonce !== 'string' || !data.wizard_nonce
+				|| typeof data.rest_nonce !== 'string' || !data.rest_nonce) return;
+			const destination = safeUrl(data.redirect, form.action);
+			if (!destination || destination.searchParams.get('artnovo_plan') !== String(data.product)) return;
+			updateRevision(data.selection_revision);
+			form.elements.namedItem('artnovo_wizard_nonce').value = data.wizard_nonce;
+			config.restNonce = data.rest_nonce;
+			config.resumeUrl = config.refreshUrl = destination.href;
+			preparedIdentity = identity();
+			selectionPending = false;
+			submit.disabled = pending || !available();
+			countdown();
+		});
 		form.addEventListener('submit', (event) => {
 			event.preventDefault();
 			if (!form.reportValidity()) return;

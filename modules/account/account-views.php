@@ -30,7 +30,7 @@ function account_navigation(): array {
 
 function render_account(): void {
 	?>
-	<main id="content" class="artnovo-account" dir="rtl">
+	<main id="content" class="artnovo-account" dir="rtl" data-artnovo-price-thousand-separator="<?php echo esc_attr( wc_get_price_thousand_separator() ); ?>" data-artnovo-price-decimal-separator="<?php echo esc_attr( wc_get_price_decimal_separator() ); ?>">
 		<?php if ( ! is_user_logged_in() ) : ?>
 			<?php render_account_login(); ?>
 		<?php else :
@@ -43,18 +43,18 @@ function render_account(): void {
 			if ( is_wc_endpoint_url( 'view-order' ) ) { $title = 'جزئیات خرید و رسید'; }
 			?>
 			<header class="artnovo-account-header">
-				<div><p class="artnovo-account-muted">حساب آرت‌نوو</p><h1><?php echo esc_html( $title ); ?></h1><p class="artnovo-account-muted"><?php echo 'subscriptions' === $current ? 'لینک اتصال و اعتبار اکانت‌هایت همیشه اینجاست.' : 'اکانت‌ها، خریدها و راهنمای استفاده در یک حساب.'; ?></p></div>
+				<div><p class="artnovo-account-muted">حساب آرت‌نوو</p><h1><?php echo esc_html( \Artnovo\Core\display_digits( $title ) ); ?></h1><p class="artnovo-account-muted"><?php echo 'subscriptions' === $current ? 'لینک اتصال و اعتبار اکانت‌هایت همیشه اینجاست.' : 'اکانت‌ها، خریدها و راهنمای استفاده در یک حساب.'; ?></p></div>
 				<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">خرید اکانت جدید</a>
 			</header>
 			<div class="artnovo-account-layout">
 				<nav class="artnovo-account-nav" aria-label="بخش‌های حساب آرت‌نوو">
 					<?php foreach ( $navigation['primary'] as $item ) : ?>
-						<a href="<?php echo esc_url( $item['url'] ); ?>" <?php if ( $item['current'] ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( $item['label'] ); ?></a>
+						<a href="<?php echo esc_url( $item['url'] ); ?>" <?php if ( $item['current'] ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( \Artnovo\Core\display_digits( $item['label'] ) ); ?></a>
 					<?php endforeach; ?>
 					<details class="artnovo-account-more" <?php if ( array_filter( $navigation['secondary'], static fn( array $item ): bool => $item['current'] ) ) : ?>open<?php endif; ?>>
 						<summary>بخش‌های دیگر حساب</summary>
 						<?php foreach ( $navigation['secondary'] as $item ) : ?>
-							<a href="<?php echo esc_url( $item['url'] ); ?>" <?php if ( $item['current'] ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( $item['label'] ); ?></a>
+							<a href="<?php echo esc_url( $item['url'] ); ?>" <?php if ( $item['current'] ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( \Artnovo\Core\display_digits( $item['label'] ) ); ?></a>
 						<?php endforeach; ?>
 					</details>
 				</nav>
@@ -64,7 +64,14 @@ function render_account(): void {
 					$endpoint = WC()->query->get_current_endpoint();
 					if ( ! in_array( $endpoint, [ '', 'dashboard', 'vpn-subscriptions' ], true ) ) {
 						echo '<section class="artnovo-account-card artnovo-account-native woocommerce">';
-						do_action( 'woocommerce_account_content' );
+						ob_start();
+						try {
+							do_action( 'woocommerce_account_content' );
+							$content = (string) ob_get_contents();
+						} finally {
+							ob_end_clean();
+						}
+						echo localize_subscription_display( $content, in_array( $endpoint, [ 'orders', 'view-order' ], true ) );
 						echo '</section>';
 					} elseif ( 'profile' === $current ) {
 						render_account_profile();
@@ -160,7 +167,7 @@ function render_account_subscriptions(): void {
 		<?php
 		return;
 	}
-	echo '<div class="artnovo-account-subscriptions">' . decorate_subscriptions( $html ) . '</div>';
+	echo '<div class="artnovo-account-subscriptions">' . decorate_subscriptions( localize_subscription_display( $html ) ) . '</div>';
 }
 
 function render_account_profile(): void {
@@ -209,7 +216,7 @@ function render_account_support(): void {
 		<h2>پشتیبانی</h2>
 		<p>مشکل اتصال، پرداخت یا دریافت اشتراک را همراه با شماره پیگیری خرید بفرستید.</p>
 		<?php if ( $owned ) : ?>
-			<p>شماره پیگیری خرید <strong><?php echo esc_html( $order->get_order_number() ); ?></strong></p>
+			<p>شماره پیگیری خرید <strong><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></strong></p>
 			<p><a href="<?php echo esc_url( $order->get_view_order_url() ); ?>">جزئیات خرید و رسید</a></p>
 		<?php endif; ?>
 		<a class="artnovo-account-button" href="<?php echo esc_url( 'mailto:' . $email . '?subject=' . rawurlencode( $subject ) ); ?>">ارسال پیام به پشتیبانی</a>
