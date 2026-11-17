@@ -9,6 +9,7 @@ namespace WPVPNBridge\Commerce {
 	class Orders {
 		public static function product_terms( $product ): array|\WP_Error { return $GLOBALS['valid_terms'] ? [] : new \WP_Error(); }
 		public static function max_purchase_quantity( $product, ?string $method = null ): int {
+			if ( 'wpvpn_wallet' === $method && 0 === get_current_user_id() ) { return 1; }
 			return null === $method ? max( $GLOBALS['method_limits'] ) : ( $GLOBALS['method_limits'][$method] ?? 1 );
 		}
 	}
@@ -203,6 +204,17 @@ $hide_wallet_without_service = true;
 $woo->gateways->registered['bacs']->enabled = 'no';
 $woo->gateways->registered['new_gateway']->enabled = 'no';
 $wallet_candidate = 'missing-wallet' === $argv[1] ? [] : [ 'wpvpn_wallet' ];
+$current_user = 0;
+check( 'wallet-only guest may prepare sign-in without claiming payment eligibility', $wallet_candidate === Artnovo\PlanCheckout\payment_candidates( $product, 1 ) );
+check( 'wallet-only guest has a bounded positive preselection quantity when configured', ( $wallet_candidate ? 1 : 0 ) === Artnovo\PlanCheckout\quantity_limit( $product ) );
+check( 'guest candidate never authorizes actual wallet availability', [] === Artnovo\PlanCheckout\payment_methods( $product, 1 ) );
+$woo->cart->items = $prepared_cart;
+check( 'a prepared cart still cannot expose wallet payment before authentication', [] === Artnovo\PlanCheckout\payment_methods( $product, 1 ) && [] === $woo->gateways->get_available_payment_gateways() );
+$woo->cart->items = [];
+$wallet_enabled = false;
+check( 'disabled wallet cannot offer even guest sign-in preparation', [] === Artnovo\PlanCheckout\payment_candidates( $product, 1 ) );
+$wallet_enabled = true;
+$current_user = 7;
 check( 'wallet-only empty cart can prepare the legitimate registered method', $wallet_candidate === Artnovo\PlanCheckout\payment_candidates( $product, 1 ) );
 check( 'wallet-only preparation limit survives an empty-cart upstream removal', ( $wallet_candidate ? 2 : 0 ) === Artnovo\PlanCheckout\quantity_limit( $product ) );
 check( 'empty-cart upstream removal is never bypassed in actual availability', [] === Artnovo\PlanCheckout\payment_methods( $product, 1 ) );
@@ -213,6 +225,9 @@ if ( $wallet_candidate ) {
 	$woo->cart->items = $prepared_cart;
 }
 check( 'prepared wallet-only cart uses strict native availability', $wallet_candidate === Artnovo\PlanCheckout\payment_methods( $product, 1 ) );
+$wallet_customer = false;
+check( 'signed-in blocked customer has neither wallet candidates nor actual payment', [] === Artnovo\PlanCheckout\payment_candidates( $product, 1 ) && [] === Artnovo\PlanCheckout\payment_methods( $product, 1 ) );
+$wallet_customer = true;
 $denied_methods = [ 'wpvpn_wallet' ];
 check( 'wallet-only candidate cannot restore an upstream-denied prepared payment', [] === Artnovo\PlanCheckout\payment_methods( $product, 1 ) );
 $before_cart = $woo->cart->items;

@@ -180,10 +180,12 @@ foreach ( array_keys( $cases ) as $name ) {
 	$jquery = file_get_contents( ABSPATH . WPINC . '/js/jquery/jquery.min.js' );
 	$qr = file_get_contents( $base . 'jquery.qrcode.min.js' );
 	$copy = file_get_contents( WP_PLUGIN_DIR . '/wp-vpn-bridge/assets/subscriptions.js' );
+	$notices_css = file_get_contents( artnovo_fixture_root() . '/modules/notices/notices.css' );
+	$notices_js = file_get_contents( artnovo_fixture_root() . '/modules/notices/notices.js' );
 	$document = '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
-		. '<title>ArtNovo received synthetic fixture</title><style>html{background:#0c1723}body{margin:0;font-family:Tahoma,sans-serif}</style><style>'
-		. $account_css . $received_css . '</style><body>' . $markup . '<script>' . $jquery . '</script><script>' . $qr . '</script><script>'
-		. $received_js . '</script><script>' . $copy . '</script><script>' . $account_js . '</script></body></html>';
+		. '<title>ArtNovo received synthetic fixture</title><style>' . artnovo_fixture_font_css() . 'html{background:#0c1723}body{margin:0;font-family:Vazir,Tahoma,sans-serif}</style><style>'
+		. $account_css . $received_css . $notices_css . '</style><body>' . $markup . '<script>' . $jquery . '</script><script>' . $qr . '</script><script>'
+		. $received_js . '</script><script>' . $copy . '</script><script>' . $account_js . '</script><script>' . $notices_js . '</script></body></html>';
 	artnovo_fixture_write( 'received-' . $name . '.html', $document );
 }
 

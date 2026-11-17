@@ -115,11 +115,11 @@ function wallet_ready(): bool {
 	return wallet_configured() && WalletPayment::allowed_customer( get_current_user_id() );
 }
 
-function filter_payment_methods( array $gateways, \WC_Product $product, int $quantity ): array {
+function filter_payment_methods( array $gateways, \WC_Product $product, int $quantity, bool $preselection = false ): array {
 	foreach ( $gateways as $method => $gateway ) {
 		if ( $quantity < 1 || $quantity > method_quantity_limit( $product, $method )
 			|| ( 'bacs' === $method && ! transfer_ready() )
-			|| ( 'wpvpn_wallet' === $method && ! wallet_ready() ) ) {
+			|| ( 'wpvpn_wallet' === $method && ! ( $preselection && ! is_user_logged_in() ? wallet_configured() : wallet_ready() ) ) ) {
 			unset( $gateways[ $method ] );
 		}
 	}
@@ -132,8 +132,9 @@ function payment_candidates( \WC_Product $product, int $quantity ): array {
 	}
 	// A gateway can require a prepared cart before is_available() becomes true.
 	// These candidates permit preparation only; native availability authorizes the resulting cart.
+	// Guest wallet candidates open sign-in; customer authorization still belongs to actual availability.
 	$gateways = array_filter( WC()->payment_gateways()->payment_gateways(), static fn( $gateway ): bool => 'yes' === $gateway->enabled );
-	return array_keys( filter_payment_methods( $gateways, $product, $quantity ) );
+	return array_keys( filter_payment_methods( $gateways, $product, $quantity, true ) );
 }
 
 function payment_methods( \WC_Product $product, int $quantity ): array {

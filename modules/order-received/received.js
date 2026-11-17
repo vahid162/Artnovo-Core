@@ -26,7 +26,9 @@
 			const details = document.createElement('details');
 			const summary = document.createElement('summary');
 			summary.textContent = 'مشاهدهٔ لینک اتصال';
+			const reference = existing.previousElementSibling?.previousElementSibling;
 			details.append(summary, existing);
+			if (reference?.tagName === 'P' && reference.querySelector('code')) details.append(reference);
 			const field = document.createElement('p');
 			const label = document.createElement('label');
 			label.textContent = 'لینک خصوصی اشتراک';

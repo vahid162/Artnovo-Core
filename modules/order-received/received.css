@@ -61,6 +61,7 @@ body.artnovo-received-page { background: #0c1723; color: #f0f9f7; }
 .artnovo-received input[type="file"]::file-selector-button { margin-inline: 0 .5rem; min-height: 2.25rem; padding: .375rem .625rem; border: 0; border-radius: .5rem; background: #203c49; color: var(--account-focus); font: inherit; cursor: pointer; }
 .artnovo-received-services { min-width: 0; margin-block-start: 1rem; scroll-margin-top: 1rem; }
 .artnovo-received-services .wpvpn-service { display: grid; gap: .625rem; min-width: 0; }
+.artnovo-received-services .wpvpn-service > h2 { display: none; }
 .artnovo-received-services .wpvpn-service > :is(h2,h3,p) { margin: 0; }
 .artnovo-received-services .wpvpn-service > p { font-size: .8125rem; }
 .artnovo-received-services .wpvpn-service + .wpvpn-service { margin-block-start: 1.125rem; padding-block-start: 1.125rem; border-block-start: 1px solid #bdd1d01c; }

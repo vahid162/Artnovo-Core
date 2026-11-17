@@ -69,9 +69,7 @@ $write_preview = static function ( string $name, string $order_markup ): void {
 	$css = file_get_contents( $core . '/modules/home/artnovo-home-wizard.css' ) . file_get_contents( $core . '/modules/notices/notices.css' );
 	$jquery = file_get_contents( ABSPATH . WPINC . '/js/jquery/jquery.min.js' );
 	$js = file_get_contents( $core . '/modules/home/artnovo-home-wizard.js' );
-	$font = getenv( 'ARTNOVO_FIXTURE_FONT' ) ?: '';
-	$font_css = $font && is_readable( $font ) && 'woff2' === pathinfo( $font, PATHINFO_EXTENSION )
-		? '@font-face{font-family:Vazir;src:url(data:font/woff2;base64,' . base64_encode( file_get_contents( $font ) ) . ')}' : '';
+	$font_css = artnovo_fixture_font_css();
 	$document = '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Isolated checkout fixture</title>'
 		. '<style>' . $font_css . 'body{margin:0;padding:24px 14px;background:#0c1723;color:#bdd1d0;font:14px Vazir,Tahoma,sans-serif}body [hidden]{display:none!important}'
 		. '[data-artnovo-wizard]{max-width:1160px;margin:auto}.screen-reader-text{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}</style>'

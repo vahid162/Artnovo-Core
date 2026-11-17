@@ -1,38 +1,43 @@
 # Current project state
 
-## Active development: continuous purchase (2026-11-17)
+## Current delivery: continuous purchase 1.6.0 (2026-11-17)
 
-The owner approved the mobile/desktop continuous purchase preview and authorized
-implementation in Core and GitHub with passing tests. This mission covers a branch
-and PR, not a new merge, release or installation. Only Core source changes. The
-owner explicitly assigned Bridge's online-payment policy change to separate work;
-Core must prepare native gateway presentation without bypassing that policy.
+The owner now explicitly requests completion of issues 15/16/17, all remaining
+checks, merge/publication and installation on artnovo.ir. Reuse PR18 and branch
+work/continuous-checkout; only Core may change. Bridge online-payment policy is
+assigned to separate work by the owner. No real charge or message is needed.
 
-Branch work/continuous-checkout starts from main 5b38833. Runtime implements the
-shared compact summary/card, exact-draft checkout reuse, one fresh post-login
-purchase GET, registry-based preselection versus final native availability,
-partial ready-link copy, native existing-order payment skin, equal-height coupon
-controls and eight-second contrasting/mobile-bubble notices. Existing owner/key,
-receipt, revision, nonce, selection-lock and original-method fences remain.
+The 1.6.0 candidate includes the approved continuous purchase design, native
+WooCommerce gateway discovery, exact-draft reuse/direct fresh auth return, partial
+ready-link copying, native retry-payment skin, eight-second mobile/desktop notices
+and equal-height coupon controls. A fresh regression found wallet-only guest
+preselection blocked before sign-in; the candidate now permits sign-in only, while
+real gateway availability still requires the original customer authorization.
 
-The final standalone batch passed 62/62 commands: 15 mandatory gates/build,
-39 PHP lints and 8 JavaScript syntax checks. Independent reviewer
-/root/sync_governance_review found no actionable runtime defect; the reviewed
-modules diff SHA256 is 8e8be2ad88709a73c1b8916433c69c7f0161749f87e3a77019e25fe8baab85a4.
-This is code/synthetic assurance, not native WordPress or live payment acceptance.
+All 62 final standalone/lint/build commands passed, including119 payment
+assertions. All8 native integration commands passed550 executed assertions on an
+independent temporary WordPress/MariaDB clone;32 runtime files match final source.
+Independent final review found no blocking issue. Actual Chrome verified native
+sign-in/payment rendering, coupons, received-copy/manual fallback and responsive
+geometry. Paired valid-draft traces remove the old prepare POST:3 document requests
+become1. Chrome also exposed an old Back page resurrecting an earlier plan; the
+final history/BFCache guard passed the same replay and preserved the newest plan.
 
-Native fixtures remain blocked before execution: the unprivileged runner could
-not read wp-config.php, so all six processes failed during bootstrap with zero
-assertions. Automatic approval review then rejected the proposed root WP-CLI run
-against the live WordPress/database. It was not executed or bypassed. The earlier
-attempt verified installed Core/Bridge/Wallet/Pinova payloads were unchanged.
-Browser/native integration and real gateway callbacks are not claimed passed.
-Keep the development PR draft until authorized native checks and affected browser
-verification are complete. No tag, release, installation or site setting changed.
+Automatic approval review rejected root live-database tests and required isolation;
+those commands were not executed or bypassed. The isolated clone has independent
+credentials/socket and blocked mail/HTTP/cron. All synthetic records stay there.
+No real charge, outbound message, provider issuance or production DB test occurred.
+Published1.5.1 remains installed. PR18 initial CI is green; the reviewed1.6.0 source
+and final evidence are ready to be submitted together.
 
-See [development evidence](evidence/2026-11-17-continuous-purchase.md) for check scope,
-recovery and the remaining approval boundary. Prior completed delivery below remains
-the installed baseline; this development ZIP must not replace published 1.5.1 assets.
+Next, already authorized: require green checks on final PR18 head, merge, validate
+main, manually publish official1.6.0 ZIP/checksum, atomically install that exact
+artifact with private recovery and verify all35 installed payload files plus
+unchanged Bridge/Wallet/Pinova, activation/wp-config and affected live UI. Then close
+issues15/16/17, record delivery and remove this mission's private QA environment.
+Do not claim publication/installation complete before readback.
+
+See [development/delivery evidence](evidence/2026-11-17-continuous-purchase.md).
 
 ## Previously completed outcome and authority
 
