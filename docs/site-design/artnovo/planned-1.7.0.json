@@ -1,0 +1,21 @@
+{
+  "status": "approved; pending official Core 1.7.0 publication and installation",
+  "issue": 24,
+  "target": "woocommerce_bacs_settings.description",
+  "operation": "WordPress option API read/compare/update of description only",
+  "previous": "پرداخت خود را مستقیما به حساب بانکی ما واریز کنید.خواهشمندیم شماره سفارش خود را بعنوان کد ارجاع پرداخت استفاده کنید.سفارش شما تا زمانی که وجوه به حساب ما وارد نشود ارسال نخواهد شد.",
+  "desired": "کارت به کارت و سپس عکس رسید را در مرحله ی بعد برای ما ارسال کنید. در زمان کوتاهی رسید شما تایید و اکانت شما در پنل کاربری در دسترس شما قرار خواهد گرفت",
+  "preserve": [
+    "every other woocommerce_bacs_settings key including instructions",
+    "woocommerce_bacs_accounts",
+    "all gateway code and availability",
+    "all order/payment/receipt state"
+  ],
+  "precondition": "fresh native read must still equal previous; stop on drift",
+  "rollback": "restore only description from the private scoped before snapshot if all other current keys match",
+  "acceptance": [
+    "native gateway description readback exactly matches desired",
+    "all other option keys and separate bank accounts unchanged",
+    "native checkout renders desired description for BACS only"
+  ]
+}

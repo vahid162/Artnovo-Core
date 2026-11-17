@@ -127,6 +127,56 @@ add_action( 'wp_enqueue_scripts', static function (): void {
 	wp_enqueue_script( 'artnovo-account-ui', plugins_url( 'artnovo-account.js', __FILE__ ), $dependencies, (string) filemtime( __DIR__ . '/artnovo-account.js' ), true );
 } );
 
+/** Localize only the known human fields in native cards, never private connection data. */
+function localize_subscription_display( string $html, bool $native_orders = false ): string {
+	$tags = new \WP_HTML_Tag_Processor( $html );
+	$parents = [];
+	$void = [ 'AREA', 'BASE', 'BR', 'COL', 'EMBED', 'HR', 'IMG', 'INPUT', 'LINK', 'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR' ];
+	while ( $tags->next_token() ) {
+		$tag = $tags->get_tag();
+		if ( $tag ) {
+			if ( $tags->is_tag_closer() ) {
+				while ( $parents ) {
+					$closed = array_pop( $parents );
+					if ( $closed['tag'] === $tag ) { break; }
+				}
+			} elseif ( ! in_array( $tag, $void, true ) ) {
+				$parent = end( $parents );
+				$protected = ! empty( $parent['protected'] ) || in_array( $tag, [ 'SCRIPT', 'STYLE', 'TEXTAREA', 'CODE', 'PRE', 'KBD', 'SAMP', 'SVG' ], true );
+				$order_field = $native_orders && (
+					( in_array( $tag, [ 'TD', 'TH' ], true ) && ( $tags->has_class( 'woocommerce-orders-table__cell-order-number' )
+						|| $tags->has_class( 'woocommerce-orders-table__cell-order-date' ) || $tags->has_class( 'woocommerce-orders-table__cell-order-total' ) ) )
+					|| ( 'MARK' === $tag && ( $tags->has_class( 'order-number' ) || $tags->has_class( 'order-date' ) ) )
+					|| ( 'P' === $tag && $tags->has_class( 'woocommerce-OrderUpdate-meta' ) ) );
+				$parents[] = [
+					'tag' => $tag,
+					'card' => 'SECTION' === $tag && ( $tags->has_class( 'wpvpn-subscription' ) || $tags->has_class( 'wpvpn-service' ) ),
+					'field' => ! empty( $parent['card'] ) && in_array( $tag, [ 'H3', 'P' ], true ) ? $tag : '',
+					'protected' => $protected,
+					'human' => ! $protected && ( $order_field || ! empty( $parent['human'] ) ),
+				];
+			}
+			continue;
+		}
+		if ( '#text' !== $tags->get_token_name() ) { continue; }
+		$parent = end( $parents );
+		$text = $tags->get_modifiable_text();
+		if ( ! empty( $parent['protected'] ) || preg_match( '~(?:https?://|www\.|\S+@\S+)~u', $text ) ) { continue; }
+		if ( ! empty( $parent['human'] ) || 'H3' === ( $parent['field'] ?? '' ) || ( 'P' === ( $parent['field'] ?? '' )
+			&& preg_match( '/^(?:حجم |پایان اعتبار |Expires |[0-9٠-٩۰-۹]+(?:[.,٫][0-9٠-٩۰-۹]+)? GiB)/u', ltrim( $text ) ) ) ) {
+			$tags->set_modifiable_text( \Artnovo\Core\display_digits( $text ) );
+		}
+	}
+	return $tags->get_updated_html();
+}
+
+foreach ( [ 'woocommerce_order_item_name', 'woocommerce_order_item_quantity_html' ] as $display_hook ) {
+	add_filter( $display_hook, static function ( string $html ): string {
+		return is_user_logged_in() && is_account_page() && custom_account_page()
+			? \Artnovo\Core\display_number_html( $html ) : $html;
+	}, 30 );
+}
+
 function decorate_subscriptions( string $html ): string {
 	$tags = new \WP_HTML_Tag_Processor( $html );
 	$base = trailingslashit( wc_get_account_endpoint_url( 'view-order' ) );

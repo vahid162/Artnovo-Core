@@ -405,13 +405,16 @@
 }
 
 [data-artnovo-wizard] .artnovo-order-summary {
-	grid-template-columns: minmax(0, 1fr) auto;
+	grid-template-columns: minmax(0, 1fr);
 	padding-block-end: 1.25rem;
 	border-block-end: 1px solid #a9cfce24;
 }
 
-[data-artnovo-wizard] .artnovo-order-product {
-	display: block;
+[data-artnovo-wizard] :is(.artnovo-order-product, .artnovo-order-quantity) {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: .5rem 1rem;
 }
 
 [data-artnovo-wizard] .artnovo-order-product > div {
@@ -441,14 +444,13 @@
 }
 
 [data-artnovo-wizard] .artnovo-order-quantity {
-	grid-column: 1 / -1;
 	font-size: .8125rem;
 }
 
-[data-artnovo-wizard] .artnovo-order-quantity > summary {
+[data-artnovo-wizard] .artnovo-order-quantity > span {
 	min-block-size: 2.75rem;
-	padding-block: .5rem;
-	cursor: pointer;
+	display: flex;
+	align-items: center;
 }
 
 [data-artnovo-wizard] .artnovo-order-summary > :is(.artnovo-order-adjustments, [data-artnovo-quantity-status]) {
@@ -457,17 +459,35 @@
 
 [data-artnovo-wizard] .artnovo-order-summary > .artnovo-order-total {
 	display: grid;
-	align-content: start;
-	justify-items: end;
-	gap: .25rem;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr);
+	align-items: baseline;
+	gap: .5rem 1rem;
+}
+
+[data-artnovo-wizard] .artnovo-order-summary [data-artnovo-total] {
+	min-inline-size: 0;
+	max-inline-size: 100%;
 	text-align: left;
+}
+
+[data-artnovo-wizard] .artnovo-order-summary .woocommerce-Price-amount bdi {
+	max-inline-size: 100%;
+	direction: ltr;
+	white-space: normal;
+	flex-wrap: wrap;
+	overflow-wrap: anywhere;
+}
+
+[data-artnovo-wizard] .artnovo-order-summary .woocommerce-Price-currencySymbol {
+	order: -1;
+	direction: rtl;
 }
 
 [data-artnovo-wizard] .artnovo-order-quantity-control {
 	display: inline-flex;
 	align-items: center;
 	gap: .125rem;
-	margin-block-start: .375rem;
+	margin: 0;
 	border: 0;
 	border-radius: .75rem;
 	box-shadow: 0 8px 28px #00000012;
@@ -597,6 +617,22 @@
 [data-artnovo-wizard] .artnovo-order .artnovo-compact-auth-title {
 	font-size: 1.1875rem;
 	line-height: 1.6;
+}
+
+[data-artnovo-wizard] .artnovo-order .artnovo-order-heading-group {
+	display: grid;
+	gap: .5rem;
+	min-inline-size: 0;
+	text-align: center;
+	overflow-wrap: anywhere;
+}
+
+[data-artnovo-wizard] .artnovo-compact-auth > .artnovo-order-heading-group {
+	margin-block-end: .625rem;
+}
+
+[data-artnovo-wizard] .artnovo-order .artnovo-order-heading-group :is(h3, p) {
+	margin: 0;
 }
 
 [data-artnovo-wizard] .artnovo-order :is(.artnovo-order-hint, .artnovo-compact-auth-hint) {
@@ -776,9 +812,13 @@
 }
 
 [data-artnovo-wizard] .artnovo-order-native .artnovo-order-account {
-	margin-block-end: .375rem;
 	color: var(--artnovo-emerald);
-	font-size: .8125rem;
+	font-size: 1.1875rem;
+	line-height: 1.6;
+}
+
+[data-artnovo-wizard] .artnovo-order-native .artnovo-order-login-confirmation {
+	padding-block: .5rem;
 }
 
 [data-artnovo-wizard] .artnovo-order-native .woocommerce form .form-row {
@@ -976,8 +1016,20 @@
 }
 
 [data-artnovo-wizard] .artnovo-order-native #payment .place-order {
-	margin-block-start: .875rem;
+	margin-block-start: 1.25rem;
 	padding: 0;
+}
+
+[data-artnovo-wizard] .artnovo-order-native #payment .place-order > :is(.woocommerce-terms-and-conditions-wrapper, .woocommerce-privacy-policy-text) {
+	margin: 0;
+}
+
+[data-artnovo-wizard] .artnovo-order-native #payment .place-order :is(.woocommerce-privacy-policy-text, .woocommerce-terms-and-conditions-wrapper) > p {
+	margin: 0 0 .5rem;
+}
+
+[data-artnovo-wizard] .artnovo-order-native #payment .place-order .form-row.validate-required {
+	margin-block: .5rem;
 }
 
 [data-artnovo-wizard] .artnovo-order-native #payment .woocommerce-terms-and-conditions-wrapper {

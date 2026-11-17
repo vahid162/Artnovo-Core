@@ -35,6 +35,10 @@ values are actual WordPress API values, including an empty default template.
 WordPress post modification dates are not used as design revision evidence because
 the native metadata edits do not update them reliably.
 
+[The 1.7.0 native configuration contract](planned-1.7.0.json) records the approved
+BACS description-only update for issue24. Apply after the official Core install;
+retain instructions, account details and every other gateway setting.
+
 ## Change sequence
 
 For future changes, capture the relevant supported native source and prepare the

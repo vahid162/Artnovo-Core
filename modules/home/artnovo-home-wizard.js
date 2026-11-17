@@ -26,15 +26,20 @@
 	const totals = order.querySelectorAll('[data-artnovo-total]');
 	const form = order.querySelector('.artnovo-order-form');
 	const prepare = order.querySelector('[data-artnovo-prepare]');
-	const nativeCheckout = order.querySelector('.artnovo-order-native form.checkout');
-	const cartIdentity = nativeCheckout?.elements.namedItem('artnovo_wizard_cart');
+	const selectionForm = prepare ?? form;
+	const nativeHost = order.querySelector('[data-artnovo-native-checkout]');
+	const preparationPanel = order.querySelector('[data-artnovo-preparation]');
+	const preparationStatus = order.querySelector('[data-artnovo-prepare-status]');
+	const retryPrepare = order.querySelector('[data-artnovo-retry-prepare]');
+	let nativeCheckout = order.querySelector('.artnovo-order-native form.checkout');
+	let cartIdentity = nativeCheckout?.elements.namedItem('artnovo_wizard_cart');
 	const quantityStatus = order.querySelector('[data-artnovo-quantity-status]');
 	const productInput = form?.elements.namedItem('artnovo_product');
 	const quantityInput = form?.elements.namedItem('artnovo_quantity');
 	const adjustments = order.querySelector('[data-artnovo-adjustments]');
 	const draftPlan = order.dataset.artnovoDraftPlan;
 	let resumeDraft = Boolean(draftPlan);
-	const review = order.dataset.artnovoCheckoutReview === '1';
+	let review = order.dataset.artnovoCheckoutReview === '1';
 	const checkoutPlans = new Set(JSON.parse(order.dataset.artnovoCheckoutPlans ?? '[]'));
 	const quantityLimits = JSON.parse(order.dataset.artnovoQuantityLimits ?? '{}');
 	const unitAmounts = JSON.parse(order.dataset.artnovoUnitAmounts ?? '{}');
@@ -47,17 +52,29 @@
 	let quantity = 1;
 	let preparing = false;
 	let quantityPending = false;
-	let reviewCurrent = true;
+	let reviewCurrent = review;
 	let authPending = form?.dataset.artnovoAuthPending === '1';
 	let historyRecovering = false;
+	let selectionPending = false;
+	let selectionSerial = 0;
+	let queuedSelection = null;
+	let requestedIdentity = '';
+	let confirmedIdentity = review ? draftPlan + ':' + order.dataset.artnovoDraftQuantity : '';
+	let selectionRecovery = false;
+	let nativeAssetsFailed = false;
+	let nativeEventsBound = false;
+	let nativeRefreshAllowed = false;
+	let cancelNativeReview = () => {};
+	const nativeRequests = new Set();
+	const asyncSupported = typeof fetch === 'function' && typeof FormData === 'function' && typeof AbortController === 'function';
 
 	function recoverPurchaseHistory(persisted = false) {
-		if (!prepare || !persisted && window.performance?.getEntriesByType?.('navigation')?.[0]?.type !== 'back_forward') return false;
+		if (!selectionForm || !persisted && window.performance?.getEntriesByType?.('navigation')?.[0]?.type !== 'back_forward') return false;
 		if (historyRecovering) return true;
 		let url;
 		try {
 			url = new URL(location.href);
-			const action = new URL(prepare.action, location.href);
+			const action = new URL(selectionForm.action, location.href);
 			if (url.origin !== location.origin || action.origin !== location.origin || url.pathname !== action.pathname
 				|| url.username || url.password || action.username || action.password
 				|| !/^[1-9][0-9]*$/.test(url.searchParams.get('artnovo_plan') || '')) return false;
@@ -103,10 +120,13 @@
 			const id = url.searchParams.get('artnovo_plan');
 			if (url.origin !== location.origin || url.hash !== '#artnovo-order' || !/^\d+$/.test(id ?? '')) continue;
 			const card = link.closest('article');
-			const name = card.querySelector('[data-artnovo-plan-title], .elementor-widget-theme-post-excerpt')?.textContent.trim();
+			const nameNode = card.querySelector('[data-artnovo-plan-title], .elementor-widget-theme-post-excerpt');
+			const name = persianDigits(nameNode?.textContent.trim() ?? '');
 			const amount = card.querySelector('ins .woocommerce-Price-amount') ?? card.querySelector('.woocommerce-Price-amount');
 			const currency = amount?.querySelector('.woocommerce-Price-currencySymbol')?.textContent.trim();
 			if (name && amount && currency) {
+				if (nameNode) localizeText(nameNode, persianDigits);
+				localizeMoney(card);
 				const label = document.createElement('span');
 				label.append(...link.childNodes);
 				const badge = selectionBadge();
@@ -184,13 +204,47 @@
 		document.body.style.setProperty(scrollRoom, `${Math.max(0, Math.ceil(pinOffset))}px`);
 	}
 
+	function persianDigits(value) {
+		return String(value).replace(/[0-9٠-٩]/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[digit.charCodeAt(0) % 16]);
+	}
+
+	function moneyText(value) {
+		const thousand = order.dataset.artnovoPriceThousandSeparator ?? ',';
+		const decimal = order.dataset.artnovoPriceDecimalSeparator ?? '.';
+		if (thousand !== decimal) {
+			const separators = [thousand, decimal].filter(Boolean).sort((a, b) => b.length - a.length)
+				.map((separator) => separator.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'));
+			if (separators.length) {
+				const pattern = new RegExp('([0-9۰-۹٠-٩])(' + separators.join('|') + ')(?=[0-9۰-۹٠-٩])', 'g');
+				value = String(value).replace(pattern, (_, digit, separator) => digit + (separator === thousand ? '٬' : '٫'));
+			}
+		}
+		return persianDigits(value);
+	}
+
+	function localizeText(scope, format) {
+		if (!scope) return;
+		if (scope.nodeType === 3) {
+			scope.textContent = format(scope.textContent);
+			return;
+		}
+		if (/^(INPUT|TEXTAREA|SELECT|SCRIPT|STYLE|CODE|PRE)$/i.test(scope.tagName ?? '')
+			|| /(?:^|\s)woocommerce-Price-currencySymbol(?:\s|$)/.test(scope.getAttribute?.('class') ?? '')
+			|| scope.hasAttribute?.('data-artnovo-technical')) return;
+		for (const child of scope.childNodes) localizeText(child, format);
+	}
+
+	function localizeMoney(scope) {
+		for (const amount of scope.querySelectorAll('.woocommerce-Price-amount')) localizeText(amount, moneyText);
+	}
+
 	function updateAmounts(plan) {
 		const canPrice = Number.isSafeInteger(plan?.unitAmount);
 		const formatAmount = (amount) => `${priceFormat.format(amount / 10 ** priceDecimals)}\u00a0${order.dataset.artnovoCurrency}`;
 		price.textContent = canPrice ? formatAmount(plan.unitAmount) : plan?.price ?? '';
 		if (productInput) productInput.value = plan?.id ?? '';
 		if (quantityInput) quantityInput.value = String(quantity);
-		if (form) form.dataset.artnovoAuthAvailable = checkoutPlans.has(plan?.id) ? '1' : '0';
+		if (form) form.dataset.artnovoAuthAvailable = !selectionPending && !selectionRecovery && checkoutPlans.has(plan?.id) ? '1' : '0';
 		if (!quantityLabel || !decrease || !increase) return;
 		const limit = quantityLimits[plan?.id] ?? 1;
 		quantityLabel.textContent = quantityFormat.format(quantity);
@@ -203,32 +257,248 @@
 	}
 
 	function prepareCheckout(planId, count) {
-		if (!prepare || !checkoutPlans.has(planId)) return false;
-		if (!preparing) {
+		if (!selectionForm || !checkoutPlans.has(planId)) return false;
+		if (!asyncSupported) {
+			if (preparing || historyRecovering) return true;
 			preparing = true;
-			prepare.elements.namedItem('artnovo_product').value = planId;
-			prepare.elements.namedItem('artnovo_quantity').value = String(count);
-			const email = nativeCheckout?.elements.namedItem('billing_email');
-			if (email) {
-				const field = document.createElement('input');
-				field.type = 'hidden';
-				field.name = 'artnovo_email';
-				field.value = email.value;
-				prepare.append(field);
+			selectionForm.elements.namedItem('artnovo_product').value = planId;
+			selectionForm.elements.namedItem('artnovo_quantity').value = String(count);
+			for (const name of ['artnovo_wizard_ajax', 'artnovo_wizard_select', 'artnovo_otp_action']) {
+				const field = selectionForm.elements.namedItem(name);
+				if (field) field.disabled = true;
 			}
-			prepare.submit();
+			selectionForm.submit();
+			return true;
 		}
+		if (selectionRecovery || nativeAssetsFailed) {
+			recoverSelection();
+			return true;
+		}
+		const identity = planId + ':' + count;
+		if (identity === requestedIdentity && selectionPending || identity === confirmedIdentity && !selectionPending && reviewCurrent) return true;
+		queuedSelection = { product: planId, quantity: count, serial: ++selectionSerial };
+		requestedIdentity = identity;
+		selectionPending = true;
+		reviewCurrent = false;
+		setSelectionState(true);
+		void prepareSelection();
 		return true;
 	}
 
-	function updateSelectionRevision(value) {
+	function selectionEndpoint(planId) {
+		const endpoint = new URL(selectionForm.action, location.href);
+		if (endpoint.origin !== location.origin || endpoint.username || endpoint.password) throw new Error('مسیر خرید معتبر نیست.');
+		endpoint.searchParams.set('artnovo_plan', planId);
+		endpoint.searchParams.set('artnovo_checkout', '1');
+		endpoint.hash = '';
+		return endpoint;
+	}
+
+	function recoverSelection() {
+		try {
+			const endpoint = selectionEndpoint(state.plan);
+			endpoint.searchParams.set('artnovo_refresh', String(Date.now()));
+			endpoint.hash = 'artnovo-order';
+			historyRecovering = true;
+			location.replace(endpoint.href);
+		} catch { showQuantityStatus('برای ادامه، صفحهٔ خرید را دوباره باز کنید.'); }
+	}
+
+	function setSelectionState(pending, message = '', ready = null) {
+		if (nativeHost) {
+			nativeHost.hidden = pending || !reviewCurrent;
+			nativeHost.inert = pending || !reviewCurrent;
+		}
+		if (preparationPanel) preparationPanel.hidden = Boolean(form) || !pending && reviewCurrent;
+		if (preparationStatus) preparationStatus.textContent = message || 'انتخاب شما حفظ شده است؛ مبلغ و روش‌های پرداخت در حال بررسی است.';
+		if (retryPrepare) retryPrepare.hidden = pending;
+		if (pending) {
+			nativeRefreshAllowed = false;
+			cancelNativeReview();
+			for (const request of nativeRequests) request.abort();
+			nativeRequests.clear();
+			delete order.dataset.artnovoSummaryReady;
+			adjustments?.replaceChildren();
+		}
+		updateAmounts(findPlan(state.plan, state.category));
+		if (ready) form?.dispatchEvent(new CustomEvent('artnovo:selection-ready', { bubbles: true, detail: ready }));
+		form?.dispatchEvent(new CustomEvent('artnovo:selection-busy', {
+			bubbles: true, detail: { pending: pending || selectionRecovery, product: state.plan, quantity }
+		}));
+		showQuantityStatus(message || (pending ? 'مبلغ نمایش‌داده‌شده اولیه است؛ مبلغ نهایی پس از بررسی خرید مشخص می‌شود.' : ''), pending || Boolean(message));
+	}
+
+	function abandonSelection() {
+		// Leaving for another category is not permission to restore an obsolete selection later.
+		selectionSerial += 1;
+		queuedSelection = null;
+		requestedIdentity = '';
+		selectionPending = reviewCurrent = nativeRefreshAllowed = false;
+		cancelNativeReview();
+		for (const request of nativeRequests) request.abort();
+		nativeRequests.clear();
+		setSelectionState(false);
+	}
+
+	async function prepareSelection() {
+		if (preparing || historyRecovering) return;
+		preparing = true;
+		try {
+			while (queuedSelection && !historyRecovering) {
+				const intent = queuedSelection;
+				queuedSelection = null;
+				const endpoint = selectionEndpoint(intent.product);
+				const payload = new FormData(selectionForm);
+				for (const field of ['artnovo_auth_identifier', 'artnovo_auth_proof', 'artnovo_otp_action', 'artnovo_wizard_cart']) payload.delete(field);
+				payload.set('artnovo_product', intent.product);
+				payload.set('artnovo_quantity', String(intent.quantity));
+				payload.set('artnovo_wizard_ajax', '1');
+				payload.set('artnovo_wizard_select', '1');
+				const controller = new AbortController();
+				const timer = setTimeout(() => controller.abort(), 25000);
+				let result;
+				try {
+					const response = await fetch(endpoint.href, { method: 'POST', body: payload, credentials: 'same-origin', signal: controller.signal });
+					result = await response.json();
+				} finally { clearTimeout(timer); }
+				if (historyRecovering) return;
+				if (followCurrentSelection(result, endpoint)) { historyRecovering = true; return; }
+				if (result.success !== true) throw new Error(result.data?.message || 'انتخاب شما تأیید نشد. برای ادامه، صفحهٔ خرید را تازه کنید.');
+				const data = result.data;
+				const target = new URL(data?.redirect, endpoint);
+				if (String(data?.product) !== intent.product || data.quantity !== intent.quantity
+					|| data.cart_identity !== intent.product + ':' + intent.quantity
+					|| !/^[a-f0-9]{64}$/.test(data.selection_revision || '')
+					|| typeof data.wizard_nonce !== 'string' || !data.wizard_nonce
+					|| typeof data.rest_nonce !== 'string' || !data.rest_nonce
+					|| target.origin !== endpoint.origin || target.pathname !== endpoint.pathname || target.username || target.password
+					|| target.searchParams.get('artnovo_plan') !== intent.product
+					|| typeof data.checkout_html !== 'string' || typeof data.checkout_assets !== 'string') throw new Error('پاسخ خرید معتبر نیست. برای ادامه، صفحه را تازه کنید.');
+				// A completed older selection only advances the queue's credentials; it never unlocks an old form.
+				updateSelectionRevision(data.selection_revision, false);
+				for (const field of selectionForm.querySelectorAll('[name="artnovo_wizard_nonce"]')) field.value = data.wizard_nonce;
+				if (intent.serial !== selectionSerial) continue;
+				if (prepare) {
+					installNativeCheckout(data.checkout_html, data);
+					nativeRefreshAllowed = true;
+					let initialReview = null;
+					await loadCheckoutAssets(data.checkout_assets, () => { initialReview = refreshOrderReview(true); });
+					if (intent.serial !== selectionSerial || historyRecovering) continue;
+					const current = await (initialReview ?? refreshOrderReview());
+					nativeRefreshAllowed = false;
+					if (intent.serial !== selectionSerial || historyRecovering) continue;
+					if (!current) throw new Error('مبلغ نهایی تأیید نشد. برای ادامه، صفحهٔ خرید را تازه کنید.');
+					review = true;
+				}
+				selectionPending = false;
+				reviewCurrent = true;
+				confirmedIdentity = data.cart_identity;
+				order.dataset.artnovoCheckoutReview = prepare ? '1' : '0';
+				setSelectionState(false, '', data);
+			}
+		} catch (error) {
+			// A POST or part of an asset queue may already have succeeded. Do not blindly replay it.
+			selectionRecovery = true;
+			selectionPending = false;
+			reviewCurrent = false;
+			queuedSelection = null;
+			setSelectionState(false, error instanceof TypeError ? 'ارتباط تأیید نشد. برای ادامهٔ همین خرید، صفحه را تازه کنید.' : error.message);
+		} finally {
+			preparing = false;
+			nativeRefreshAllowed = false;
+		}
+	}
+
+	function installNativeCheckout(html, data) {
+		if (!nativeHost) throw new Error('فرم پرداخت در دسترس نیست. صفحه را تازه کنید.');
+		const template = document.createElement('template');
+		template.innerHTML = html;
+		template.content.querySelectorAll('script').forEach((node) => node.remove());
+		const checkouts = template.content.querySelectorAll('form.checkout');
+		const fresh = checkouts[0];
+		if (checkouts.length !== 1 || fresh.elements.namedItem('artnovo_wizard_cart')?.value !== data.cart_identity
+			|| fresh.elements.namedItem('artnovo_selection_revision')?.value !== data.selection_revision) throw new Error('فرم پرداخت با انتخاب شما هماهنگ نیست. صفحه را تازه کنید.');
+		// WooCommerce caches these outer forms and binds their handlers once.
+		for (const selector of ['form.checkout', 'form.checkout_coupon']) {
+			const next = template.content.querySelector(selector);
+			const current = nativeHost.querySelector(selector);
+			if (!current) continue;
+			if (!next) throw new Error('فرم پرداخت کامل دریافت نشد. صفحه را تازه کنید.');
+			for (const attribute of Array.from(current.attributes)) current.removeAttribute(attribute.name);
+			for (const attribute of next.attributes) current.setAttribute(attribute.name, attribute.value);
+			current.replaceChildren(...next.childNodes);
+			next.replaceWith(current);
+		}
+		nativeHost.replaceChildren(...template.content.childNodes);
+		nativeCheckout = nativeHost.querySelector('form.checkout');
+		cartIdentity = nativeCheckout.elements.namedItem('artnovo_wizard_cart');
+	}
+
+	async function loadCheckoutAssets(html, beforeCheckout = () => {}) {
+		if (nativeAssetsFailed) throw new Error('بارگذاری پرداخت کامل نشد. صفحه را تازه کنید.');
+		const template = document.createElement('template');
+		template.innerHTML = html;
+		const loaded = new Set(Array.from(document.querySelectorAll('script[id]'), (node) => node.id));
+		try {
+			for (const original of template.content.querySelectorAll('script[id], style[id], link[id]')) {
+				const base = original.id.replace(/-js-(before|after|extra|translations)$/, '-js');
+				if (!original.id || document.getElementById(original.id) || base !== original.id && loaded.has(base)) continue;
+				if (original.tagName === 'LINK' && original.rel !== 'stylesheet') continue;
+				if (original.id === 'wc-checkout-js') beforeCheckout();
+				const asset = document.createElement(original.tagName.toLowerCase());
+				for (const attribute of original.attributes) asset.setAttribute(attribute.name, attribute.value);
+				asset.textContent = original.textContent;
+				const source = original.getAttribute(original.tagName === 'SCRIPT' ? 'src' : 'href');
+				if (source) {
+					const url = new URL(source, location.href);
+					if (url.username || url.password || url.protocol !== 'https:' && !(url.protocol === 'http:' && url.origin === location.origin)) throw new Error('نشانی فایل پرداخت معتبر نیست.');
+					if (asset.tagName === 'SCRIPT') asset.async = false;
+					await new Promise((resolve, reject) => {
+						const timer = setTimeout(() => reject(new Error('فایل پرداخت بارگذاری نشد. صفحه را تازه کنید.')), 15000);
+						asset.onload = () => { clearTimeout(timer); resolve(); };
+						asset.onerror = () => { clearTimeout(timer); reject(new Error('فایل پرداخت بارگذاری نشد. صفحه را تازه کنید.')); };
+						document.head.append(asset);
+					});
+				} else document.head.append(asset);
+				bindNativeEvents();
+			}
+			bindNativeEvents();
+			if (!window.jQuery || !document.getElementById('wc-checkout-js')) throw new Error('پرداخت آماده نشد. صفحه را تازه کنید.');
+		} catch (error) { nativeAssetsFailed = true; throw error; }
+	}
+
+	function bindNativeEvents() {
+		if (nativeEventsBound || !window.jQuery) return;
+		nativeEventsBound = true;
+		const body = window.jQuery(document.body);
+		window.jQuery.ajaxPrefilter((options, original, request) => {
+			let url;
+			try { url = new URL(options.url, location.href); } catch { return; }
+			if (url.origin !== location.origin || url.searchParams.get('wc-ajax') !== 'update_order_review') return;
+			if ((!reviewCurrent || selectionPending) && !nativeRefreshAllowed) { request.abort(); return; }
+			nativeRequests.add(request);
+			request.always(() => nativeRequests.delete(request));
+		});
+		body.on('updated_checkout payment_method_selected', () => {
+			labelBankTransferButton();
+			syncNativeSummary();
+		});
+		body.on('applied_coupon_in_checkout removed_coupon_in_checkout', () => {
+			queueMicrotask(() => window.jQuery(order.querySelector('form.checkout_coupon')).stop(true, true).show());
+		});
+	}
+
+	function updateSelectionRevision(value, includeNative = true) {
 		if (typeof value !== 'string' || !/^[a-f0-9]{64}$/.test(value)) return;
-		for (const field of order.querySelectorAll('[name="artnovo_selection_revision"]')) field.value = value;
+		for (const field of order.querySelectorAll('[name="artnovo_selection_revision"]')) {
+			if (includeNative || !nativeHost?.contains(field)) field.value = value;
+		}
 	}
 
 	function followCurrentSelection(result, endpoint) {
 		if (!(result.data?.refresh_required || result.success && result.data?.selection_changed) || typeof result.data.redirect !== 'string') return false;
-		const target = new URL(result.data.redirect, endpoint);
+		let target;
+		try { target = new URL(result.data.redirect, endpoint); } catch { return false; }
 		if (target.origin !== location.origin || target.pathname !== endpoint.pathname || target.username || target.password) return false;
 		location.replace(target.href);
 		return true;
@@ -249,13 +519,17 @@
 	}
 
 	function syncNativeSummary() {
+		if (selectionPending || !reviewCurrent) return false;
 		const table = nativeCheckout?.querySelector('.woocommerce-checkout-review-order-table');
 		const amount = table?.querySelector('.order-total td');
 		if (!amount) return false;
 		// WooCommerce remains the source of totals, discounts, taxes and fees.
 		table.setAttribute('aria-hidden', 'true');
 		order.dataset.artnovoSummaryReady = '1';
-		for (const output of totals) output.replaceChildren(...Array.from(amount.childNodes, (node) => node.cloneNode(true)));
+		for (const output of totals) {
+			output.replaceChildren(...Array.from(amount.childNodes, (node) => node.cloneNode(true)));
+			localizeMoney(output);
+		}
 		if (adjustments) {
 			adjustments.replaceChildren();
 			for (const row of table.querySelectorAll('tfoot tr:not(.cart-subtotal):not(.order-total)')) {
@@ -266,6 +540,7 @@
 				const detail = document.createElement('span');
 				label.textContent = row.querySelector('th')?.textContent ?? '';
 				detail.append(...Array.from(value.childNodes, (node) => node.cloneNode(true)));
+				localizeMoney(detail);
 				for (const link of detail.querySelectorAll('.woocommerce-remove-coupon')) {
 					link.removeAttribute('tabindex');
 					link.addEventListener('click', (event) => {
@@ -283,7 +558,9 @@
 		return true;
 	}
 
-	function refreshOrderReview() {
+	function refreshOrderReview(initializing = false) {
+		if (!window.jQuery || !nativeCheckout) return Promise.resolve(false);
+		cancelNativeReview();
 		const body = window.jQuery(document.body);
 		return new Promise((resolve) => {
 			const timer = setTimeout(() => finish(false), 15000);
@@ -292,13 +569,16 @@
 				body.off('updated_checkout.artnovoQuantity', onUpdate);
 				resolve(updated);
 			}
+			cancelNativeReview = () => finish(false);
 			function onUpdate() {
+				if (selectionPending && !nativeRefreshAllowed || cartIdentity?.value !== state.plan + ':' + quantity) return;
 				const displayed = nativeCheckout.querySelector('.woocommerce-checkout-review-order-table .product-quantity')?.textContent;
 				const digits = displayed?.replace(/[۰-۹٠-٩]/g, (digit) => String(digit.charCodeAt(0) % 16)).match(/\d+/);
 				if (Number(digits?.[0]) === quantity) finish(true);
 			}
 			body.on('updated_checkout.artnovoQuantity', onUpdate);
-			body.trigger('update_checkout');
+			// Native checkout initializes itself. Reuse an in-flight initial review instead of duplicating it.
+			if (!initializing && !nativeRequests.size) body.trigger('update_checkout');
 		});
 	}
 
@@ -328,6 +608,7 @@
 			quantity = result.data.quantity;
 			cartIdentity.value = result.data.cart_identity;
 			reviewCurrent = await refreshOrderReview();
+			if (reviewCurrent) confirmedIdentity = cartIdentity.value;
 			showQuantityStatus(reviewCurrent ? '' : 'مبلغ تازه نمایش داده نشد. تعداد را دوباره تغییر دهید یا صفحه را تازه کنید.');
 		} catch {
 			reviewCurrent = false;
@@ -350,7 +631,7 @@
 		empty.hidden = Boolean(plan);
 		selected.hidden = !plan;
 		title.textContent = plan?.name ?? '';
-		if (state?.plan !== next.plan && (!review || !state)) {
+		if (state?.plan !== next.plan) {
 			quantity = resumeDraft && next.plan === draftPlan ? Number(order.dataset.artnovoDraftQuantity) : 1;
 			if (next.plan) resumeDraft = false;
 		}
@@ -380,6 +661,7 @@
 		}
 		currentPanel.hidden = false;
 		state = next;
+		if (selectionPending && !next.plan) abandonSelection();
 
 		if (moveFocus) {
 			const heading = focusStepHeading(next);
@@ -398,16 +680,16 @@
 	}
 
 	function go(input) {
-		if (quantityPending || authPending) return;
+		if (quantityPending || authPending || nativeCheckout?.classList.contains('processing')) return;
 		const next = normalize(input);
-		if (next.step === '3' && (!review || next.plan !== draftPlan) && prepareCheckout(next.plan, next.plan === draftPlan ? Number(order.dataset.artnovoDraftQuantity) : 1)) return;
 		writeLocation(next);
 		render(next, true);
+		if (next.step === '3' && (!reviewCurrent || next.plan + ':' + quantity !== confirmedIdentity)) prepareCheckout(next.plan, quantity);
 	}
 
 	root.addEventListener('click', (event) => {
 		if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-		if ((quantityPending || authPending) && event.target.closest('[data-artnovo-category], [data-artnovo-go], article a[href], .artnovo-order-change')) {
+		if ((quantityPending || authPending || nativeCheckout?.classList.contains('processing')) && event.target.closest('[data-artnovo-category], [data-artnovo-go], article a[href], .artnovo-order-change')) {
 			event.preventDefault();
 			return;
 		}
@@ -427,10 +709,11 @@
 		if (quantityButton && !quantityButton.disabled && (quantityButton === decrease || quantityButton === increase)) {
 			const next = quantity + (quantityButton === increase ? 1 : -1);
 			const plan = findPlan(state.plan, state.category);
-			if (review && plan) void changeCheckoutQuantity(plan, next);
+			if (review && reviewCurrent && !selectionPending && plan) void changeCheckoutQuantity(plan, next);
 			else {
 				quantity = next;
 				updateAmounts(plan);
+				if (plan) prepareCheckout(plan.id, quantity);
 			}
 			return;
 		}
@@ -449,8 +732,8 @@
 		const plan = plans.find((entry) => entry.link === link && categoryAvailable(entry.category));
 		if (!plan) return;
 		event.preventDefault();
-		// An explicit card choice starts from fresh server selection state, unlike Back/replay.
-		location.assign(link.href);
+		if (!asyncSupported || !selectionForm) location.assign(link.href);
+		else go({ step: '3', category: plan.category, plan: plan.id });
 	});
 
 	root.addEventListener('toggle', (event) => {
@@ -494,7 +777,12 @@
 	mobile.addEventListener('change', () => document.body.style.removeProperty(scrollRoom));
 	window.addEventListener('popstate', (event) => {
 		if (quantityPending || authPending) writeLocation(state);
-		else render(readLocation(event.state?.artnovoWizard), true);
+		else {
+			const next = readLocation(event.state?.artnovoWizard);
+			// History is not a new explicit purchase. Resolve it from current server state without replaying a POST.
+			if (next.step === '3' && (selectionPending || next.plan + ':' + quantity !== confirmedIdentity)) recoverPurchaseHistory(true);
+			else render(next, true);
+		}
 	});
 	render(readLocation(history.state?.artnovoWizard));
 	document.addEventListener('artnovo:auth-busy', (event) => {
@@ -502,22 +790,12 @@
 		updateAmounts(findPlan(state.plan, state.category));
 		updateStepAvailability(state, findPlan(state.plan, state.category));
 	});
-	if (order.dataset.artnovoAutoPrepare === '1') prepareCheckout(state.plan, quantity);
-	if (nativeCheckout && window.jQuery) {
-		const body = window.jQuery(document.body);
-		const couponForm = window.jQuery(order.querySelector('form.checkout_coupon'));
-		body.on('updated_checkout payment_method_selected', () => {
-			labelBankTransferButton();
-			syncNativeSummary();
-		});
-		body.on('applied_coupon_in_checkout removed_coupon_in_checkout', () => {
-			// Finish WooCommerce's collapse before paint, keeping its notice callback.
-			queueMicrotask(() => couponForm.stop(true, true).show());
-		});
-		labelBankTransferButton();
-	}
+	if (state.step === '3' && !review && (form || order.dataset.artnovoAutoPrepare === '1')) prepareCheckout(state.plan, quantity);
+	bindNativeEvents();
+	labelBankTransferButton();
 	order.addEventListener('submit', (event) => {
-		if ((event.target === nativeCheckout || event.target.matches('form.checkout_coupon')) && (quantityPending || !reviewCurrent)) {
+		if (event.target === form && (selectionPending || selectionRecovery)
+			|| (event.target === nativeCheckout || event.target.matches('form.checkout_coupon')) && (selectionPending || quantityPending || !reviewCurrent)) {
 			event.preventDefault();
 			event.stopImmediatePropagation();
 			showQuantityStatus('ابتدا صبر کنید مبلغ سفارش به‌روزرسانی شود یا صفحه را تازه کنید.', quantityPending);

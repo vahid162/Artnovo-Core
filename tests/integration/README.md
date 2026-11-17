@@ -52,6 +52,7 @@ wp --path="$ARTNOVO_WP_ROOT" --skip-plugins=artnovo-core,artnovo-account-ui,artn
 wp --path="$ARTNOVO_WP_ROOT" --skip-plugins=artnovo-core,artnovo-account-ui,artnovo-header-ui,artnovo-home-order-ui,artnovo-plan-checkout,wordfence eval-file "$ARTNOVO_TEST_ROOT/received/verify-received.php"
 wp --path="$ARTNOVO_WP_ROOT" --skip-plugins=artnovo-core,artnovo-account-ui,artnovo-header-ui,artnovo-home-order-ui,artnovo-plan-checkout,wordfence eval-file "$ARTNOVO_TEST_ROOT/received/verify-receipt.php"
 wp --path="$ARTNOVO_WP_ROOT" --skip-plugins=artnovo-core,artnovo-account-ui,artnovo-header-ui,artnovo-home-order-ui,artnovo-plan-checkout,wordfence eval-file "$ARTNOVO_TEST_ROOT/received/verify-template-scope.php"
+wp --path="$ARTNOVO_WP_ROOT" --skip-plugins=artnovo-core,artnovo-account-ui,artnovo-header-ui,artnovo-home-order-ui,artnovo-plan-checkout,wordfence eval-file "$ARTNOVO_TEST_ROOT/display/verify-display.php"
 ```
 
 If the system `wp` wrapper uses another PHP version, invoke the WP-CLI PHAR with
@@ -65,6 +66,10 @@ stores for reserved synthetic order/item IDs so Bridge's fresh reads can see the
 fixture without saving an order. It separately changes fresh owner, amount,
 status and existence to check stale caller rejection. These stores delegate
 non-fixture identities to WooCommerce and abort on an allocated fixture ID.
+
+The display check uses native WordPress HTML parsing to verify Persian human
+fields and prices while preserving attributes, credentials, URLs, copy payloads,
+input values and native financial numbers. It blocks SQL writes, mail and HTTP.
 
 The auth check captures its synthetic OTP in memory and verifies incorrect-code,
 scope and replay handling. It does not deliver an email. The account check also runs native order/edit-account/Wallet GET callbacks with a

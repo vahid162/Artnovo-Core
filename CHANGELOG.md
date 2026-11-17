@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## 1.7.0 — 2026-11-17
+
+- Show the selected plan, quantity and guest sign-in immediately; prepare the
+  validated native checkout in the background. Serialize rapid selections, retain
+  revision/origin/session locks and recover ambiguous responses through a fresh GET.
+- Load native checkout/gateway dependencies only after the real cart is ready;
+  preserve WooCommerce checkout/coupon form identities and upstream payment rules.
+- Group guest and signed-in headings, present an always-visible three-row summary,
+  and align privacy, terms and the primary action across responsive sizes.
+- Render human-readable amounts, counts and plan labels with Persian digits while
+  preserving native arithmetic, identifiers, credentials, URLs and input values.
+- Record the approved BACS description-only configuration operation separately;
+  apply it through native WooCommerce settings after official installation.
+
 ## 1.6.0 — 2026-11-17
 
 - Implement the approved continuous purchase design on mobile and desktop: a

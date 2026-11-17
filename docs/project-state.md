@@ -1,6 +1,32 @@
 # Current project state
 
-## Completed delivery: continuous purchase 1.6.0 (2026-11-17)
+## Current mission: issues19–25 / Core1.7.0
+
+The owner authorized one GitHub-first bundle, Core code only, independent plugins,
+full checks, official release and installation, plus native BACS description-only
+configuration for issue24. No Bridge/Wallet/Pinova source change is permitted.
+
+Implementation is on `work/issues19-25-purchase`. Guest sign-in/summary appears
+immediately; explicit selection runs behind origin, nonce, fresh-session revision
+and an atomic lock through request shutdown. Native checkout/gateway assets are
+printed from registered WordPress queues only after the real selection is ready.
+The browser serializes/coalesces selections and cannot activate a late selection.
+Payment keeps native WooCommerce/Bridge authorization; no GET mutates the cart.
+
+UI criteria cover the centered guest/signed-in headings, three summary rows,
+always-visible quantity, Persian display digits without technical-data mutation,
+and a compact final consent/action group. The native issue24 proposal is in
+[the configuration contract](site-design/artnovo/planned-1.7.0.json).
+
+Final68/68 standalone/syntax/build checks and independent source/operation review
+passed. Nine isolated native commands passed570 executed assertions; browser
+mobile/desktop and native gateway/form/coupon checks passed. Race, new-gateway asset, cross-tab and BFCache checks also passed. GitHub CI,
+publication and deployment remain pending.
+[Current evidence and limits](evidence/2026-11-17-purchase-19-25.md) records the
+frozen artifact and tests. Native fixtures use a separate synthetic database,
+never production records. Record actual delivery before declaring completion.
+
+## Previous completed delivery: continuous purchase 1.6.0 (2026-11-17)
 
 The owner authorized completion of issues15/16/17, testing, merge, official release
 and installation. All scoped work is complete. PR18 merged at

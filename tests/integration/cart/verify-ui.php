@@ -34,7 +34,14 @@ $check( 'native payment controls, coupon and financial fragments remain', str_co
 	&& str_contains( $markup, 'name="coupon_code"' ) );
 $check( 'verified virtual purchase requires no customer email field', ! str_contains( $markup, 'name="billing_email"' ) );
 $check( 'order summary and the three familiar steps share one main card', 1 === substr_count( $markup, 'class="artnovo-order-layout"' )
-	&& str_contains( $markup, 'class="artnovo-order-steps"' ) && str_contains( $markup, 'مبلغ خرید' ) );
+	&& str_contains( $markup, 'class="artnovo-order-steps"' ) && str_contains( $markup, 'مبلغ قابل پرداخت' ) );
+$product_row = strpos( $markup, 'class="artnovo-order-product"' );
+$quantity_row = strpos( $markup, 'class="artnovo-order-quantity"' );
+$total_row = strpos( $markup, 'class="artnovo-order-total"' );
+$check( 'summary keeps selection, visible quantity and payable total in three ordered rows', false !== $product_row
+	&& false !== $quantity_row && false !== $total_row && $product_row < $quantity_row && $quantity_row < $total_row
+	&& str_contains( $markup, 'data-artnovo-quantity-step="-1"' ) && str_contains( $markup, 'data-artnovo-quantity-step="1"' )
+	&& ! str_contains( $markup, 'data-artnovo-quantity-disclosure' ) );
 
 // Render a hypothetical eligible gateway's native component without registering or authorizing it.
 $gateway = new class extends WC_Payment_Gateway {

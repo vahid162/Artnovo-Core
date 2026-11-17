@@ -18,6 +18,20 @@
 		}
 	}
 
+	function displayDigits(value, price = false) {
+		if (price) {
+			for (const [separator, replacement] of [
+				[root.dataset.artnovoPriceThousandSeparator ?? ',', '٬'],
+				[root.dataset.artnovoPriceDecimalSeparator ?? '.', '٫']
+			]) {
+				if (!separator) continue;
+				const escaped = separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+				value = value.replace(new RegExp('(?<=[0-9٠-٩۰-۹])' + escaped + '(?=[0-9٠-٩۰-۹])', 'gu'), replacement);
+			}
+		}
+		return value.replace(/[0-9٠-٩]/g, digit => '۰۱۲۳۴۵۶۷۸۹'[/[0-9]/.test(digit) ? Number(digit) : digit.charCodeAt(0) - 0x660]);
+	}
+
 	function initSubscriptionTools() {
 		const number = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 });
 		for (const card of root.querySelectorAll('.wpvpn-subscription[data-artnovo-card]')) {
@@ -119,7 +133,7 @@
 					const title = document.createElement('dt');
 					title.textContent = label;
 					const value = document.createElement('dd');
-					value.textContent = purchase[key];
+					value.textContent = displayDigits(purchase[key], key === 'amount');
 					values.append(title, value);
 				}
 				const original = Array.from(card.querySelectorAll('a[href]')).find((link) =>

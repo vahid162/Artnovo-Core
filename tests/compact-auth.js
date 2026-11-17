@@ -158,7 +158,7 @@ async function testCompactAuth(source, assert) {
 		const malformed = fixture({ identifier: value });
 		malformed.responses.push(prepared, { success: false, message: 'برای دریافت کد تایید، از تلفن همراه یا ایمیل استفاده کنید.' });
 		await malformed.submit();
-		check(malformed.requests.length === 2 && malformed.nodes.message.textContent.includes('۱۱ رقم') && malformed.nodes.message.textContent.includes('09123456789') && malformed.form.dataset.artnovoAuthPending === '0', 'native rejection of phone-shaped input explains the Iranian length and format');
+		check(malformed.requests.length === 2 && malformed.nodes.message.textContent.includes('۱۱ رقم') && malformed.nodes.message.textContent.includes('۰۹۱۲۳۴۵۶۷۸۹') && malformed.form.dataset.artnovoAuthPending === '0', 'native rejection of phone-shaped input explains the Iranian length and format');
 		const numericAccount = fixture({ identifier: value });
 		numericAccount.responses.push(prepared, { success: true, data: { login_method: 'password' } });
 		await numericAccount.submit();
@@ -182,10 +182,23 @@ async function testCompactAuth(source, assert) {
 	const providerMarkup = fixture({ identifier: '09120000000' });
 	providerMarkup.responses.push(prepared, { success: true, message: 'کد به <span dir="ltr">+989120000000</span> ارسال شد.<img src="https://malicious.test/pixel" onerror="bad()"><script>bad()</script><style>bad{}</style>', data: { login_method: 'otp', jwt: 'test-native-challenge', ttl: 120 } });
 	await providerMarkup.submit();
-	check(providerMarkup.nodes.message.textContent === 'کد به +989120000000 ارسال شد.' && providerMarkup.templates.some((html) => html.includes('<span')), 'provider markup is parsed in an inert template and only its message text reaches the live status');
+	check(providerMarkup.nodes.message.textContent === 'کد به +۹۸۹۱۲۰۰۰۰۰۰۰ ارسال شد.' && providerMarkup.templates.some((html) => html.includes('<span')), 'provider markup is parsed in an inert template and only its Persian message text reaches the live status');
 	const isolatedPhone = providerMarkup.nodes.message.childNodes.find((node) => node.tagName === 'BDI');
-	check(isolatedPhone?.dir === 'ltr' && isolatedPhone.textContent === '+989120000000', 'the phone and international prefix are isolated in their logical left-to-right order');
+	check(isolatedPhone?.dir === 'ltr' && isolatedPhone.textContent === '+۹۸۹۱۲۰۰۰۰۰۰۰', 'the phone and international prefix are isolated in their logical left-to-right order');
 	check(!providerMarkup.nodes.message.textContent.includes('bad') && !providerMarkup.nodes.message.textContent.includes('<'), 'scripts, style contents and active markup never enter the displayed provider message');
+
+	const preparing = fixture({ identifier: 'returning_user' });
+	preparing.form.listeners['artnovo:selection-busy']({ detail: { pending: true } });
+	await preparing.submit();
+	check(!preparing.controls.artnovo_auth_identifier.readOnly && preparing.nodes.submit.disabled && !preparing.requests.length, 'background selection leaves the identifier editable and prevents premature authentication');
+	const selectionReady = { product: 26, quantity: 1, selection_revision: newRevision, wizard_nonce: 'fresh-wizard', rest_nonce: 'fresh-rest', redirect: 'https://example.test/?artnovo_plan=26&artnovo_checkout=1#artnovo-order' };
+	preparing.form.listeners['artnovo:selection-ready']({ detail: { ...selectionReady, product: 25 } });
+	check(preparing.nodes.submit.disabled && preparing.controls.artnovo_selection_revision.value === revision, 'a late result for another plan cannot unlock guest authentication');
+	preparing.form.listeners['artnovo:selection-ready']({ detail: selectionReady });
+	preparing.responses.push({ success: true, data: { login_method: 'password' } });
+	await preparing.submit();
+	check(preparing.requests.length === 1 && preparing.requests[0].url === 'https://example.test/wp-json/pinova/user/authenticate' && preparing.requests[0].headers['X-WP-Nonce'] === 'fresh-rest', 'validated asynchronous selection reuses its preparation and fresh REST nonce without a second selection POST');
+	check(preparing.controls.artnovo_wizard_nonce.value === 'fresh-wizard' && preparing.controls.artnovo_selection_revision.value === newRevision, 'guest proof retains the matching validated selection nonce and revision');
 
 	const stale = fixture({ identifier: 'returning_user' });
 	stale.responses.push({ success: false, data: { refresh_required: true, redirect: 'https://malicious.test/steal' } });
