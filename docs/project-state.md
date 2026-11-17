@@ -1,43 +1,54 @@
 # Current project state
 
-## Current delivery: continuous purchase 1.6.0 (2026-11-17)
+## Completed delivery: continuous purchase 1.6.0 (2026-11-17)
 
-The owner now explicitly requests completion of issues 15/16/17, all remaining
-checks, merge/publication and installation on artnovo.ir. Reuse PR18 and branch
-work/continuous-checkout; only Core may change. Bridge online-payment policy is
-assigned to separate work by the owner. No real charge or message is needed.
+The owner authorized completion of issues15/16/17, testing, merge, official release
+and installation. All scoped work is complete. PR18 merged at
+`db5f0ed7294fee8cb5d55ee8a0012530e366ebc1`, tree
+`32bf2095434c45c983e559fcd44384097122b9d2`. PR/main/release Actions
+44054323132 /44054454699 /44054594824 passed. Published tagv1.6.0 targets that
+merge. Official ZIP SHA256
+`24318ad77a04d9212cb68f2a29dbbe503c68e5357d815bba98e419108730fc70`
+matches the frozen tested candidate, source and every one of35 installed files.
 
-The 1.6.0 candidate includes the approved continuous purchase design, native
-WooCommerce gateway discovery, exact-draft reuse/direct fresh auth return, partial
-ready-link copying, native retry-payment skin, eight-second mobile/desktop notices
-and equal-height coupon controls. A fresh regression found wallet-only guest
-preselection blocked before sign-in; the candidate now permits sign-in only, while
-real gateway availability still requires the original customer authorization.
+Only Core changed. Bridge/Wallet/Pinova payloads, activation set and wp-config are
+unchanged. Independent installer review, atomic exchange/restore rehearsal, request
+drain,18 Core PHP opcode invalidations with zero failures, host-scoped cache purge
+and home/account HTTP200 health checks passed. Recovery is retained privately at
+`/var/backups/artnovo-core/20261117T092223Z-r9gpzrbf`; no maintenance remains.
 
-All 62 final standalone/lint/build commands passed, including119 payment
-assertions. All8 native integration commands passed550 executed assertions on an
-independent temporary WordPress/MariaDB clone;32 runtime files match final source.
-Independent final review found no blocking issue. Actual Chrome verified native
-sign-in/payment rendering, coupons, received-copy/manual fallback and responsive
-geometry. Paired valid-draft traces remove the old prepare POST:3 document requests
-become1. Chrome also exposed an old Back page resurrecting an earlier plan; the
-final history/BFCache guard passed the same replay and preserved the newest plan.
+The approved continuous purchase design uses one compact card/primary per state.
+Exact authenticated drafts render directly; a fresh post-auth purchase GET avoids
+the old account hop. Chrome Back/BFCache recovery lets the server retain the latest
+selection before an old page can issue prepare again. Native gateway discovery,
+custom fields, totals and authorization remain upstream-owned. Wallet-only guest
+candidates can sign in without bypassing actual customer eligibility. Partial
+ready-link copying/manual fallback, native order-pay skin, eight-second contrasting
+mobile bubbles and precisely aligned coupon controls are included.
 
-Automatic approval review rejected root live-database tests and required isolation;
-those commands were not executed or bypassed. The isolated clone has independent
-credentials/socket and blocked mail/HTTP/cron. All synthetic records stay there.
-No real charge, outbound message, provider issuance or production DB test occurred.
-Published1.5.1 remains installed. PR18 initial CI is green; the reviewed1.6.0 source
-and final evidence are ready to be submitted together.
+Final62 standalone/lint/build commands,119 payment assertions and independent
+runtime review passed. An isolated native WordPress/MariaDB clone passed8 commands
+with550 executed assertions;32 runtime files exactly matched final source. Actual
+Chrome passed native sign-in/payment rendering, quantity1→2→1, coupons, financial
+summary, partial copy/manual fallback/QR, Back recovery, eight-second notices and
+mobile/desktop geometry. Five paired valid-draft samples reduced3 document requests
+and1 prepare POST to1 GET and0 prepare POSTs. Staging timing is not a production SLA.
 
-Next, already authorized: require green checks on final PR18 head, merge, validate
-main, manually publish official1.6.0 ZIP/checksum, atomically install that exact
-artifact with private recovery and verify all35 installed payload files plus
-unchanged Bridge/Wallet/Pinova, activation/wp-config and affected live UI. Then close
-issues15/16/17, record delivery and remove this mission's private QA environment.
-Do not claim publication/installation complete before readback.
+Live guest purchase at1206/390/320 and native Pinova login at390 had no horizontal
+overflow or browser errors. Six actually served Core assets match official payload
+hashes. Live toast timing/progress/contrast/close/gutters passed. No real charge,
+message or issuance was used. Tests against the production database were rejected
+by automatic review and not executed or bypassed; all synthetic records stayed in
+the isolated clone. The clone, private dump, browser profile/tunnel and owned
+processes are removed; only nonsecret aggregate evidence and recovery are retained.
 
-See [development/delivery evidence](evidence/2026-11-17-continuous-purchase.md).
+Issues15/16/17 are closed with delivery evidence. No functional work remains in this
+Core mission. Bridge0.2.8 still restricts service online payments; the owner assigned
+that policy change to separate Bridge work. Core is prepared to display newly
+eligible native gateways, but this delivery does not certify an actual paid online
+transaction or alter Bridge/Wallet/Pinova. Documentation-only delivery records do
+not alter tag/assets/runtime bytes. See
+[delivery evidence](evidence/2026-11-17-continuous-purchase.md).
 
 ## Previously completed outcome and authority
 
@@ -55,7 +66,7 @@ recorded in GitHub before supported live application after the corresponding Cor
 release/install; current references/manifest match observed source. No raw Elementor
 storage or live plugin source was patched. Published tags/assets are immutable.
 
-## Installed source and artifact
+## Previous 1.5.1 source and artifact
 
 PR13 merge/tag target `496583cc1fa6c62304d43a51ed51fe33b13a2dcc`, source tree
 `f4cc27e1651cb8df1c33e105c1bf30bc8f022368`. PR/main/publication Actions
@@ -73,7 +84,7 @@ resolved. Those fixes and regression checks are included in1.5.0. The native pri
 alignment was applied only after official1.4.1 installation and readback verified
 only its intended card style changed. Native designs did not change in1.5.0.
 
-## Delivered behavior and checks
+## Previously delivered behavior and checks
 
 My Accounts keeps real native subscription rows, copy/local QR, optional email,
 proper navigation and native order/profile/Wallet handlers. Missing-Bridge fallback

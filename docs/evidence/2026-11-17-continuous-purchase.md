@@ -113,19 +113,54 @@ Native quantity/financial transitions also passed in the visible native browser 
 Physical devices, real OS clipboard, screen-reader speech and real paid online
 gateway/provider completion were not tested. Bridge integration remains separate.
 
-## Delivery procedure and recovery
+## Published, installed and verified
 
-Final reviewed source must be submitted to PR18; require green checks on that exact
-head, merge with an expected-head lease, validate main and manually publish1.6.0.
-Verify the official ZIP/checksum against the deterministic candidate and all35
-payload entries before installation. Atomic Core-only deployment keeps a private
-old-source backup, rehearses exchange/restore, drains PHP requests, invalidates only
-Core opcode/site cache entries and verifies health plus unchanged other plugins,
-activation set and wp-config. Failure restores old source; source rollback cannot
-reverse any real order, charge or issued service. No data migration is introduced.
+- PR18 merged at`db5f0ed7294fee8cb5d55ee8a0012530e366ebc1`; final PR head
+  `d301543afe9f837a8050c51d5f049e3864379db3` and merge share tested tree
+  `32bf2095434c45c983e559fcd44384097122b9d2`.
+- PASS: [final PR CI](https://github.com/vahid162/Artnovo-Core/actions/runs/44054323132),
+  [main CI](https://github.com/vahid162/Artnovo-Core/actions/runs/44054454699) and
+  [manual official publication](https://github.com/vahid162/Artnovo-Core/actions/runs/44054594824).
+- Published [v1.6.0](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.6.0)
+  is non-draft/non-prerelease; tag points to the exact merge. Official ZIP and
+  SHA256SUMS were downloaded and matched the deterministic tested candidate byte
+  for byte. ZIP SHA256:
+  `24318ad77a04d9212cb68f2a29dbbe503c68e5357d815bba98e419108730fc70`.
+  Each of35 entries also matches the tagged source; no private/development file.
+- PASS: independent read-only installer/FCGI review, private backup and exchange/
+  restore rehearsal, drain, Core-only atomic installation and post-readback.
+  Backup:`/var/backups/artnovo-core/20261117T092223Z-r9gpzrbf`.
+  FPM:18 Core scripts invalidated, zero cached failures. Six host-specific cache
+  entries purged; no global service restart or unrelated plugin mutation.
+- PASS: installed version1.6.0 and every35 payload files equal the official ZIP.
+  Bridge/Wallet/Pinova, active-plugin set and wp-config match pre-install snapshots.
+  Home/account HTTP200 with expected UI; no maintenance remains.
+- PASS: actual live guest purchase1206/390/320: selected plan/auth visible,
+  desktop card592px, optional checkout email absent and no overflow. Native
+  Pinova login identifier/required label/script at390 verified. No authentication
+  message, order, charge, receipt or issuance was triggered on production.
+- PASS: live mobile temporary notice:8s progress and active lifetime, source DOM
+  retained, contrasting surface/border/shadow,44px close and14px gutters. All six
+  actually served purchase CSS/JS bodies hash-identical to the official payload.
+  No browser runtime errors. Assets use native filemtime query versions, not the
+  plugin version string; standalone Pinova uses its native username/model node,
+  not compact checkout's identifier name. Initial invalid harness assumptions
+  about these two selectors/versions were corrected using actual source/DOM and
+  byte hashes, without changing product code or weakening a real requirement.
 
-Publication/install results will be appended after readback; neither is claimed
-complete by this pre-release evidence. Issues15/16/17 have implementation and test
-evidence, and will be closed with the final delivery record. Private clone/dump,
-synthetic account, browser profile/tunnel and owned processes must be removed after
-live readback, preserving only nonsensitive aggregate evidence and recovery backup.
+Issues15/16/17 were closed with results and release/PR references. This delivery
+introduces no data migration. Source recovery is separate from reversing an actual
+order/charge/service; retain the private previous-source backup. Bridge online
+payment-policy work remains separately assigned, not silently included or bypassed.
+
+## Cleanup
+
+The independent WordPress/MariaDB clone was shut down and removed, including its
+private dump/config/synthetic browser account/coupon/fixtures. Owned Chrome/Node
+processes and the SSH forwarding process were stopped; the dedicated QA browser
+profile and credential-bearing scripts were deleted. Readback confirms zero owned
+Chrome/Node processes, no forwarding process and no profile/clone. Keep only
+nonsecret aggregate QA/public UI screenshots outside Git and the private recovery
+receipt. No published tag/asset was replaced. Documentation-only final delivery
+records do not change the official runtime package. All requested Core work is
+complete; real paid online/provider acceptance awaits separately compatible Bridge.
