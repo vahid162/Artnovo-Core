@@ -1,5 +1,5 @@
 {
-  "status": "approved; pending official Core 1.7.0 publication and installation",
+  "status": "applied and verified after official Core1.7.0 publication and installation",
   "issue": 24,
   "target": "woocommerce_bacs_settings.description",
   "operation": "WordPress option API read/compare/update of description only",
@@ -17,5 +17,13 @@
     "native gateway description readback exactly matches desired",
     "all other option keys and separate bank accounts unchanged",
     "native checkout renders desired description for BACS only"
-  ]
+  ],
+  "observed": {
+    "core_tag": "v1.7.0",
+    "source_commit": "f33304c302bef04f149c5eac7b3c3126b198a281",
+    "description_readback_exact": true,
+    "all_other_bacs_keys_unchanged": true,
+    "bank_accounts_unchanged": true,
+    "native_api_binary_compare_and_swap": true
+  }
 }

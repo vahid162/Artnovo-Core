@@ -1,30 +1,45 @@
 # Current project state
 
-## Current mission: issues19–25 / Core1.7.0
+## Completed delivery: issues19–25 / Core1.7.0 (2026-11-17)
 
 The owner authorized one GitHub-first bundle, Core code only, independent plugins,
 full checks, official release and installation, plus native BACS description-only
-configuration for issue24. No Bridge/Wallet/Pinova source change is permitted.
+configuration for issue24. All seven scoped issues are implemented and delivered.
 
-Implementation is on `work/issues19-25-purchase`. Guest sign-in/summary appears
-immediately; explicit selection runs behind origin, nonce, fresh-session revision
-and an atomic lock through request shutdown. Native checkout/gateway assets are
-printed from registered WordPress queues only after the real selection is ready.
-The browser serializes/coalesces selections and cannot activate a late selection.
-Payment keeps native WooCommerce/Bridge authorization; no GET mutates the cart.
+PR26 merged at `f33304c302bef04f149c5eac7b3c3126b198a281`, tree
+`62be522126e24547bf2b85ecf4df1aca48c93058`. Automatic review had no findings;
+branch/PR/main/release CI passed. Official tagv1.7.0 and ZIP SHA256
+`1fd7eb1817c58cb6960a3017cfc2a384c896f97744a61a15fc24c1f17b5ecd03` match the
+frozen tested candidate and every one of36 installed files. Later delivery records
+are documentation only; runtime bytes remain the published1.7.0 artifact.
 
-UI criteria cover the centered guest/signed-in headings, three summary rows,
-always-visible quantity, Persian display digits without technical-data mutation,
-and a compact final consent/action group. The native issue24 proposal is in
-[the configuration contract](site-design/artnovo/planned-1.7.0.json).
+Guest summary/sign-in appears immediately, with native checkout preparation in
+the background, serialized selection and nonce/origin/revision/session locks.
+Late/ambiguous results cannot enable payment. Native checkout/coupon forms,
+gateway availability, financial validation and silent unpaid-plan replacement
+remain upstream-owned. Headings, three summary rows, always-visible quantity,
+Persian human digits and the compact final consent/action group are delivered.
 
-Final68/68 standalone/syntax/build checks and independent source/operation review
-passed. Nine isolated native commands passed570 executed assertions; browser
-mobile/desktop and native gateway/form/coupon checks passed. Race, new-gateway asset, cross-tab and BFCache checks also passed. GitHub CI,
-publication and deployment remain pending.
-[Current evidence and limits](evidence/2026-11-17-purchase-19-25.md) records the
-frozen artifact and tests. Native fixtures use a separate synthetic database,
-never production records. Record actual delivery before declaring completion.
+Final68/68 standalone/lint/build commands and nine isolated native commands
+(570 executed PASS assertions, including repeated cart cases) passed. Actual
+Chrome passed guest/customer purchase, native gateway/assets/coupon, rapid
+selection, cross-tab, explicit persisted-pageshow recovery and14 responsive cases.
+Live390/1206 passed with zero new documents on selection, no overflow/errors and
+six served Core assets matching the official payload. Real payment/provider/mail
+were not invoked; native BFCache eligibility was not certified.
+
+The official package was installed using verified backup, atomic exchange/restore
+rehearsal, request drain and Core-only opcode invalidation. Recovery reference:
+`/var/backups/artnovo-core/20261117T183152Z-csvk_1ke`. No maintenance remains.
+Bridge/Wallet/Pinova code, activation set and wp-config are unchanged. Issue24 was
+applied afterward through the native option API with a binary concurrency guard;
+fresh readback proves only the approved description changed, with instructions,
+all other BACS settings and bank accounts preserved. No Elementor edit was needed.
+
+[Delivery evidence and limits](evidence/2026-11-17-purchase-19-25.md) and
+[the native configuration contract](site-design/artnovo/planned-1.7.0.json) retain
+nonsecret proof. Private synthetic QA services were stopped; production fixtures
+were never run. No required Core work remains in this mission.
 
 ## Previous completed delivery: continuous purchase 1.6.0 (2026-11-17)
 

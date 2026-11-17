@@ -36,8 +36,9 @@ WordPress post modification dates are not used as design revision evidence becau
 the native metadata edits do not update them reliably.
 
 [The 1.7.0 native configuration contract](planned-1.7.0.json) records the approved
-BACS description-only update for issue24. Apply after the official Core install;
-retain instructions, account details and every other gateway setting.
+BACS description-only update for issue24. It was applied after official1.7.0
+installation; native readback verified the exact description, with instructions,
+account details and every other gateway setting unchanged.
 
 ## Change sequence
 
