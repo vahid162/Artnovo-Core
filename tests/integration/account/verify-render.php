@@ -306,7 +306,8 @@ try {
 			$navigation = Artnovo\AccountUI\account_navigation();
 			$items = array_merge( $navigation['primary'], $navigation['secondary'] );
 			$active = array_keys( array_filter( $items, static fn( array $item ): bool => $item['current'] ) );
-			$title = 'view-order' === $endpoint ? 'جزئیات خرید و رسید' : $items[ $current ]['label'];
+			$layout = Artnovo\AccountUI\account_endpoint_layout( $endpoint );
+			$title = $layout['title'] ?? $items[ $current ]['label'];
 			$assert( [ $current ] === $active && str_contains( $markup, '<h1>' . esc_html( $title ) . '</h1>' ), 'native endpoint owns the current label over a conflicting Core query ' . $endpoint );
 			$tags = new WP_HTML_Tag_Processor( $markup );
 			$current_urls = [];
@@ -315,7 +316,8 @@ try {
 					$current_urls[] = $tags->get_attribute( 'href' );
 				}
 			}
-			$assert( [ $items[ $current ]['url'] ] === $current_urls, 'rendered current link preserves the native or Core destination ' . $endpoint );
+			$assert( array_fill( 0, $layout ? 2 : 1, $items[ $current ]['url'] ) === $current_urls,
+				'rendered current links preserve the native or Core destination across layouts ' . $endpoint );
 		} finally {
 			remove_action( 'woocommerce_account_content', $observe_content, 1 );
 			if ( null === $saved_hook ) { unset( $GLOBALS['wp_filter'][ $hook ] ); }
@@ -495,8 +497,8 @@ try {
 		if ( 'orders' === $endpoint ) {
 			$tags = new WP_HTML_Tag_Processor( $native );
 			$shop = apply_filters( 'woocommerce_return_to_shop_redirect', wc_get_page_permalink( 'shop' ) );
-			$assert( $tags->next_tag( [ 'class_name' => 'woocommerce-info' ] ) && in_array( $shop, $native_urls, true ),
-				'real native orders retain their empty-state notice and shop destination' );
+			$assert( $tags->next_tag( [ 'class_name' => 'artnovo-orders-empty' ] ) && in_array( $shop, $native_urls, true ),
+				'compact orders retain a clear empty state and the native shop destination' );
 		} elseif ( 'edit-account' === $endpoint ) {
 			$tags = new WP_HTML_Tag_Processor( $native );
 			$form = $tags->next_tag( [ 'tag_name' => 'FORM', 'class_name' => 'woocommerce-EditAccountForm' ] )
@@ -514,6 +516,14 @@ try {
 				&& $user->user_email === ( $fields['account_email'] ?? null )
 				&& $user->display_name === ( $fields['account_display_name'] ?? null )
 				&& 'save_account_details' === ( $fields['action'] ?? null ), 'real native edit form retains synthetic identity, name/password fields and save nonce' );
+			$assert( str_contains( $native, 'artnovo-profile-form' ) && 3 === substr_count( $native, 'class="artnovo-profile-section"' )
+				&& wp_verify_nonce( $fields['save-account-details-nonce'] ?? '', 'save_account_details' ),
+				'sectioned profile submits one native nonce across all three sections' );
+			$tags = new WP_HTML_Tag_Processor( $native );
+			while ( $tags->next_tag( 'INPUT' ) && 'account_email' !== $tags->get_attribute( 'name' ) ) {}
+			$assert( array_key_exists( 'pinova_mobile', $fields ) && 'account_email' === $tags->get_attribute( 'name' )
+				&& null === $tags->get_attribute( 'required' ) && null === $tags->get_attribute( 'aria-required' ),
+				'Pinova mobile remains present and native optional email is represented accurately' );
 		} else {
 			$tags = new WP_HTML_Tag_Processor( $native );
 			$wallet_url = wc_get_account_endpoint_url( 'woo-wallet' );
@@ -539,9 +549,12 @@ try {
 		}
 		$assert( $menu_links > 0 && $menu_local && $handlers === ( $GLOBALS['wp_filter'][ $hook ]->callbacks ?? [] ),
 			'real native rendering preserves handlers and same-origin account navigation ' . $endpoint );
+		$layout = Artnovo\AccountUI\account_endpoint_layout( $endpoint );
+		$layout_css = $layout ? file_get_contents( $root . '/' . $layout['file'] . '.css' ) : '';
+		$layout_js = 'edit-account' === $endpoint ? file_get_contents( $root . '/account-profile.js' ) : '';
 		$document = '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
 			. '<title>ArtNovo isolated native account fixture: ' . esc_html( $endpoint ) . '</title><style>html{background:#0c1723}body{margin:0;font-family:Tahoma,sans-serif}</style><style>'
-			. $css . '</style><body>' . $markup . '<script>' . $jquery . '</script><script>' . $qr . '</script><script>' . $copy . '</script><script>' . $js . '</script></body></html>';
+			. $css . $layout_css . '</style><body>' . $markup . '<script>' . $jquery . '</script><script>' . $qr . '</script><script>' . $copy . '</script><script>' . $js . '</script><script>' . $layout_js . '</script></body></html>';
 		artnovo_fixture_write( 'account-native-' . $endpoint . '.html', $document );
 	}
 } finally {

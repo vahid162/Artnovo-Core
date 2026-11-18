@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.10.0 — 2026-11-18
+
+- Show open purchases first on each native orders page and keep WooCommerce
+  pagination, order actions and extension output.
+- Present private service orders with payment and delivery status, their next
+  action and a compact invoice. Keep native order details and Bridge receipts.
+- Preserve notices on the receipt page when a gateway registers WooCommerce's
+  notice printer directly on the checkout-completion hook.
+- Group account editing into profile, sign-in and password sections. Retain
+  WooCommerce saving and validation, and Pinova's mobile field and email policy.
+
 ## 1.9.0 — 2026-11-18
 
 - Present My Accounts as a compact responsive list with ready, follow-up and

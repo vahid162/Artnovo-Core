@@ -1,5 +1,16 @@
 # Current project state
 
+## Approved delivery: compact customer pages / Core 1.10.0 (2026-11-18)
+
+The owner selected Quick Follow-up for purchases, Summary and Action for order
+details, and Sectioned Editing for account details, on mobile and desktop. The
+release is Core-only and is published through GitHub before installation.
+WooCommerce still authorizes native orders, pagination and profile saves.
+Bridge still authorizes receipt actions and delivery. Pinova still supplies the
+mobile field and its validation. Other native and extension routes retain their
+existing handlers, and the normal account templates remain available when
+Bridge is absent.
+
 ## Completed delivery: compact account list / Core 1.9.0 (2026-11-18)
 
 The owner selected the compact list for mobile and desktop and authorized the

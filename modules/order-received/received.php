@@ -396,6 +396,25 @@ function render_received_receipt_review( \WC_Order $order, string $title, string
 	<?php
 }
 
+function received_before_thankyou( int $order_id ): void {
+	$hook = 'woocommerce_before_thankyou';
+	$detached = [];
+	// The order ID is truthy for wc_print_notices($return), so a direct callback can clear notices without printing them.
+	foreach ( $GLOBALS['wp_filter'][ $hook ]->callbacks ?? [] as $priority => $callbacks ) {
+		$renderer = $callbacks['wc_print_notices'] ?? null;
+		if ( $renderer && $renderer['accepted_args'] > 0 && remove_action( $hook, 'wc_print_notices', $priority ) ) {
+			$detached[ $priority ] = $renderer['accepted_args'];
+		}
+	}
+	try {
+		do_action( $hook, $order_id );
+	} finally {
+		foreach ( $detached as $priority => $accepted_args ) {
+			add_action( $hook, 'wc_print_notices', $priority, $accepted_args );
+		}
+	}
+}
+
 function render_received_page(): void {
 	$order = received_order();
 	if ( ! $order ) {
@@ -411,7 +430,7 @@ function render_received_page(): void {
 		static fn( $notice ): bool => $order->get_id() === ( $notice['data']['artnovo_receipt_order'] ?? null ) );
 	// Tracking a previous order must not clear a new selection with the same cart hash.
 	if ( ! isset( $_GET['artnovo_status'] ) ) {
-		do_action( 'woocommerce_before_thankyou', $order->get_id() );
+		received_before_thankyou( $order->get_id() );
 		if ( WC()->session && (int) WC()->session->get( 'order_awaiting_payment' ) === $order->get_id() ) {
 			WC()->session->__unset( 'order_awaiting_payment' );
 		}

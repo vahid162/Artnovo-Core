@@ -56,12 +56,59 @@ function render_account_navigation( array $navigation, bool $compact ): void {
 	<?php endif;
 }
 
+function account_endpoint_layout( string $endpoint ): ?array {
+	return match ( $endpoint ) {
+		'orders' => [ 'file' => 'account-orders', 'native' => 'myaccount/orders.php', 'title' => 'خریدها و پرداخت‌ها' ],
+		'view-order' => [ 'file' => 'account-order', 'native' => 'myaccount/view-order.php', 'title' => 'جزئیات خرید و رسید' ],
+		'edit-account' => [ 'file' => 'account-profile', 'native' => 'myaccount/form-edit-account.php', 'title' => 'ویرایش اطلاعات حساب' ],
+		default => null,
+	};
+}
+
+function render_account_endpoint( string $endpoint, ?array $layout ): void {
+	$defer_notices = 'edit-account' === $endpoint;
+	$replace = static function ( string $template, string $name, array $args ) use ( $layout, $endpoint, &$defer_notices ): string {
+		if ( ! $layout || $name !== $layout['native'] ) {
+			return $template;
+		}
+		$file = __DIR__ . '/' . $layout['file'] . '.php';
+		if ( ! is_readable( $file ) ) {
+			return $template;
+		}
+		if ( 'view-order' === $endpoint ) {
+			$order = $args['order'] ?? null;
+			if ( ! $order instanceof \WC_Order || get_current_user_id() !== $order->get_customer_id()
+				|| ! \Artnovo\Core\bridge_available() || ! is_array( $order->get_meta( '_wpvpn_snapshot', true ) ) ) {
+				return $template;
+			}
+		}
+		$defer_notices = false;
+		return $file;
+	};
+	add_filter( 'wc_get_template', $replace, 20, 3 );
+	ob_start();
+	try {
+		do_action( 'woocommerce_account_content' );
+		$content = (string) ob_get_contents();
+	} finally {
+		ob_end_clean();
+		remove_filter( 'wc_get_template', $replace, 20 );
+	}
+	if ( $defer_notices ) {
+		wc_print_notices();
+	}
+	echo '<section class="artnovo-account-native woocommerce' . ( $layout ? '' : ' artnovo-account-card' ) . '">'
+		. localize_subscription_display( $content, in_array( $endpoint, [ 'orders', 'view-order' ], true ) ) . '</section>';
+}
+
 function render_account(): void {
 	$logged_in = is_user_logged_in();
 	$current = $logged_in ? account_view() : '';
-	$compact = 'subscriptions' === $current;
+	$endpoint = $logged_in ? (string) WC()->query->get_current_endpoint() : '';
+	$layout = account_endpoint_layout( $endpoint );
+	$compact = 'subscriptions' === $current || null !== $layout;
 	?>
-	<main id="content" class="artnovo-account<?php if ( $compact ) : ?> artnovo-account--subscriptions<?php endif; ?>" dir="rtl" data-artnovo-price-thousand-separator="<?php echo esc_attr( wc_get_price_thousand_separator() ); ?>" data-artnovo-price-decimal-separator="<?php echo esc_attr( wc_get_price_decimal_separator() ); ?>">
+	<main id="content" class="artnovo-account<?php if ( $compact ) : ?> artnovo-account--compact<?php endif; ?><?php if ( 'subscriptions' === $current ) : ?> artnovo-account--subscriptions<?php endif; ?>" dir="rtl" data-artnovo-price-thousand-separator="<?php echo esc_attr( wc_get_price_thousand_separator() ); ?>" data-artnovo-price-decimal-separator="<?php echo esc_attr( wc_get_price_decimal_separator() ); ?>">
 		<?php if ( ! $logged_in ) : ?>
 			<?php render_account_login(); ?>
 		<?php else :
@@ -71,7 +118,6 @@ function render_account(): void {
 				foreach ( array_merge( $navigation['primary'], $navigation['secondary'] ) as $item ) {
 					if ( $item['current'] ) { $title = $item['label']; break; }
 				}
-				if ( is_wc_endpoint_url( 'view-order' ) ) { $title = 'جزئیات خرید و رسید'; }
 			?>
 				<header class="artnovo-account-header">
 					<div><p class="artnovo-account-muted">حساب آرت‌نوو</p><h1><?php echo esc_html( \Artnovo\Core\display_digits( $title ) ); ?></h1><p class="artnovo-account-muted">اکانت‌ها، خریدها و راهنمای استفاده در یک حساب.</p></div>
@@ -82,19 +128,23 @@ function render_account(): void {
 				<?php render_account_navigation( $navigation, $compact ); ?>
 				<div class="artnovo-account-main">
 					<?php
-					wc_print_notices();
-					$endpoint = WC()->query->get_current_endpoint();
+					if ( $layout ) {
+						?>
+						<header class="artnovo-account-header">
+							<h1><?php echo esc_html( $layout['title'] ); ?></h1>
+							<?php if ( 'view-order' === $endpoint ) : ?>
+								<a class="artnovo-account-back" href="<?php echo esc_url( wc_get_account_endpoint_url( 'orders' ) ); ?>">بازگشت به خریدها</a>
+							<?php elseif ( 'edit-account' === $endpoint ) : ?>
+								<a class="artnovo-account-back" href="<?php echo esc_url( account_url( 'profile' ) ); ?>">بازگشت به اطلاعات حساب</a>
+							<?php endif; ?>
+						</header>
+						<?php
+					}
+					if ( 'edit-account' !== $endpoint ) {
+						wc_print_notices();
+					}
 					if ( ! in_array( $endpoint, [ '', 'dashboard', 'vpn-subscriptions' ], true ) ) {
-						echo '<section class="artnovo-account-card artnovo-account-native woocommerce">';
-						ob_start();
-						try {
-							do_action( 'woocommerce_account_content' );
-							$content = (string) ob_get_contents();
-						} finally {
-							ob_end_clean();
-						}
-						echo localize_subscription_display( $content, in_array( $endpoint, [ 'orders', 'view-order' ], true ) );
-						echo '</section>';
+						render_account_endpoint( $endpoint, $layout );
 					} elseif ( 'profile' === $current ) {
 						render_account_profile();
 					} elseif ( 'help' === $current ) {
