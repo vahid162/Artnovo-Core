@@ -63,7 +63,8 @@ with (output / "multipart-server.log").open("wb") as log:
             response = connection.getresponse()
             result = response.read()
             assert response.status == 303, (name, response.status, result[:400])
-            assert response.getheader("Location") == state["return"], (name, response.getheader("Location"))
+            anchor = "#artnovo-received-status" if expected == "success" else "#artnovo-received-receipt"
+            assert response.getheader("Location") == state["return"] + anchor, (name, response.getheader("Location"))
             assert response.getheader("X-ArtNovo-Test-Uploaded") == "1", name
             assert response.getheader("X-ArtNovo-Test-Notice") == expected, (name, result[:400])
             assert response.getheader("X-ArtNovo-Test-Saved") == ("1" if expected == "success" else "0"), name

@@ -26,7 +26,7 @@ function received_receipt_can_upload( \WC_Order $order ): bool {
 	}
 }
 
-function render_received_receipt( \WC_Order $order, bool $quick_transfer = false ): void {
+function render_received_receipt( \WC_Order $order, bool $quick_transfer = false, bool $review = false ): void {
 	if ( get_current_user_id() < 1 || get_current_user_id() !== $order->get_customer_id()
 		|| 'bacs' !== $order->get_payment_method() || ! is_array( $order->get_meta( '_wpvpn_snapshot', true ) ) ) {
 		return;
@@ -40,7 +40,9 @@ function render_received_receipt( \WC_Order $order, bool $quick_transfer = false
 	<section id="artnovo-received-receipt" class="artnovo-account-card artnovo-received-receipt" aria-labelledby="artnovo-received-receipt-heading">
 		<h2 id="artnovo-received-receipt-heading"><?php echo $quick_transfer ? 'تصویر رسید را انتخاب کنید' : 'رسید پرداخت'; ?></h2>
 		<?php if ( $exists ) : ?>
-			<p class="artnovo-account-notice">رسید این خرید ثبت شده است. وضعیت تأیید پرداخت را بالای همین صفحه ببینید.</p>
+			<?php if ( ! $review ) : ?>
+				<p class="artnovo-account-notice">رسید این خرید ثبت شده است. وضعیت تأیید پرداخت را بالای همین صفحه ببینید.</p>
+			<?php endif; ?>
 			<?php
 			$download = wp_nonce_url(
 				add_query_arg( [ 'action' => 'wpvpn_download_receipt', 'order_id' => $order->get_id() ], admin_url( 'admin-post.php' ) ),
@@ -119,13 +121,14 @@ add_action( 'template_redirect', static function (): void {
 			'wpvpn_receipt_image' => 'یک تصویر معتبر JPG یا PNG با حجم حداکثر ۲ مگابایت انتخاب کنید.',
 			'wpvpn_receipt_storage' => 'ثبت رسید انجام نشد. کمی بعد دوباره تلاش کنید.',
 		];
-		wc_add_notice( $messages[ $result->get_error_code() ] ?? $result->get_error_message(), 'error' );
+		wc_add_notice( $messages[ $result->get_error_code() ] ?? $result->get_error_message(), 'error', [ 'artnovo_receipt_order' => $order->get_id() ] );
 	} else {
 		wc_add_notice( 'رسید دریافت شد و برای بررسی پرداخت ثبت شد.', 'success' );
 	}
 	if ( is_callable( [ WC()->session, 'save_data' ] ) ) {
 		WC()->session->save_data();
 	}
-	wp_safe_redirect( received_order_url( $order ) . '#artnovo-received-receipt', 303 );
+	$anchor = is_wp_error( $result ) ? '#artnovo-received-receipt' : '#artnovo-received-status';
+	wp_safe_redirect( received_order_url( $order ) . $anchor, 303 );
 	exit;
 }, 6 );

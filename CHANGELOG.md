@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.8.1 — 2026-11-18
+
+- Simplify the pending receipt review with one status card, an order reference,
+  and one action to check payment. Keep receipt tools and native order details
+  available in a closed disclosure. After submission, return to the status card
+  on success and to the receipt tools on error.
+
 ## 1.8.0 — 2026-11-18
 
 - Present the approved Quick Transfer layout on eligible pending bank-transfer
