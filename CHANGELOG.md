@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.8.1 — 2026-11-18
+
 - Simplify the pending receipt review with one status card, an order reference,
   and one action to check payment. Keep receipt tools and native order details
   available in a closed disclosure. After submission, return to the status card
