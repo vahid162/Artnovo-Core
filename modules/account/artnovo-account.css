@@ -963,16 +963,16 @@ body.artnovo-account-page {
 	}
 }
 
-.artnovo-account--subscriptions {
+.artnovo-account--compact {
 	max-width: 54rem;
 }
 
-.artnovo-account--subscriptions .artnovo-account-layout {
+.artnovo-account--compact .artnovo-account-layout {
 	grid-template-columns: minmax(0, 1fr);
 	gap: 1rem;
 }
 
-.artnovo-account--subscriptions .artnovo-account-layout > .artnovo-account-nav {
+.artnovo-account--compact .artnovo-account-layout > .artnovo-account-nav {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-start;
@@ -981,7 +981,7 @@ body.artnovo-account-page {
 	border-block-end: 1px solid #bdd1d026;
 }
 
-.artnovo-account--subscriptions .artnovo-account-nav a {
+.artnovo-account--compact .artnovo-account-nav a {
 	justify-content: start;
 	min-height: 2.75rem;
 	padding: .5rem .625rem;
@@ -989,24 +989,24 @@ body.artnovo-account-page {
 	text-align: start;
 }
 
-.artnovo-account--subscriptions :is(.artnovo-account-more, .artnovo-account-mobile-nav) {
+.artnovo-account--compact :is(.artnovo-account-more, .artnovo-account-mobile-nav) {
 	position: relative;
 	margin: 0;
 }
 
-.artnovo-account--subscriptions .artnovo-account-more > summary {
+.artnovo-account--compact .artnovo-account-more > summary {
 	padding: .5rem .625rem;
 }
 
-.artnovo-account--subscriptions :is(.artnovo-account-more, .artnovo-account-mobile-nav)[open] > summary {
+.artnovo-account--compact :is(.artnovo-account-more, .artnovo-account-mobile-nav)[open] > summary {
 	margin: 0;
 }
 
-.artnovo-account--subscriptions .artnovo-account-mobile-nav {
+.artnovo-account--compact .artnovo-account-mobile-nav {
 	display: none;
 }
 
-.artnovo-account--subscriptions :is(.artnovo-account-more-links, .artnovo-account-mobile-nav > nav) {
+.artnovo-account--compact :is(.artnovo-account-more-links, .artnovo-account-mobile-nav > nav) {
 	position: absolute;
 	z-index: 2;
 	inset-block-start: calc(100% + .25rem);
@@ -1019,7 +1019,7 @@ body.artnovo-account-page {
 	box-shadow: 0 .5rem 1.5rem #0005;
 }
 
-.artnovo-account--subscriptions .artnovo-account-header {
+.artnovo-account--compact .artnovo-account-header {
 	align-items: center;
 	gap: .375rem .75rem;
 	margin: 0;
@@ -1062,40 +1062,40 @@ body.artnovo-account-page {
 	font-weight: 400;
 }
 
-.artnovo-account--subscriptions .woocommerce-pagination {
+.artnovo-account--compact .woocommerce-pagination {
 	display: flex;
 	flex-wrap: wrap;
 	gap: .5rem;
 	margin-block-start: 1rem;
 }
 
-.artnovo-account--subscriptions :is(.artnovo-account-header, .artnovo-account-layout) :is(a, button, input, summary):focus-visible {
+.artnovo-account--compact :is(.artnovo-account-header, .artnovo-account-layout) :is(a, button, input, summary):focus-visible {
 	outline: 2px solid var(--account-focus);
 	outline-offset: 2px;
 	box-shadow: none;
 }
 
 @media (max-width: 720px) {
-	.artnovo-account--subscriptions .artnovo-account-layout {
+	.artnovo-account--compact .artnovo-account-layout {
 		gap: .5rem;
 	}
 
-	.artnovo-account--subscriptions .artnovo-account-layout > .artnovo-account-nav {
+	.artnovo-account--compact .artnovo-account-layout > .artnovo-account-nav {
 		display: none;
 	}
 
-	.artnovo-account--subscriptions .artnovo-account-mobile-nav {
+	.artnovo-account--compact .artnovo-account-mobile-nav {
 		display: block;
 		justify-self: start;
 	}
 
-	.artnovo-account--subscriptions .artnovo-account-mobile-nav > summary {
+	.artnovo-account--compact .artnovo-account-mobile-nav > summary {
 		padding: .5rem .375rem;
 		color: var(--account-muted);
 		font-size: .8125rem;
 	}
 
-	.artnovo-account--subscriptions .artnovo-account-mobile-nav > nav {
+	.artnovo-account--compact .artnovo-account-mobile-nav > nav {
 		grid-template-columns: minmax(0, 1fr);
 		inset-inline: 0 auto;
 	}
@@ -1110,13 +1110,25 @@ body.artnovo-account-page {
 }
 
 @media (forced-colors: active) {
-	.artnovo-account--subscriptions :is(.artnovo-account-header, .artnovo-account-layout) :is(a, button, input, summary):focus-visible {
+	.artnovo-account--compact :is(.artnovo-account-header, .artnovo-account-layout) :is(a, button, input, summary):focus-visible {
 		outline-color: Highlight;
 	}
 
-	.artnovo-account--subscriptions :is(.artnovo-account-row-status, .artnovo-account-nav [aria-current="page"]) {
+	.artnovo-account--compact :is(.artnovo-account-row-status, .artnovo-account-nav [aria-current="page"]) {
 		outline: 1px solid ButtonText;
 	}
+}
+
+.artnovo-account--compact .artnovo-account-back {
+	display: inline-flex;
+	align-items: center;
+	min-height: 2.75rem;
+	color: var(--account-muted);
+	font-size: .8125rem;
+}
+
+.artnovo-account--compact .artnovo-account-back:hover {
+	color: var(--account-emerald);
 }
 
 /* Keep monetary values native while separating their currency visually. */

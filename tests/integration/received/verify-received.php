@@ -145,6 +145,78 @@ $state = \Artnovo\AccountUI\received_state( $expired, $delivery );
 $check( 'expired issued subscription has no private link', [] === $delivery['links'] );
 $check( 'expired issued subscription is closed rather than preparing', 'closed' === $state['state'] );
 
+$checkout_page = $GLOBALS['wp_query']->queried_object;
+$account_page = get_post( wc_get_page_id( 'myaccount' ) );
+$GLOBALS['wp_query']->queried_object = $account_page;
+$GLOBALS['wp_query']->queried_object_id = $account_page->ID;
+$_GET = [];
+$account_route = static function ( string $endpoint, int $value ): string {
+	$GLOBALS['wp']->query_vars = $GLOBALS['wp_query']->query_vars = [ $endpoint => (string) $value ];
+	ob_start();
+	try {
+		\Artnovo\AccountUI\render_account();
+		return ob_get_contents();
+	} finally {
+		ob_end_clean();
+	}
+};
+$account_preview = static function ( string $name, string $markup, string $style ): void {
+	$account = artnovo_fixture_root() . '/modules/account/';
+	$styles = file_get_contents( $account . 'artnovo-account.css' ) . file_get_contents( $account . $style . '.css' );
+	artnovo_fixture_write( $name, '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8">'
+		. '<meta name="viewport" content="width=device-width,initial-scale=1"><style>html{background:#0c1723}body{margin:0;font-family:Vazir,Tahoma,sans-serif}'
+		. artnovo_fixture_font_css() . $styles . '</style><body>' . $markup . '</body></html>' );
+};
+try {
+	$actions_before = [ did_action( 'woocommerce_before_thankyou' ), did_action( 'woocommerce_thankyou' ) ];
+	foreach ( [ 'pending' => 'transfer', 'receipt' => 'receipt', 'issuing' => 'issuing', 'ready' => 'ready' ] as $key => $state ) {
+		$order = $orders[ $key ];
+		$markup = $account_route( 'view-order', $order->get_id() );
+		$check( $key . ' account detail shows the compact payment and delivery summary',
+			str_contains( $markup, 'artnovo-account-order" data-state="' . $state . '"' )
+			&& str_contains( $markup, 'artnovo-account-order-native' ) && str_contains( $markup, 'woocommerce-order-details' )
+			&& 1 === substr_count( $markup, 'artnovo-account-order-primary' ) );
+		$check( $key . ' account detail displays a private receipt download only if recorded',
+			( 'receipt' === $key ) === str_contains( $markup, 'wpvpn_download_receipt' ) );
+		if ( 'pending' === $key ) {
+			$check( 'account detail opens the same guarded Quick Transfer route',
+				str_contains( $markup, esc_url( \Artnovo\AccountUI\received_tracking_url( $order ) ) ) );
+		}
+		$account_preview( 'account-detail-' . $state . '.html', $markup, 'account-order' );
+	}
+	$foreign = $account_route( 'view-order', $other->get_id() );
+	$check( 'another customer cannot see the compact summary or native details for this order',
+		! str_contains( $foreign, 'artnovo-account-order-primary' ) && ! str_contains( $foreign, 'woocommerce-order-details' )
+		&& ! str_contains( $foreign, $other->get_order_key() ) );
+	$ordinary = artnovo_received_qa_order( 2147100092 );
+	$GLOBALS['artnovo_received_cases'][ $ordinary->get_id() ]['snapshot'] = null;
+	$ordinary_markup = $account_route( 'view-order', $ordinary->get_id() );
+	$check( 'an owned order with no service snapshot keeps the native order template',
+		str_contains( $ordinary_markup, 'woocommerce-order-details' ) && ! str_contains( $ordinary_markup, 'artnovo-account-order-primary' ) );
+
+	$synthetic_orders = static fn( $result, array $query ) => ARTNOVO_RECEIVED_TEST_USER === ( $query['customer'] ?? null ) && ! empty( $query['paginate'] )
+		? (object) [ 'orders' => [ $orders['ready'], $orders['pending'], $other, $orders['receipt'], $orders['issuing'] ], 'total' => 5, 'max_num_pages' => 3 ]
+		: $result;
+	add_filter( 'woocommerce_order_query', $synthetic_orders, 10, 2 );
+	try {
+		$markup = $account_route( 'orders', 2 );
+		$check( 'quick follow-up puts open purchases ahead of past purchases', str_contains( $markup, 'artnovo-account-orders' )
+			&& strpos( $markup, 'در حال پیگیری' ) < strpos( $markup, 'خریدهای گذشته' )
+			&& 4 === substr_count( $markup, 'class="artnovo-orders-row' ) );
+		$check( 'quick follow-up retains native previous and next page links and owned order destinations',
+			str_contains( $markup, 'woocommerce-button--previous' ) && str_contains( $markup, 'woocommerce-button--next' )
+			&& str_contains( $markup, esc_url( $orders['pending']->get_view_order_url() ) )
+			&& ! str_contains( $markup, esc_url( $other->get_view_order_url() ) ) );
+		$account_preview( 'account-quick-orders.html', $markup, 'account-orders' );
+	} finally {
+		remove_filter( 'woocommerce_order_query', $synthetic_orders, 10 );
+	}
+	$check( 'account pages did not replay checkout completion', $actions_before === [ did_action( 'woocommerce_before_thankyou' ), did_action( 'woocommerce_thankyou' ) ] );
+} finally {
+	$GLOBALS['wp_query']->queried_object = $checkout_page;
+	$GLOBALS['wp_query']->queried_object_id = $checkout_page->ID;
+}
+
 foreach ( array_keys( $cases ) as $name ) {
 	$order = $orders[ $name ];
 	$set_route( $order );
@@ -303,9 +375,20 @@ $check( 'replacement error remains visible and opens receipt tools even when a g
 	&& $retry_tags->next_tag( [ 'tag_name' => 'DETAILS', 'class_name' => 'artnovo-received-details' ] )
 	&& true === $retry_tags->get_attribute( 'open' ) && str_contains( $retry_markup, 'data-artnovo-receipt-form' ) );
 wc_add_notice( 'Synthetic unrelated error.', 'error', [ 'artnovo_receipt_order' => $orders['pending']->get_id() ] );
-ob_start();
-\Artnovo\AccountUI\render_received_page();
-$unrelated_markup = ob_get_clean();
+$direct_notice_callback = false === has_action( 'woocommerce_before_thankyou', 'wc_print_notices' );
+if ( $direct_notice_callback ) {
+	add_action( 'woocommerce_before_thankyou', 'wc_print_notices', 10, 1 );
+}
+try {
+	ob_start();
+	\Artnovo\AccountUI\render_received_page();
+	$unrelated_markup = ob_get_clean();
+	$check( 'direct gateway notice callback is restored after rendering', false !== has_action( 'woocommerce_before_thankyou', 'wc_print_notices' ) );
+} finally {
+	if ( $direct_notice_callback ) {
+		remove_action( 'woocommerce_before_thankyou', 'wc_print_notices', 10 );
+	}
+}
 $unrelated_tags = new WP_HTML_Tag_Processor( $unrelated_markup );
 $check( 'another order notice stays visible without opening these receipt tools',
 	str_contains( $unrelated_markup, 'Synthetic unrelated error.' )

@@ -32,6 +32,7 @@ jobs:
           php tests/bootstrap.php
           php tests/account-native-login.php
           php tests/notices.php
+          node --check modules/account/account-profile.js
           node --check modules/auth/compact-purchase.js
           node --check modules/home/artnovo-home-wizard.js
           node tests/compact-auth.js

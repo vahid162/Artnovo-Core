@@ -1,0 +1,168 @@
+.artnovo-account-orders {
+	display: grid;
+	gap: 1rem;
+	min-inline-size: 0;
+}
+
+.artnovo-account-orders .artnovo-orders-group h2 {
+	margin: 0 0 .4375rem;
+	font-size: 1rem;
+}
+
+.artnovo-account-orders .artnovo-orders-list {
+	margin: 0;
+	padding: 0;
+	border-block-start: 1px solid #2c4451;
+	list-style: none;
+}
+
+.artnovo-account-orders .artnovo-orders-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1.65fr) minmax(0, 1.05fr) minmax(0, .85fr) auto;
+	align-items: center;
+	gap: .375rem .75rem;
+	min-block-size: 4.125rem;
+	padding: .5rem .125rem;
+	border-block-end: 1px solid #223843;
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account-orders .artnovo-orders-row > * {
+	min-inline-size: 0;
+}
+
+.artnovo-account-orders .artnovo-orders-identity h3 {
+	margin: 0;
+	font-size: .9375rem;
+}
+
+.artnovo-account-orders .artnovo-orders-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: .125rem .625rem;
+	color: var(--account-muted);
+	font-size: .8125rem;
+}
+
+.artnovo-account-orders .artnovo-orders-meta > a {
+	display: inline;
+	min-block-size: 0;
+}
+
+.artnovo-account-orders .artnovo-orders-status {
+	display: inline-flex;
+	align-items: center;
+	gap: .375rem;
+	max-inline-size: 100%;
+	padding: .125rem .5rem;
+	border: 1px solid transparent;
+	border-radius: .5rem;
+	background: #233b4d;
+	color: #b8e3f5;
+	font-size: .8125rem;
+	font-weight: 700;
+}
+
+.artnovo-account-orders .artnovo-orders-status::before {
+	inline-size: .4375rem;
+	block-size: .4375rem;
+	flex: none;
+	border: 1px solid currentColor;
+	border-radius: 50%;
+	content: "";
+}
+
+.artnovo-account-orders .artnovo-orders-status[data-state="ready"] {
+	background: #173b3c;
+	color: var(--account-emerald);
+}
+
+.artnovo-account-orders .artnovo-orders-status[data-state="transfer"] {
+	background: #3b3427;
+	color: #f5db9c;
+}
+
+.artnovo-account-orders .artnovo-orders-status[data-state="closed"] {
+	background: #1b3240;
+	color: var(--account-muted);
+}
+
+.artnovo-account-orders .artnovo-orders-total {
+	color: var(--account-text);
+	font-size: .875rem;
+	font-weight: 700;
+}
+
+.artnovo-account-orders .artnovo-orders-total small {
+	display: block;
+	font-weight: 400;
+}
+
+.artnovo-account-orders .artnovo-orders-actions {
+	display: grid;
+	justify-items: end;
+	justify-self: end;
+	max-inline-size: 14rem;
+	gap: .125rem;
+}
+
+.artnovo-account-orders .artnovo-orders-actions .artnovo-account-button {
+	min-block-size: 2.75rem;
+	padding: .375rem .75rem;
+}
+
+.artnovo-account-orders .artnovo-orders-extra {
+	max-inline-size: 100%;
+	text-align: end;
+}
+
+.artnovo-account-orders .artnovo-orders-extra summary {
+	min-block-size: 2.75rem;
+	padding: .5rem .125rem;
+	color: var(--account-muted);
+	font-size: .8125rem;
+}
+
+.artnovo-account-orders .artnovo-orders-extra > div,
+.artnovo-account-orders .artnovo-orders-pages {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .375rem;
+}
+
+.artnovo-account-orders .artnovo-orders-extension {
+	grid-column: 1 / -1;
+	font-size: .8125rem;
+}
+
+.artnovo-account .artnovo-account-orders :is(a, summary):focus-visible {
+	outline: 2px solid var(--account-focus);
+	outline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+	.artnovo-account-orders .artnovo-orders-row {
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: .375rem .5rem;
+		padding-block: .75rem;
+	}
+
+	.artnovo-account-orders :is(.artnovo-orders-identity, .artnovo-orders-progress) {
+		grid-column: 1 / -1;
+	}
+
+	.artnovo-account-orders .artnovo-orders-actions {
+		max-inline-size: min(13rem, 52vw);
+	}
+}
+
+@media (forced-colors: active) {
+	.artnovo-account-orders .artnovo-orders-status {
+		border-color: ButtonText;
+	}
+
+	.artnovo-account .artnovo-account-orders :is(a, summary):focus-visible {
+		outline-color: Highlight;
+	}
+}

@@ -1,0 +1,172 @@
+.artnovo-account .artnovo-profile-form {
+	display: grid;
+	gap: .875rem;
+	width: 100%;
+	margin: 0;
+}
+
+.artnovo-profile-form .artnovo-profile-layout,
+.artnovo-profile-form .artnovo-profile-sections,
+.artnovo-profile-form .artnovo-profile-fields,
+.artnovo-profile-form .artnovo-profile-field,
+.artnovo-profile-form .artnovo-profile-fields :is(.form-row, .woocommerce-form-row) {
+	display: grid;
+	gap: .625rem;
+	min-width: 0;
+}
+
+.artnovo-profile-form .artnovo-profile-layout,
+.artnovo-profile-form .artnovo-profile-sections {
+	align-items: start;
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.artnovo-profile-form .artnovo-profile-section {
+	min-width: 0;
+	border: 1px solid #2c4451;
+	border-radius: .75rem;
+	background: var(--account-surface);
+}
+
+.artnovo-profile-form .artnovo-profile-section > summary {
+	min-height: 46px;
+	padding: .625rem .875rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.artnovo-profile-form .artnovo-profile-section[open] > summary {
+	border-bottom: 1px solid #2c4451;
+}
+
+.artnovo-profile-form .artnovo-profile-fields {
+	padding: .875rem;
+}
+
+.artnovo-profile-form .artnovo-profile-fields > h2 {
+	display: none;
+	margin: 0;
+	font-size: 1rem;
+}
+
+.artnovo-profile-form .artnovo-profile-fields p {
+	float: none;
+	width: 100%;
+	margin: 0;
+}
+
+.artnovo-profile-form .artnovo-profile-fields > br {
+	display: none;
+}
+
+.artnovo-profile-form .artnovo-profile-fields label {
+	display: block;
+	font-size: .875rem;
+	font-weight: 700;
+}
+
+.artnovo-profile-form :is(.artnovo-profile-hint, #pinova_mobile_description) {
+	color: var(--account-muted);
+	font-size: .8125rem;
+	line-height: 1.65;
+}
+
+.artnovo-profile-form :is(label, summary) .artnovo-profile-hint {
+	margin-inline-start: .375rem;
+	font-weight: 400;
+}
+
+.artnovo-account .artnovo-profile-form .artnovo-profile-fields input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]) {
+	display: block;
+	min-height: 44px;
+	padding: .4375rem .625rem;
+	border: 1px solid #647f88;
+	border-radius: .5rem;
+	box-shadow: none;
+	font-size: 1rem;
+}
+
+.artnovo-profile-form input[dir="ltr"] {
+	text-align: left;
+}
+
+.artnovo-account .artnovo-profile-form .artnovo-profile-fields input[aria-invalid="true"] {
+	border-color: #ffc2c8;
+}
+
+.artnovo-account .artnovo-profile-form :is(input, summary, button):focus-visible {
+	outline: 2px solid var(--account-focus);
+	outline-offset: 2px;
+}
+
+.artnovo-profile-form .artnovo-profile-navigation {
+	display: none;
+}
+
+.artnovo-profile-form .artnovo-profile-actions {
+	display: flex;
+	justify-content: start;
+}
+
+.artnovo-account .artnovo-profile-form .artnovo-profile-actions > button {
+	min-height: 44px;
+	height: auto;
+}
+
+@media (max-width: 638px) {
+	.artnovo-account .artnovo-profile-form .artnovo-profile-actions > button {
+		width: 100%;
+	}
+}
+
+@media (min-width: 720px) {
+	.artnovo-profile-form.is-enhanced .artnovo-profile-layout {
+		grid-template-columns: minmax(10rem, .36fr) minmax(0, 1fr);
+		gap: .875rem;
+	}
+
+	.artnovo-profile-form.is-enhanced .artnovo-profile-navigation {
+		display: grid;
+		gap: .25rem;
+	}
+
+	.artnovo-profile-form .artnovo-profile-navigation > button {
+		min-height: 44px;
+		padding: .375rem .625rem;
+		border: 1px solid transparent;
+		border-radius: .5rem;
+		background: transparent;
+		color: var(--account-muted);
+		font-family: inherit;
+		font-size: .875rem;
+		line-height: 1.6;
+		text-align: start;
+		cursor: pointer;
+	}
+
+	.artnovo-profile-form .artnovo-profile-navigation > button[aria-expanded="true"] {
+		border-color: #2c4451;
+		background: var(--account-surface);
+		color: var(--account-emerald);
+		font-weight: 700;
+	}
+
+	.artnovo-profile-form.is-enhanced .artnovo-profile-section:not([open]),
+	.artnovo-profile-form.is-enhanced .artnovo-profile-section > summary {
+		display: none;
+	}
+
+	.artnovo-profile-form.is-enhanced .artnovo-profile-fields > h2 {
+		display: block;
+	}
+}
+
+@media (forced-colors: active) {
+	.artnovo-account .artnovo-profile-form :is(input, summary, button):focus-visible {
+		outline: 2px solid Highlight;
+	}
+
+	.artnovo-profile-form .artnovo-profile-navigation > button[aria-expanded="true"] {
+		border-color: ButtonText;
+	}
+}

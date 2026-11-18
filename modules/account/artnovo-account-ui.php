@@ -105,10 +105,19 @@ add_filter( 'wp_robots', static function ( array $robots ): array {
 } );
 
 add_action( 'wp_enqueue_scripts', static function (): void {
-	if ( ! custom_account_page() && ! received_page() ) {
+	$account = custom_account_page();
+	if ( ! $account && ! received_page() ) {
 		return;
 	}
 	wp_enqueue_style( 'artnovo-account-ui', plugins_url( 'artnovo-account.css', __FILE__ ), [], (string) filemtime( __DIR__ . '/artnovo-account.css' ) );
+	$layout = $account && is_user_logged_in() && is_account_page() ? account_endpoint_layout( (string) WC()->query->get_current_endpoint() ) : null;
+	if ( $layout ) {
+		$file = $layout['file'];
+		wp_enqueue_style( 'artnovo-' . $file, plugins_url( $file . '.css', __FILE__ ), [ 'artnovo-account-ui' ], (string) filemtime( __DIR__ . '/' . $file . '.css' ) );
+		if ( 'account-profile' === $file ) {
+			wp_enqueue_script( 'artnovo-account-profile', plugins_url( 'account-profile.js', __FILE__ ), [], (string) filemtime( __DIR__ . '/account-profile.js' ), true );
+		}
+	}
 	$dependencies = [ 'jquery' ];
 	if ( \Artnovo\Core\bridge_available() && wp_script_is( 'wpvpn-subscriptions', 'enqueued' ) ) {
 		$dependencies[] = 'wpvpn-subscriptions';

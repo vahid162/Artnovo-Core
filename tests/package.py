@@ -39,9 +39,12 @@ class PackageChecks(unittest.TestCase):
         self.assertEqual(before, archive.read_bytes())
         self.assertEqual(first["sha256"], second["sha256"])
         with zipfile.ZipFile(archive) as bundle:
-            self.assertEqual(36, len(bundle.namelist()))
+            self.assertEqual(43, len(bundle.namelist()))
             self.assertTrue(all(name.startswith("artnovo-core/") for name in bundle.namelist()))
             self.assertIn("artnovo-core/modules/account/jquery-qrcode-LICENSE.txt", bundle.namelist())
+            for name in ("account-order.php", "account-order.css", "account-orders.php", "account-orders.css",
+                         "account-profile.php", "account-profile.css", "account-profile.js"):
+                self.assertIn("artnovo-core/modules/account/" + name, bundle.namelist())
             for name in ("notices.php", "notices.js", "notices.css"):
                 self.assertIn("artnovo-core/modules/notices/" + name, bundle.namelist())
             self.assertFalse(any(b"synthetic-private-development-marker" in bundle.read(name)

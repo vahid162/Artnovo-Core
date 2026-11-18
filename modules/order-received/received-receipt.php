@@ -13,6 +13,13 @@ function received_receipt_exists( \WC_Order $order ): bool {
 		&& $user === ( new Store() )->receipt_owner( $order->get_id() );
 }
 
+function received_receipt_download_url( \WC_Order $order ): string {
+	return wp_nonce_url(
+		add_query_arg( [ 'action' => 'wpvpn_download_receipt', 'order_id' => $order->get_id() ], admin_url( 'admin-post.php' ) ),
+		'wpvpn_download_' . $order->get_id()
+	);
+}
+
 function received_receipt_can_upload( \WC_Order $order ): bool {
 	$user = get_current_user_id();
 	if ( $user < 1 || $user !== $order->get_customer_id() || ! class_exists( Store::class )
@@ -43,13 +50,7 @@ function render_received_receipt( \WC_Order $order, bool $quick_transfer = false
 			<?php if ( ! $review ) : ?>
 				<p class="artnovo-account-notice">رسید این خرید ثبت شده است. وضعیت تأیید پرداخت را بالای همین صفحه ببینید.</p>
 			<?php endif; ?>
-			<?php
-			$download = wp_nonce_url(
-				add_query_arg( [ 'action' => 'wpvpn_download_receipt', 'order_id' => $order->get_id() ], admin_url( 'admin-post.php' ) ),
-				'wpvpn_download_' . $order->get_id()
-			);
-			?>
-			<p><a class="artnovo-account-button artnovo-account-button-secondary" href="<?php echo esc_url( $download ); ?>">دریافت رسید ثبت‌شده</a></p>
+			<p><a class="artnovo-account-button artnovo-account-button-secondary" href="<?php echo esc_url( received_receipt_download_url( $order ) ); ?>">دریافت رسید ثبت‌شده</a></p>
 		<?php endif; ?>
 		<?php if ( $can_upload ) : ?>
 			<?php if ( ! $quick_transfer ) : ?>
