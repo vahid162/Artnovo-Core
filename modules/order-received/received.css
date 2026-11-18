@@ -116,7 +116,7 @@ body.artnovo-received-page { background: #0c1723; color: #f0f9f7; }
 [data-artnovo-quick-transfer] ul.wc-bacs-bank-details + .wc-bacs-bank-details-account-name { padding-block-start: .75rem; margin-block-start: .75rem; border-block-start: 1px solid #bdd1d026; }
 [data-artnovo-quick-transfer] ul.wc-bacs-bank-details li { padding: 0; background: transparent; color: var(--account-muted); }
 [data-artnovo-quick-transfer] ul.wc-bacs-bank-details .bank_name strong { display: inline; margin: 0; font-size: inherit; }
-[data-artnovo-quick-transfer] ul.wc-bacs-bank-details .account_number strong { margin-block: .375rem; font-size: clamp(1rem, 2.5vw, 1.25rem); text-align: center; word-spacing: .15em; }
+[data-artnovo-quick-transfer] ul.wc-bacs-bank-details li.account_number strong { margin-block: .375rem; font-size: clamp(1rem, 2.5vw, 1.25rem); text-align: center; word-spacing: .15em; }
 [data-artnovo-quick-transfer] ul.wc-bacs-bank-details .account_number [data-artnovo-copy] { width: 100%; }
 [data-artnovo-quick-transfer] :is(.artnovo-transfer-amount, .artnovo-transfer-destination) [data-artnovo-copy] { min-height: 44px; padding: .5rem .75rem; border: 1px solid #9adaf02e; border-radius: .625rem; background: #203c49; color: var(--account-focus); font-size: .8125rem; }
 [data-artnovo-quick-transfer] :is(.artnovo-transfer-amount, .artnovo-transfer-destination) [data-artnovo-copy]:hover { background: #294b59; color: var(--account-text); }
