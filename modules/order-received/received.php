@@ -243,14 +243,99 @@ function received_integrations( \WC_Order $order ): void {
 	}
 }
 
-function render_received_summary( \WC_Order $order ): void {
+function render_received_summary( \WC_Order $order, bool $quick_transfer = false ): void {
 	?>
 	<section class="artnovo-received-summary" aria-label="خلاصهٔ خرید">
 		<div class="artnovo-received-plans"><?php foreach ( $order->get_items() as $item ) : ?>
 			<p><strong><?php echo esc_html( \Artnovo\Core\display_digits( $item->get_name() ) ); ?></strong><span><?php echo esc_html( \Artnovo\Core\display_digits( 'تعداد ' . number_format_i18n( $item->get_quantity() ) ) ); ?></span></p>
 		<?php endforeach; ?></div>
-		<div class="artnovo-received-total"><span>مبلغ خرید</span><strong class="artnovo-received-amount"><?php echo \Artnovo\Core\display_number_html( wp_kses_post( $order->get_formatted_order_total() ), true ); ?></strong></div>
+		<?php if ( $quick_transfer ) : ?>
+			<div class="artnovo-transfer-reference">
+				<span class="artnovo-transfer-state">در انتظار پرداخت</span>
+				<span>شمارهٔ پیگیری <bdi><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></bdi></span>
+			</div>
+		<?php else : ?>
+			<div class="artnovo-received-total"><span>مبلغ خرید</span><strong class="artnovo-received-amount"><?php echo \Artnovo\Core\display_number_html( wp_kses_post( $order->get_formatted_order_total() ), true ); ?></strong></div>
+		<?php endif; ?>
 	</section>
+	<?php
+}
+
+function render_received_transfer_amount( \WC_Order $order, bool $has_destination ): void {
+	$formatted = \Artnovo\Core\display_number_html( wp_kses_post( $order->get_formatted_order_total() ), true );
+	$total = (string) $order->get_total( 'edit' );
+	$normalize = static function ( string $html ): string {
+		$text = html_entity_decode( wp_strip_all_tags( $html ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		return preg_replace( '/[\s\p{Z}\p{Cf}٬]+/u', '', $text ) ?? '';
+	};
+	$currency_symbol = get_woocommerce_currency_symbol( $order->get_currency() );
+	$unit = $normalize( $currency_symbol );
+	$can_copy = false;
+	// Copy the exact order value only when the displayed amount still uses its original number and unit.
+	if ( $has_destination && '' !== $unit && preg_match( '/\A[0-9]+(?:\.[0-9]+)?\z/', $total ) ) {
+		[ $whole, $fraction ] = array_pad( explode( '.', $total, 2 ), 2, '' );
+		$number = \Artnovo\Core\display_digits( $whole );
+		$fraction = \Artnovo\Core\display_digits( rtrim( $fraction, '0' ) );
+		$number .= '' === $fraction ? '(?:٫۰+)?' : '٫' . $fraction . '۰*';
+		$symbol = preg_quote( $unit, '/' );
+		$can_copy = (bool) preg_match( '/\A(?:' . $number . $symbol . '|' . $symbol . $number . ')\z/u', $normalize( $formatted ) );
+	}
+	?>
+	<div class="artnovo-transfer-amount">
+		<div>
+			<p class="artnovo-transfer-label">مبلغ قابل پرداخت</p>
+			<strong class="artnovo-received-amount"><?php echo $formatted; ?></strong>
+		</div>
+		<?php if ( $can_copy ) : ?>
+			<button type="button" class="artnovo-account-button-secondary" data-artnovo-copy="artnovo-transfer-amount-value" hidden>کپی مبلغ</button>
+			<span data-artnovo-copy-status role="status" hidden></span>
+			<div class="artnovo-transfer-copy-fallback" data-artnovo-copy-fallback hidden>
+				<label for="artnovo-transfer-amount-value">مبلغ قابل کپی (<?php echo esc_html( html_entity_decode( wp_strip_all_tags( $currency_symbol ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ); ?>)</label>
+				<input id="artnovo-transfer-amount-value" value="<?php echo esc_attr( $total ); ?>" dir="ltr" readonly>
+			</div>
+		<?php endif; ?>
+	</div>
+	<?php
+}
+
+function render_received_quick_transfer( \WC_Order $order, string $support ): void {
+	$gateways = WC()->payment_gateways()->payment_gateways();
+	ob_start();
+	try {
+		if ( isset( $gateways['bacs'] ) ) {
+			$gateways['bacs']->thankyou_page( $order->get_id() );
+		}
+	} finally {
+		$bank_details = ob_get_clean();
+	}
+	$bank_fields = new \WP_HTML_Tag_Processor( $bank_details );
+	$has_destination = false;
+	while ( $bank_fields->next_tag( 'LI' ) ) {
+		if ( $bank_fields->has_class( 'account_number' ) || $bank_fields->has_class( 'iban' ) ) {
+			$has_destination = true;
+			break;
+		}
+	}
+	?>
+	<div class="artnovo-transfer-intro" id="artnovo-received-status" data-state="pending">
+		<h1><?php echo $has_destination ? 'واریز کنید، رسید را بفرستید' : 'پیگیری پرداخت کارت‌به‌کارت'; ?></h1>
+		<p>پس از تأیید پرداخت، اکانت در حساب شما قرار می‌گیرد.</p>
+	</div>
+	<?php render_received_summary( $order, true ); ?>
+	<?php wc_print_notices(); ?>
+	<div class="artnovo-account-card artnovo-received-focus artnovo-received-payment">
+		<section class="artnovo-received-bank" aria-labelledby="artnovo-transfer-bank-heading">
+			<h2 id="artnovo-transfer-bank-heading">اطلاعات واریز</h2>
+			<?php render_received_transfer_amount( $order, $has_destination ); ?>
+			<?php if ( $has_destination ) : ?>
+				<div class="artnovo-transfer-destination"><?php echo $bank_details; ?></div>
+			<?php else : ?>
+				<p class="artnovo-transfer-label">اطلاعات واریز در دسترس نیست. اگر هنوز واریز نکرده‌اید، برای دریافت اطلاعات با پشتیبانی تماس بگیرید.</p>
+				<a class="artnovo-account-button artnovo-account-button-secondary" href="<?php echo esc_url( $support ); ?>">پشتیبانی این خرید</a>
+			<?php endif; ?>
+		</section>
+		<?php render_received_receipt( $order, true ); ?>
+	</div>
 	<?php
 }
 
@@ -285,6 +370,7 @@ function render_received_page(): void {
 	$billing_email = $order->get_billing_email();
 	$state = received_state( $order, $delivery );
 	$can_upload = received_receipt_can_upload( $order );
+	$quick_transfer = 'pending' === $state['state'] && $can_upload && 'bacs' === $order->get_payment_method();
 	$has_receipt = received_receipt_exists( $order );
 	$has_services = $order->is_paid() && '' !== $delivery['html'];
 	$snapshot = $order->get_meta( '_wpvpn_snapshot', true );
@@ -295,9 +381,8 @@ function render_received_page(): void {
 	$refresh = add_query_arg( 'artnovo_status', wp_generate_uuid4(), received_order_url( $order ) ) . '#artnovo-received-status';
 	$support = add_query_arg( 'order', $order->get_id(), account_url( 'support' ) );
 	$primary = match ( $state['state'] ) {
-		'pending' => $can_upload ? [ '#artnovo-received-receipt', 'ارسال رسید پرداخت' ]
-			: ( $order->needs_payment() && ! in_array( $order->get_payment_method(), [ 'bacs', 'wpvpn_wallet' ], true )
-				? [ $order->get_checkout_payment_url(), 'ادامهٔ پرداخت همین سفارش' ] : [ $refresh, 'به‌روزرسانی وضعیت' ] ),
+		'pending' => $order->needs_payment() && ! in_array( $order->get_payment_method(), [ 'bacs', 'wpvpn_wallet' ], true )
+			? [ $order->get_checkout_payment_url(), 'ادامهٔ پرداخت همین سفارش' ] : [ $refresh, 'به‌روزرسانی وضعیت' ],
 		'receipt', 'issuing', 'partial' => [ $refresh, 'به‌روزرسانی وضعیت' ],
 		'ready' => [ '#artnovo-received-services', 'دریافت لینک اتصال' ],
 		'failed' => $order->needs_payment() && 'wpvpn_wallet' !== $order->get_payment_method()
@@ -305,13 +390,16 @@ function render_received_page(): void {
 		default => [ $support, 'پشتیبانی این خرید' ],
 	};
 	?>
-		<main id="content" class="artnovo-account artnovo-received" dir="rtl" data-state="<?php echo esc_attr( $state['state'] ); ?>" data-artnovo-received-multi="<?php echo $multi ? '1' : '0'; ?>">
+		<main id="content" class="artnovo-account artnovo-received" dir="rtl" data-state="<?php echo esc_attr( $state['state'] ); ?>" data-artnovo-received-multi="<?php echo $multi ? '1' : '0'; ?>" <?php if ( $quick_transfer ) : ?>data-artnovo-quick-transfer<?php endif; ?>>
 		<header class="artnovo-received-header">
-			<p class="artnovo-account-muted">خرید <bdi><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></bdi></p>
+			<p class="artnovo-account-muted"><?php if ( $quick_transfer ) : ?>پرداخت کارت‌به‌کارت<?php else : ?>خرید <bdi><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></bdi><?php endif; ?></p>
 			<a href="<?php echo esc_url( account_url() ); ?>">اکانت‌های من</a>
 		</header>
 			<div class="artnovo-received-layout">
 				<div class="artnovo-received-main">
+					<?php if ( $quick_transfer ) : ?>
+						<?php render_received_quick_transfer( $order, $support ); ?>
+					<?php else : ?>
 					<section class="artnovo-account-card artnovo-received-focus">
 						<?php render_received_summary( $order ); ?>
 						<?php render_received_steps( $journey_step, 'ready' === $state['state'] ); ?>
@@ -321,19 +409,8 @@ function render_received_page(): void {
 					</div>
 						<p class="artnovo-received-fact" data-artnovo-notice-permanent><?php echo esc_html( \Artnovo\Core\display_digits( in_array( $state['state'], [ 'issuing', 'partial', 'ready' ], true ) ? 'پرداخت تأیید شده است.' : ( 'receipt' === $state['state'] ? 'پرداخت در انتظار بررسی است.' : 'شمارهٔ پیگیری: ' . $order->get_order_number() ) ) ); ?></p>
 					<?php wc_print_notices(); ?>
-						<?php if ( ! ( 'pending' === $state['state'] && $can_upload ) && 0 === $ready_count ) : ?>
+						<?php if ( 0 === $ready_count ) : ?>
 						<div class="artnovo-received-primary"><a class="artnovo-account-button" data-artnovo-received-primary href="<?php echo esc_url( $primary[0] ); ?>"><?php echo esc_html( $primary[1] ); ?></a></div>
-					<?php endif; ?>
-					<?php if ( 'pending' === $state['state'] && $can_upload ) : ?>
-						<div class="artnovo-received-payment">
-							<?php if ( 'bacs' === $order->get_payment_method() ) : ?>
-								<section class="artnovo-received-bank" aria-label="اطلاعات واریز"><?php
-								$gateways = WC()->payment_gateways()->payment_gateways();
-								if ( isset( $gateways['bacs'] ) ) { $gateways['bacs']->thankyou_page( $order->get_id() ); }
-								?></section>
-							<?php endif; ?>
-							<?php render_received_receipt( $order ); ?>
-						</div>
 					<?php endif; ?>
 					<?php if ( $has_services ) : ?>
 							<?php if ( $multi && $ready_count > 0 ) : ?>
@@ -346,9 +423,10 @@ function render_received_page(): void {
 						<section id="artnovo-received-services" class="artnovo-received-services" aria-label="اکانت‌های این خرید"><?php echo $delivery['html']; ?></section>
 					<?php endif; ?>
 				</section>
+				<?php endif; ?>
 				<nav class="artnovo-received-links" aria-label="پیگیری و راهنمای خرید">
-						<?php if ( $primary[0] !== $refresh || $ready_count > 0 ) : ?><a href="<?php echo esc_url( $refresh ); ?>"><?php echo 'partial' === $state['state'] ? 'بررسی باقی اکانت‌ها' : 'به‌روزرسانی وضعیت'; ?></a><?php endif; ?>
-					<a href="<?php echo esc_url( account_url( 'help' ) ); ?>">راهنمای اتصال</a>
+						<?php if ( $quick_transfer || $primary[0] !== $refresh || $ready_count > 0 ) : ?><a href="<?php echo esc_url( $refresh ); ?>"><?php echo 'partial' === $state['state'] ? 'بررسی باقی اکانت‌ها' : 'به‌روزرسانی وضعیت'; ?></a><?php endif; ?>
+					<?php if ( ! $quick_transfer ) : ?><a href="<?php echo esc_url( account_url( 'help' ) ); ?>">راهنمای اتصال</a><?php endif; ?>
 					<?php if ( $primary[0] !== $support ) : ?><a href="<?php echo esc_url( $support ); ?>">پشتیبانی این خرید</a><?php endif; ?>
 				</nav>
 				<details class="artnovo-received-details woocommerce"><summary>جزئیات خرید و فاکتور</summary>
