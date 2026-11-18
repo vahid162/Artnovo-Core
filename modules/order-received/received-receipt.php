@@ -26,7 +26,7 @@ function received_receipt_can_upload( \WC_Order $order ): bool {
 	}
 }
 
-function render_received_receipt( \WC_Order $order ): void {
+function render_received_receipt( \WC_Order $order, bool $quick_transfer = false ): void {
 	if ( get_current_user_id() < 1 || get_current_user_id() !== $order->get_customer_id()
 		|| 'bacs' !== $order->get_payment_method() || ! is_array( $order->get_meta( '_wpvpn_snapshot', true ) ) ) {
 		return;
@@ -38,7 +38,7 @@ function render_received_receipt( \WC_Order $order ): void {
 	}
 	?>
 	<section id="artnovo-received-receipt" class="artnovo-account-card artnovo-received-receipt" aria-labelledby="artnovo-received-receipt-heading">
-		<h2 id="artnovo-received-receipt-heading">رسید پرداخت</h2>
+		<h2 id="artnovo-received-receipt-heading"><?php echo $quick_transfer ? 'تصویر رسید را انتخاب کنید' : 'رسید پرداخت'; ?></h2>
 		<?php if ( $exists ) : ?>
 			<p class="artnovo-account-notice">رسید این خرید ثبت شده است. وضعیت تأیید پرداخت را بالای همین صفحه ببینید.</p>
 			<?php
@@ -50,18 +50,32 @@ function render_received_receipt( \WC_Order $order ): void {
 			<p><a class="artnovo-account-button artnovo-account-button-secondary" href="<?php echo esc_url( $download ); ?>">دریافت رسید ثبت‌شده</a></p>
 		<?php endif; ?>
 		<?php if ( $can_upload ) : ?>
-			<p class="artnovo-account-muted">تصویر رسید را با فرمت JPG یا PNG و حجم حداکثر ۲ مگابایت بفرستید. تأیید پرداخت پس از بررسی رسید انجام می‌شود.</p>
-			<form method="post" enctype="multipart/form-data" action="<?php echo esc_url( received_order_url( $order ) ); ?>" class="artnovo-received-receipt-form" data-artnovo-receipt-form>
+			<?php if ( ! $quick_transfer ) : ?>
+				<p class="artnovo-account-muted">تصویر رسید را با فرمت JPG یا PNG و حجم حداکثر ۲ مگابایت بفرستید. تأیید پرداخت پس از بررسی رسید انجام می‌شود.</p>
+			<?php endif; ?>
+			<form method="post" enctype="multipart/form-data" action="<?php echo esc_url( received_order_url( $order ) ); ?>" class="artnovo-received-receipt-form" data-artnovo-receipt-form <?php if ( $quick_transfer ) : ?>data-artnovo-receipt-preview<?php endif; ?>>
 				<?php wp_nonce_field( 'artnovo_received_receipt_' . $order->get_id(), 'artnovo_received_receipt_nonce', false ); ?>
 				<input type="hidden" name="artnovo_received_receipt" value="1">
 				<input type="hidden" name="MAX_FILE_SIZE" value="2097152">
 				<label class="artnovo-received-file" for="artnovo-received-receipt-file">
-					<span><strong data-artnovo-receipt-filename>انتخاب تصویر رسید</strong><small>JPG یا PNG · حداکثر ۲ مگابایت</small></span>
-					<input id="artnovo-received-receipt-file" type="file" name="wpvpn_receipt" accept="image/jpeg,image/png" required>
+					<span>
+						<?php if ( $quick_transfer ) : ?>
+							<span class="artnovo-transfer-upload-icon" aria-hidden="true">↑</span>
+							<img data-artnovo-receipt-image alt="پیش‌نمایش تصویر رسید" hidden>
+						<?php endif; ?>
+						<strong data-artnovo-receipt-filename>انتخاب تصویر رسید</strong>
+						<small id="artnovo-received-receipt-hint" data-artnovo-receipt-hint>JPG یا PNG · حداکثر ۲ مگابایت</small>
+						<?php if ( $quick_transfer ) : ?><small class="artnovo-transfer-receipt-prompt" data-artnovo-receipt-prompt hidden>تغییر تصویر</small><?php endif; ?>
+					</span>
+					<input id="artnovo-received-receipt-file" type="file" name="wpvpn_receipt" accept="image/jpeg,image/png" aria-label="انتخاب تصویر رسید" aria-describedby="artnovo-received-receipt-hint<?php if ( $quick_transfer ) : ?> artnovo-received-receipt-error<?php endif; ?>" required>
 				</label>
+				<?php if ( $quick_transfer ) : ?><p id="artnovo-received-receipt-error" data-artnovo-receipt-error role="alert" hidden></p><?php endif; ?>
 				<button type="submit" class="artnovo-account-button" <?php if ( ! $exists ) : ?>data-artnovo-received-primary<?php endif; ?>><?php echo $exists ? 'جایگزینی رسید برای بررسی' : 'ارسال رسید برای بررسی'; ?></button>
 				<p data-artnovo-upload-status role="status" hidden></p>
 			</form>
+			<?php if ( $quick_transfer ) : ?>
+				<p class="artnovo-transfer-label">اگر واریز کرده‌اید، تصویر رسید همان پرداخت را بفرستید.</p>
+			<?php endif; ?>
 		<?php endif; ?>
 	</section>
 	<?php

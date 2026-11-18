@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 1.8.0 — 2026-11-18
+
+- Present the approved Quick Transfer layout on eligible pending bank-transfer
+  orders, with a clear payable amount, adjacent copy controls and receipt upload
+  beside the transfer details on desktop and below them on mobile.
+- Preview the selected receipt locally and show clear file guidance before the
+  existing multipart upload. Retain native bank details, order ownership,
+  receipt authorization and the separate payment-review state.
+
 ## 1.7.0 — 2026-11-17
 
 - Show the selected plan, quantity and guest sign-in immediately; prepare the

@@ -116,11 +116,14 @@ foreach ( array_keys( $cases ) as $name ) {
 	$check( $name . ' rendering preserves payment state, amount, method and frozen purchase', $frozen === [ $order->get_status(), $order->get_total(), $order->get_payment_method(), $order->get_meta( '_wpvpn_snapshot', true ) ] );
 	$summary_position = strpos( $markup, 'class="artnovo-received-summary"' );
 	$status_position = strpos( $markup, 'id="artnovo-received-status"' );
-	$check( $name . ' puts its compact plan summary before the persistent state', false !== $summary_position
-		&& false !== $status_position && $summary_position < $status_position && str_contains( $markup, 'artnovo-received-total' ) );
-	preg_match( '/<ol class="artnovo-received-progress"[^>]*>(.*?)<\/ol>/s', $markup, $progress );
-	$check( $name . ' keeps the three shared purchase steps', 3 === substr_count( $progress[1] ?? '', '<li ' )
-		&& str_contains( $progress[1] ?? '', 'ورود' ) && str_contains( $progress[1] ?? '', 'پرداخت' ) && str_contains( $progress[1] ?? '', 'دریافت اکانت' ) );
+	$check( $name . ' uses Quick Transfer only before a bank receipt is recorded', ( 'pending' === $name ) === str_contains( $markup, 'data-artnovo-quick-transfer' ) );
+	if ( 'pending' !== $name ) {
+		$check( $name . ' puts its compact plan summary before the persistent state', false !== $summary_position
+			&& false !== $status_position && $summary_position < $status_position && str_contains( $markup, 'artnovo-received-total' ) );
+		preg_match( '/<ol class="artnovo-received-progress"[^>]*>(.*?)<\/ol>/s', $markup, $progress );
+		$check( $name . ' keeps the three shared purchase steps', 3 === substr_count( $progress[1] ?? '', '<li ' )
+			&& str_contains( $progress[1] ?? '', 'ورود' ) && str_contains( $progress[1] ?? '', 'پرداخت' ) && str_contains( $progress[1] ?? '', 'دریافت اکانت' ) );
+	}
 	$tags = new WP_HTML_Tag_Processor( $markup );
 	$invoice = $tags->next_tag( [ 'tag_name' => 'DETAILS', 'class_name' => 'artnovo-received-details' ] );
 	$check( $name . ' keeps its native invoice available in an initially closed disclosure', $invoice && null === $tags->get_attribute( 'open' ) );
@@ -152,6 +155,13 @@ foreach ( array_keys( $cases ) as $name ) {
 			&& 'receipt' === \Artnovo\AccountUI\received_state( $order )['state'] && ! str_contains( $markup, 'data-artnovo-copy-ready' ) );
 	}
 	if ( 'pending' === $name ) {
+		$bank_position = strpos( $markup, 'wc-bacs-bank-details order_details' );
+		$receipt_position = strpos( $markup, 'id="artnovo-received-receipt"' );
+		$check( 'Quick Transfer retains native bank fields before the receipt action', false !== $status_position
+			&& false !== $summary_position && $status_position < $summary_position
+			&& false !== $bank_position && $bank_position > $summary_position
+			&& false !== $receipt_position && $receipt_position > $bank_position
+			&& str_contains( $markup, '0000000000000000' ) && str_contains( $markup, 'IR000000000000000000000000' ) );
 		$tags = new WP_HTML_Tag_Processor( $markup );
 		$form = $tags->next_tag( [ 'tag_name' => 'FORM', 'class_name' => 'artnovo-received-receipt-form' ] );
 		$check( 'compact pending form retains the real private POST destination', $form
@@ -171,6 +181,34 @@ foreach ( array_keys( $cases ) as $name ) {
 		$check( 'compact receipt preserves file policy and owner nonce', $file && '2097152' === ( $fields['MAX_FILE_SIZE'] ?? null )
 			&& '1' === ( $fields['artnovo_received_receipt'] ?? null )
 			&& wp_verify_nonce( $fields['artnovo_received_receipt_nonce'] ?? '', 'artnovo_received_receipt_' . $order->get_id() ) );
+		$check( 'amount copy preserves the exact underlying order amount',
+			preg_match( '/id="artnovo-transfer-amount-value" value="([0-9]+(?:\.[0-9]+)?)"/', $markup, $copy_amount )
+			&& (string) $order->get_total( 'edit' ) === $copy_amount[1] );
+		$changed_display = static fn() => '<span>۱ ریال</span>';
+		add_filter( 'woocommerce_get_formatted_order_total', $changed_display, PHP_INT_MAX );
+		try {
+			ob_start();
+			\Artnovo\AccountUI\render_received_transfer_amount( $order, true );
+			$converted = ob_get_clean();
+		} finally {
+			remove_filter( 'woocommerce_get_formatted_order_total', $changed_display, PHP_INT_MAX );
+		}
+		$check( 'display conversion does not offer a different value for copying', str_contains( $converted, '۱ ریال' )
+			&& ! str_contains( $converted, 'data-artnovo-copy=' ) );
+		$no_bank = static fn() => [];
+		add_filter( 'woocommerce_bacs_accounts', $no_bank, PHP_INT_MAX );
+		try {
+			ob_start();
+			\Artnovo\AccountUI\render_received_page();
+			$without_destination = ob_get_clean();
+		} finally {
+			remove_filter( 'woocommerce_bacs_accounts', $no_bank, PHP_INT_MAX );
+		}
+		$check( 'missing bank details give support and keep receipt access without prompting a transfer',
+			str_contains( $without_destination, 'اطلاعات واریز در دسترس نیست' )
+			&& ! str_contains( $without_destination, 'واریز کنید، رسید را بفرستید' )
+			&& ! str_contains( $without_destination, 'artnovo-transfer-amount-value' )
+			&& str_contains( $without_destination, 'data-artnovo-receipt-preview' ) );
 	}
 	$base = artnovo_fixture_root() . '/modules/account/';
 	$account_css = file_get_contents( $base . 'artnovo-account.css' );

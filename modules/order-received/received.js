@@ -5,6 +5,7 @@
 	initServiceLinks();
 	initBankCopy();
 	initReadyCopy();
+	initReceiptForms();
 
 	function initServiceLinks() {
 		for (const link of root.querySelectorAll('.wpvpn-service a[rel~="noreferrer"]')) {
@@ -89,18 +90,19 @@
 		let number = 0;
 		for (const value of root.querySelectorAll('.wc-bacs-bank-details li:is(.account_number, .iban, .sort_code, .bic) strong')) {
 			if (!value.textContent.trim() || value.parentElement.querySelector('[data-artnovo-copy]')) continue;
-			if (!value.id) {
+			const target = bankCopyTarget(value);
+			if (!target.id) {
 				let id;
 				do {
 					id = 'artnovo-native-bank-value-' + (++number);
 				} while (document.getElementById(id));
-				value.id = id;
+				target.id = id;
 			}
 			const button = document.createElement('button');
 			button.type = 'button';
 			button.hidden = true;
-			button.dataset.artnovoCopy = value.id;
-			button.textContent = 'کپی';
+			button.dataset.artnovoCopy = target.id;
+			button.textContent = target === value ? 'کپی' : 'کپی شماره کارت';
 			const status = document.createElement('span');
 			status.dataset.artnovoCopyStatus = '';
 			status.hidden = true;
@@ -124,6 +126,8 @@
 				}
 			} catch {
 				if ('select' in target) {
+					const fallback = target.closest('[data-artnovo-copy-fallback]');
+					if (fallback) fallback.hidden = false;
 					target.focus();
 					target.select();
 				} else {
@@ -141,32 +145,125 @@
 		});
 	}
 
-	for (const form of root.querySelectorAll('[data-artnovo-receipt-form]')) {
-		const submit = form.querySelector('button[type="submit"], input[type="submit"]');
-		const status = form.querySelector('[data-artnovo-upload-status]');
-		const file = form.querySelector('input[type="file"]');
-		const filename = form.querySelector('[data-artnovo-receipt-filename]');
-		file?.addEventListener('change', () => {
-			if (filename) filename.textContent = file.files?.[0]?.name || 'انتخاب تصویر رسید';
-		});
-		form.addEventListener('submit', (event) => {
-			if (form.dataset.artnovoSubmitting === 'true') {
-				event.preventDefault();
-				return;
+	function bankCopyTarget(value) {
+		if (!root.hasAttribute('data-artnovo-quick-transfer') || value.childElementCount
+			|| !value.parentElement.classList.contains('account_number')) return value;
+		const digits = value.textContent.trim()
+			.replace(/[۰-۹٠-٩]/g, digit => String(digit.charCodeAt(0) - (digit >= '۰' ? 0x06F0 : 0x0660)))
+			.replace(/[\s-]/g, '');
+		if (!/^\d{16}$/.test(digits)) return value;
+
+		const fallback = document.createElement('div');
+		fallback.dataset.artnovoCopyFallback = '';
+		fallback.hidden = true;
+		const field = document.createElement('input');
+		field.type = 'text';
+		field.dir = 'ltr';
+		field.readOnly = true;
+		field.value = digits;
+		field.setAttribute('aria-label', 'شماره کارت برای کپی');
+		fallback.append(field);
+		value.parentElement.append(fallback);
+		value.dir = 'ltr';
+		value.textContent = digits.match(/.{4}/g).join(' ').replace(/\d/g, digit => '۰۱۲۳۴۵۶۷۸۹'[digit]);
+		return field;
+	}
+
+	function initReceiptForms() {
+		for (const form of root.querySelectorAll('[data-artnovo-receipt-form]')) {
+			const submit = form.querySelector('button[type="submit"], input[type="submit"]');
+			const status = form.querySelector('[data-artnovo-upload-status]');
+			const input = form.querySelector('input[type="file"]');
+			const filename = form.querySelector('[data-artnovo-receipt-filename]');
+			const updatePreview = form.hasAttribute('data-artnovo-receipt-preview') && input?.files
+				? receiptPreview(form, input, submit, filename) : null;
+			if (updatePreview) updatePreview();
+			else input?.addEventListener('change', () => {
+				if (filename) filename.textContent = input.files?.[0]?.name || 'انتخاب تصویر رسید';
+			});
+			form.addEventListener('submit', (event) => {
+				if (form.dataset.artnovoSubmitting === 'true' || (updatePreview && !updatePreview())) {
+					event.preventDefault();
+					return;
+				}
+				form.dataset.artnovoSubmitting = 'true';
+				form.setAttribute('aria-busy', 'true');
+				if (submit) submit.disabled = true;
+				if (status) {
+					status.hidden = false;
+					status.textContent = 'در حال ارسال رسید…';
+				}
+			});
+			window.addEventListener('pageshow', () => {
+				delete form.dataset.artnovoSubmitting;
+				form.removeAttribute('aria-busy');
+				if (updatePreview) updatePreview();
+				else if (submit) submit.disabled = false;
+				if (status) status.hidden = true;
+			});
+		}
+	}
+
+	function receiptPreview(form, input, submit, filename) {
+		const image = form.querySelector('[data-artnovo-receipt-image]');
+		const error = form.querySelector('[data-artnovo-receipt-error]');
+		const prompt = form.querySelector('[data-artnovo-receipt-prompt]');
+		const hint = form.querySelector('[data-artnovo-receipt-hint]');
+		const initialFilename = filename?.textContent;
+		const initialHint = hint?.textContent;
+		const maxBytes = Number(form.elements.namedItem('MAX_FILE_SIZE')?.value) || Infinity;
+		const types = input.accept.split(',').map(type => type.trim());
+		let objectUrl;
+		let previous;
+		function clearImage() {
+			if (!objectUrl) return;
+			URL.revokeObjectURL(objectUrl);
+			image.removeAttribute('src');
+			image.hidden = true;
+			objectUrl = undefined;
+			previous = undefined;
+		}
+		function update() {
+			const file = input.files[0];
+			let message = '';
+			if (file && (!file.size || (file.type && !types.includes(file.type)))) {
+				message = 'یک تصویر معتبر JPG یا PNG انتخاب کنید.';
+			} else if (file && file.size > maxBytes) {
+				message = 'حجم تصویر بیشتر از حد مجاز است. تصویر کم‌حجم‌تری انتخاب کنید.';
 			}
-			form.dataset.artnovoSubmitting = 'true';
-			form.setAttribute('aria-busy', 'true');
-			if (submit) submit.disabled = true;
-			if (status) {
-				status.hidden = false;
-				status.textContent = 'در حال ارسال رسید…';
+			const valid = Boolean(file && !message);
+			if (submit) submit.disabled = !valid || form.dataset.artnovoSubmitting === 'true';
+			if (message) input.setAttribute('aria-invalid', 'true');
+			else input.removeAttribute('aria-invalid');
+			if (error) {
+				error.textContent = message;
+				error.hidden = !message;
 			}
+			if (filename) filename.textContent = valid ? file.name : initialFilename;
+			if (prompt) prompt.hidden = !valid;
+			if (!valid || file !== previous) {
+				clearImage();
+				if (hint) hint.textContent = initialHint;
+			}
+			if (valid && image && !objectUrl && typeof URL.createObjectURL === 'function') {
+				try {
+					objectUrl = URL.createObjectURL(file);
+					image.src = objectUrl;
+					image.hidden = false;
+					previous = file;
+				} catch {
+					if (hint) hint.textContent = 'پیش‌نمایش تصویر در دسترس نیست.';
+				}
+			}
+			return valid;
+		}
+		input.addEventListener('change', update);
+		image?.addEventListener('error', () => {
+			if (!objectUrl) return;
+			image.hidden = true;
+			if (hint) hint.textContent = 'پیش‌نمایش تصویر در دسترس نیست.';
 		});
-		window.addEventListener('pageshow', () => {
-			delete form.dataset.artnovoSubmitting;
-			form.removeAttribute('aria-busy');
-			if (submit) submit.disabled = false;
-			if (status) status.hidden = true;
-		});
+		window.addEventListener('pagehide', clearImage);
+		return update;
 	}
 })();

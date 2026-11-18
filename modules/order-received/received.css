@@ -91,6 +91,48 @@ body.artnovo-received-page { background: #0c1723; color: #f0f9f7; }
 .artnovo-received-details .artnovo-received-receipt button[type="submit"] { background: #203c49; color: var(--account-focus); }
 .artnovo-received-details .woocommerce-order-details { margin-block-start: 1rem; }
 .artnovo-received :is(a,button,input,textarea,summary,select):focus-visible { outline: 0; box-shadow: 0 0 0 2px #9adaf099, 0 0 20px #46d7a63d; }
+/* The transfer page uses one native payment form beside its payment destination. */
+.artnovo-account.artnovo-received[data-artnovo-quick-transfer] { max-width: 960px; }
+[data-artnovo-quick-transfer] :is(.artnovo-received-header,.artnovo-received-main,.artnovo-received-focus) { max-width: none; }
+[data-artnovo-quick-transfer] .artnovo-transfer-intro { padding-block: .5rem; text-align: center; scroll-margin-top: 1rem; }
+[data-artnovo-quick-transfer] .artnovo-transfer-intro h1 { margin-block: 0 .375rem; font-size: clamp(1.375rem, 3.5vw, 1.75rem); }
+[data-artnovo-quick-transfer] .artnovo-transfer-intro p { margin: 0; color: var(--account-muted); font-size: .875rem; }
+[data-artnovo-quick-transfer] .artnovo-received-summary { align-items: center; flex-wrap: wrap; justify-content: space-between; padding: .375rem 0 .875rem; }
+[data-artnovo-quick-transfer] .artnovo-transfer-reference { display: grid; gap: .125rem; justify-items: end; color: var(--account-muted); font-size: .75rem; }
+[data-artnovo-quick-transfer] .artnovo-transfer-state { display: inline-flex; gap: .375rem; align-items: center; color: var(--received-state-text); }
+[data-artnovo-quick-transfer] .artnovo-transfer-state::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: currentColor; }
+[data-artnovo-quick-transfer] .artnovo-received-payment { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1.375rem; }
+[data-artnovo-quick-transfer] .artnovo-received-bank { padding-inline-end: 1.375rem; border-inline-end: 1px solid #bdd1d026; }
+[data-artnovo-quick-transfer] .artnovo-received-payment h2 { margin-block: 0 .75rem; font-size: 1rem; }
+[data-artnovo-quick-transfer] .artnovo-transfer-amount { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem .75rem; margin-block-end: .75rem; }
+[data-artnovo-quick-transfer] .artnovo-transfer-amount > div:first-child { min-width: 0; }
+[data-artnovo-quick-transfer] .artnovo-transfer-amount .artnovo-received-amount { color: var(--account-emerald); font-size: clamp(1.5rem, 4vw, 2rem); white-space: normal; }
+[data-artnovo-quick-transfer] .woocommerce-Price-amount bdi { flex-wrap: wrap; }
+[data-artnovo-quick-transfer] .woocommerce-Price-currencySymbol { font-size: .55em; }
+[data-artnovo-quick-transfer] .artnovo-transfer-label { margin: 0; color: var(--account-muted); font-size: .75rem; }
+[data-artnovo-quick-transfer] .artnovo-transfer-destination .woocommerce-bacs-bank-details { padding: .875rem; border: 1px solid #9adaf026; border-radius: .875rem; background: var(--account-navy); }
+[data-artnovo-quick-transfer] .artnovo-transfer-destination .wc-bacs-bank-details-heading { display: none; }
+[data-artnovo-quick-transfer] .wc-bacs-bank-details-account-name { color: var(--account-muted); font-weight: 500; }
+[data-artnovo-quick-transfer] ul.wc-bacs-bank-details + .wc-bacs-bank-details-account-name { padding-block-start: .75rem; margin-block-start: .75rem; border-block-start: 1px solid #bdd1d026; }
+[data-artnovo-quick-transfer] ul.wc-bacs-bank-details li { padding: 0; background: transparent; color: var(--account-muted); }
+[data-artnovo-quick-transfer] ul.wc-bacs-bank-details .bank_name strong { display: inline; margin: 0; font-size: inherit; }
+[data-artnovo-quick-transfer] ul.wc-bacs-bank-details .account_number strong { margin-block: .375rem; font-size: clamp(1rem, 2.5vw, 1.25rem); text-align: center; word-spacing: .15em; }
+[data-artnovo-quick-transfer] ul.wc-bacs-bank-details .account_number [data-artnovo-copy] { width: 100%; }
+[data-artnovo-quick-transfer] :is(.artnovo-transfer-amount, .artnovo-transfer-destination) [data-artnovo-copy] { min-height: 44px; padding: .5rem .75rem; border: 1px solid #9adaf02e; border-radius: .625rem; background: #203c49; color: var(--account-focus); font-size: .8125rem; }
+[data-artnovo-quick-transfer] :is(.artnovo-transfer-amount, .artnovo-transfer-destination) [data-artnovo-copy]:hover { background: #294b59; color: var(--account-text); }
+[data-artnovo-quick-transfer] [data-artnovo-copy-fallback] { flex: 1 0 100%; min-width: 0; }
+[data-artnovo-quick-transfer] [data-artnovo-copy-fallback] input { margin: .375rem 0; }
+[data-artnovo-quick-transfer] .artnovo-transfer-amount [data-artnovo-copy-status] { flex-basis: 100%; }
+[data-artnovo-quick-transfer] .artnovo-received-receipt { min-width: 0; }
+[data-artnovo-quick-transfer] .artnovo-received-file { min-height: 120px; }
+[data-artnovo-quick-transfer] .artnovo-received-file > span { min-width: 0; }
+[data-artnovo-quick-transfer] .artnovo-transfer-upload-icon { display: grid; place-items: center; width: 2rem; height: 2rem; margin: 0 auto .375rem; border-radius: .625rem; background: #203c49; color: var(--account-emerald); font-size: 1.375rem; }
+[data-artnovo-quick-transfer] .artnovo-received-file:has([data-artnovo-receipt-image]:not([hidden])) .artnovo-transfer-upload-icon { display: none; }
+[data-artnovo-quick-transfer] [data-artnovo-receipt-image] { display: block; width: auto; max-width: 100%; height: 72px; object-fit: contain; margin: 0 auto .375rem; border-radius: .375rem; }
+[data-artnovo-quick-transfer] .artnovo-transfer-receipt-prompt { color: var(--account-emerald); }
+[data-artnovo-quick-transfer] .artnovo-received-receipt-form [data-artnovo-receipt-error] { margin: 0; color: #ffc2b9; font-size: .8125rem; }
+[data-artnovo-quick-transfer] .artnovo-received-receipt-form button:disabled { background: #244c47; color: #bdd1d0; cursor: not-allowed; box-shadow: none; }
+[data-artnovo-quick-transfer] .artnovo-received-receipt > .artnovo-transfer-label { margin-block-start: .625rem; }
 .artnovo-order-pay .artnovo-received-focus { margin-inline: auto; }
 .artnovo-order-pay-heading { margin-block: 0 1rem; }
 .artnovo-order-pay-heading h2 { margin-block-end: .375rem; font-size: 1.25rem; }
@@ -129,4 +171,8 @@ body.artnovo-received-page { background: #0c1723; color: #f0f9f7; }
  .artnovo-received-details dl { grid-template-columns: minmax(0,1fr) minmax(0,1.4fr); gap: .5rem .75rem; }
  .artnovo-received [data-artnovo-service-tools] > p { flex: 1 1 10rem; }
  .artnovo-received [data-artnovo-service-tools] > p > button { width: 100%; }
+ [data-artnovo-quick-transfer] .artnovo-received-payment { grid-template-columns: minmax(0,1fr); gap: 1rem; }
+ [data-artnovo-quick-transfer] .artnovo-received-bank { padding-inline-end: 0; padding-block-end: 1rem; border-inline-end: 0; border-block-end: 1px solid #bdd1d026; }
+ [data-artnovo-quick-transfer] .artnovo-received-file { min-height: 96px; }
+ [data-artnovo-quick-transfer] .artnovo-received-summary { gap: .5rem .75rem; }
 }

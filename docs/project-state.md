@@ -1,5 +1,14 @@
 # Current project state
 
+## Quick Transfer / Core 1.8.0
+
+The owner selected the Quick Transfer design and authorized Core-only
+implementation, GitHub validation, release and production installation.
+The pending BACS receipt view is in scope. WooCommerce owns order totals and
+bank details, and Bridge owns receipt authorization, storage and payment review.
+Verify the actual receipt and responsive states in an isolated fixture before
+publication. Install only the official artifact with a private rollback copy.
+
 ## Completed delivery: issues19–25 / Core1.7.0 (2026-11-17)
 
 The owner authorized one GitHub-first bundle, Core code only, independent plugins,
