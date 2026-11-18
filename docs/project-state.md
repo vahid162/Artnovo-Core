@@ -1,6 +1,6 @@
 # Current project state
 
-## Approved delivery: one-card order payment / Core 1.11.0 (2026-11-18)
+## Completed delivery: one-card order payment / Core 1.11.0 (2026-11-18)
 
 The owner selected the one-card order-payment design on mobile and desktop.
 The approved layout applies to the existing authorized service-order payment
@@ -8,6 +8,24 @@ screen. It places payment status, native total, current plan, order reference
 and the WooCommerce payment action together. The native form, itemized amount,
 terms, gateway fields and payment permissions retain their existing ownership.
 Only Core is authorized for GitHub-first publication and installation.
+
+[PR32](https://github.com/vahid162/Artnovo-Core/pull/32) merged at
+`85b5c65e5c953d9c01285611196c690d8e7e5a86` with tested tree
+`57910e83f79d0d7df284d17908a523818e08a0cc`. The final candidate, main and release
+workflows passed in runs 44384661402, 44384955004 and 44385090890. Local PHP,
+JavaScript, migration and packaging passed. Isolated WordPress with WooCommerce,
+Bridge and Gateland passed 26 native assertions. Chromium passed 18 native
+width/state combinations from 320 to 1280 pixels with order status, gateway
+availability, keyboard disclosure, terms and a no-JavaScript fallback.
+
+The official [1.11.0 ZIP](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.11.0)
+SHA256 `9ea60425f61d4908fa817bca6f6f0289bdc7259bf450b4530998b9d07a61fe21`
+matches the tested bundle and all 43 installed files. Backup and rollback
+rehearsal passed. The live home and sign-in returned 200, served payment assets
+matched the release, and a guest payment URL redirected to sign-in. Bridge,
+Wallet, Pinova and Gateland files, plugin activation and wp-config matched
+before and after installation. The payment form was exercised with synthetic
+orders in the isolated environment.
 
 ## Completed delivery: checkout preparation indicator / Core 1.10.1 (2026-11-18)
 
