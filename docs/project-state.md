@@ -1,6 +1,6 @@
 # Current project state
 
-## Approved delivery: compact account list / Core 1.9.0 (2026-11-18)
+## Completed delivery: compact account list / Core 1.9.0 (2026-11-18)
 
 The owner selected the compact list for mobile and desktop and authorized the
 Core-only GitHub-first release and installation. On each native subscription
@@ -13,8 +13,24 @@ does not replay actual checkout-completion hooks.
 
 Bridge remains authoritative for receipt access, payment and delivery. The new
 source change does not install or modify Bridge, Wallet, Pinova or a gateway.
-The preceding record identifies the last verified installation until the new
-package and its deployment are verified.
+
+[PR29](https://github.com/vahid162/Artnovo-Core/pull/29) merged at
+`73a213c789c6a91f099bfc579099b596a1504836`, with tested tree
+`e262430d9162dcac216f241243556647aa0d477b`. Branch, PR, main and release
+workflows passed in runs 44271113090, 44271183278, 44271472849 and 44271619239.
+All 61 standalone gates passed. The isolated WordPress fixtures passed 633
+assertions, including matching-cart preservation and valid/invalid multipart
+receipt uploads. Chromium passed 69 checks across nine widths and verified
+keyboard focus, native copy and manual copy, QR, and pagination.
+
+The official [1.9.0 ZIP](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.9.0)
+SHA256 `9d3757bd22993b319251994ead8179ee868256202c2565e06007b2e2bfb4328e`
+matches the tested package and all 36 installed files. A private backup and
+rollback rehearsal passed. On artnovo.ir, home and account sign-in returned 200,
+both served account assets matched the official ZIP, and anonymous account and
+receipt routes withheld private data. Bridge, Wallet, Pinova and gateway files,
+plugin activation and wp-config matched before and after. No live order, receipt,
+payment or customer session was used for verification.
 
 ## Completed delivery: compact receipt status / Core 1.8.1 (2026-11-18)
 
