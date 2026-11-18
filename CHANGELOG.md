@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.11.1 — 2026-11-18
+
+- Refresh the private bank-return page as payment and delivery progress. Hold
+  retry until the payment bridge confirms that the previous attempt ended.
+
 ## 1.11.0 — 2026-11-18
 
 - Present authorized subscription order payments in one responsive card, with

@@ -66,6 +66,19 @@ foreach ( $cases as $name => $config ) {
 	}
 }
 
+$tracking_bank = artnovo_received_qa_order( $id++, 'failed', method: 'artnovo_gpante' );
+$check( 'bank result without a resolved financial journal stays pending even if Woo says failed',
+	'pending' === \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], [] )['state'] );
+$check( 'signed final bank failure becomes a distinct failed result',
+	'failed' === \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], [ 'phase' => 'failed_final', 'can_retry' => true ] )['state'] );
+$check( 'bank review shows the separate reconciliation state',
+	'review' === \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], [ 'phase' => 'review' ] )['state'] );
+$bank_completion = artnovo_received_qa_order( $id++, 'processing', 'pending', method: 'artnovo_gpante' );
+$check( 'Woo status can arrive before Bridge settlement without a false confirmed or review message',
+	'pending' === \Artnovo\AccountUI\received_state( $bank_completion, [ 'links' => [] ], [ 'phase' => 'open' ] )['state'] );
+$check( 'settled bank payment and ordinary issuance are distinct states',
+	'issuing' === \Artnovo\AccountUI\received_state( $bank_completion, [ 'links' => [] ], [ 'phase' => 'paid' ] )['state'] );
+
 $own = $orders['pending'];
 $set_route( $own, 'wc_order_wrong_key' );
 $check( 'wrong order key denies private view', false === \Artnovo\AccountUI\received_order() );

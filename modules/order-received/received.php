@@ -26,11 +26,10 @@ function received_tracking_url( \WC_Order $order ): string {
 
 // A valid key identifies a route; private Core output additionally requires its owner below.
 function received_keyed_order(): \WC_Order|false {
-	if ( ! received_page() ) {
-		return false;
-	}
-	$id = get_query_var( 'order-received' );
-	$key = $_GET['key'] ?? null;
+	return received_page() ? find_received_keyed_order( get_query_var( 'order-received' ), $_GET['key'] ?? null ) : false;
+}
+
+function find_received_keyed_order( mixed $id, mixed $key ): \WC_Order|false {
 	if ( ! is_scalar( $id ) || ! ctype_digit( (string) $id ) || (int) $id < 1 || ! is_string( $key ) || '' === $key ) {
 		return false;
 	}
@@ -76,6 +75,35 @@ add_action( 'template_redirect', static function (): void {
 		header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0' );
 	}
 }, 5 );
+
+function received_bank_payment( \WC_Order $order ): array {
+	return is_callable( [ \ArtNovo\PayBridge\Payments::class, 'customer_status' ] )
+		? \ArtNovo\PayBridge\Payments::customer_status( $order ) ?? []
+		: [];
+}
+
+add_action( 'wc_ajax_artnovo_received_payment_status', static function (): void {
+	header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0' );
+	header( 'Referrer-Policy: no-referrer' );
+	$id = $_POST['order'] ?? null;
+	$nonce = $_POST['_ajax_nonce'] ?? null;
+	if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) || ! get_current_user_id() || ! is_string( $id )
+		|| ! ctype_digit( $id ) || ! is_string( $nonce )
+		|| ! wp_verify_nonce( wp_unslash( $nonce ), 'artnovo_received_payment_status_' . (int) $id ) ) {
+		wp_send_json_error( null, 403 );
+	}
+	$order = find_received_keyed_order( $id, $_POST['key'] ?? null );
+	if ( ! $order || get_current_user_id() !== $order->get_customer_id()
+		|| 'artnovo_gpante' !== $order->get_payment_method( 'edit' ) || ! \Artnovo\Core\is_service_order( $order ) ) {
+		wp_send_json_error( null, 403 );
+	}
+	$delivery = received_services( $order );
+	$state = received_state( $order, $delivery, received_bank_payment( $order ) );
+	wp_send_json_success( [
+		'state' => $state['state'],
+		'ready_count' => in_array( $state['state'], [ 'partial', 'ready' ], true ) ? count( $delivery['links'] ) : 0,
+	] );
+} );
 
 add_action( 'wp_enqueue_scripts', static function (): void {
 	if ( ! received_payment_order() ) {
@@ -197,19 +225,29 @@ function received_services( \WC_Order $order ): array {
 	return [ 'html' => localize_subscription_display( $html ), 'links' => $links ];
 }
 
-function received_state( \WC_Order $order, ?array $delivery = null ): array {
+function received_state( \WC_Order $order, ?array $delivery = null, ?array $bank_payment = null ): array {
 	if ( ! \Artnovo\Core\bridge_available() ) {
 		return [ 'state' => 'unavailable', 'title' => 'پیگیری سرویس موقتاً در دسترس نیست', 'message' => 'برای بررسی این خرید با شمارهٔ پیگیری به پشتیبانی پیام بدهید. تا فعال‌شدن سرویس، پرداخت تازه انجام ندهید.', 'step' => 1 ];
 	}
 	if ( $order->has_status( [ 'cancelled', 'refunded', 'trash' ] ) || (float) $order->get_total_refunded() > 0 ) {
 		return [ 'state' => 'closed', 'title' => 'این خرید قابل دریافت نیست', 'message' => 'وضعیت خرید را در جزئیات ببینید و برای پیگیری با شمارهٔ خرید به پشتیبانی پیام بدهید.', 'step' => 1 ];
 	}
-	if ( $order->has_status( 'failed' ) ) {
+	if ( null === $bank_payment && $order->has_status( 'failed' ) ) {
 		return [ 'state' => 'failed', 'title' => 'پرداخت کامل نشده است', 'message' => 'وضعیت پرداخت این خرید را بررسی کنید. در صورت امکان می‌توانید پرداخت همین خرید را ادامه دهید.', 'step' => 2 ];
 	}
 	$snapshot = $order->get_meta( '_wpvpn_snapshot', true );
 	if ( ! is_array( $snapshot ) || ! class_exists( Orders::class ) || ! Orders::matches_purchase( $order, $snapshot ) ) {
 		return [ 'state' => 'review', 'title' => 'اطلاعات خرید نیاز به بررسی دارد', 'message' => 'برای ادامه، شمارهٔ پیگیری این خرید را به پشتیبانی بفرستید.', 'step' => 1 ];
+	}
+	$bank_phase = $bank_payment['phase'] ?? '';
+	if ( 'review' === $bank_phase ) {
+		return [ 'state' => 'review', 'title' => 'پرداخت بانکی نیاز به بررسی دارد', 'message' => 'لطفاً دوباره پرداخت نکنید. برای پیگیری، شمارهٔ سفارش را به پشتیبانی بفرستید.', 'step' => 2 ];
+	}
+	if ( 'open' === $bank_phase || ( null !== $bank_payment && ! $order->is_paid() ) ) {
+		if ( 'failed_final' === $bank_phase ) {
+			return [ 'state' => 'failed', 'title' => 'پرداخت بانکی کامل نشد', 'message' => 'این تلاش بانکی پایان یافته است. وضعیت و اقدام بعدی همین سفارش را در این صفحه ببینید.', 'step' => 2 ];
+		}
+		return [ 'state' => 'pending', 'title' => 'در حال تأیید پرداخت بانکی', 'message' => 'لطفاً دوباره پرداخت نکنید. نتیجهٔ پرداخت در همین صفحه نمایش داده می‌شود.', 'step' => 2 ];
 	}
 	$delivery ??= received_services( $order );
 	$expected = Orders::snapshot_quantity( $snapshot );
@@ -259,7 +297,7 @@ function received_state( \WC_Order $order, ?array $delivery = null ): array {
 	return [ 'state' => 'review', 'title' => 'آماده‌سازی نیاز به بررسی دارد', 'message' => 'برای پیگیری وضعیت پرداخت یا تحویل اشتراک، شمارهٔ خرید را به پشتیبانی بفرست.', 'step' => 3 ];
 }
 
-function received_integrations( \WC_Order $order ): void {
+function received_integrations( \WC_Order $order, ?array $bank_payment = null ): void {
 	global $wp_filter;
 	$removed = [];
 	foreach ( $wp_filter['woocommerce_order_details_after_order_table']->callbacks ?? [] as $priority => $rows ) {
@@ -279,6 +317,18 @@ function received_integrations( \WC_Order $order ): void {
 	if ( false !== $bank_priority ) {
 		remove_action( 'woocommerce_thankyou_bacs', [ $bacs, 'thankyou_page' ], $bank_priority );
 	}
+	$filter_bank_actions = static function ( mixed $actions, \WC_Order $action_order ) use ( $order, $bank_payment ): mixed {
+		if ( is_array( $actions ) && $order->get_id() === $action_order->get_id() ) {
+			unset( $actions['pay'] );
+			if ( ! in_array( $bank_payment['phase'] ?? '', [ 'paid', 'failed_final' ], true ) ) {
+				unset( $actions['cancel'] );
+			}
+		}
+		return $actions;
+	};
+	if ( null !== $bank_payment ) {
+		add_filter( 'woocommerce_my_account_my_orders_actions', $filter_bank_actions, PHP_INT_MAX, 2 );
+	}
 	try {
 		if ( isset( $_GET['artnovo_status'] ) ) {
 			woocommerce_order_details_table( $order->get_id() );
@@ -287,6 +337,9 @@ function received_integrations( \WC_Order $order ): void {
 			do_action( 'woocommerce_thankyou', $order->get_id() );
 		}
 	} finally {
+		if ( null !== $bank_payment ) {
+			remove_filter( 'woocommerce_my_account_my_orders_actions', $filter_bank_actions, PHP_INT_MAX );
+		}
 		foreach ( $removed as [ $callback, $priority, $args ] ) {
 			add_action( 'woocommerce_order_details_after_order_table', $callback, $priority, $args );
 		}
@@ -475,30 +528,43 @@ function render_received_page(): void {
 	}
 	$delivery = received_services( $order );
 	$billing_email = $order->get_billing_email();
-	$state = received_state( $order, $delivery );
+	$bank_payment = isset( $_GET['artnovo_status'] ) && 'artnovo_gpante' === $order->get_payment_method( 'edit' )
+		? received_bank_payment( $order ) : null;
+	$state = received_state( $order, $delivery, $bank_payment );
 	$receipt_review = 'receipt' === $state['state'] && 'bacs' === $order->get_payment_method();
 	$can_upload = received_receipt_can_upload( $order );
 	$quick_transfer = 'pending' === $state['state'] && $can_upload && 'bacs' === $order->get_payment_method();
 	$has_receipt = received_receipt_exists( $order );
-	$has_services = $order->is_paid() && '' !== $delivery['html'];
+	$show_bank_delivery = ! in_array( $bank_payment['phase'] ?? '', [ 'open', 'review' ], true );
+	$has_services = $show_bank_delivery && $order->is_paid() && '' !== $delivery['html'];
 	$snapshot = $order->get_meta( '_wpvpn_snapshot', true );
 	$expected = is_array( $snapshot ) && class_exists( Orders::class ) ? Orders::snapshot_quantity( $snapshot ) : 1;
-	$ready_count = $order->is_paid() ? count( $delivery['links'] ) : 0;
+	$ready_count = $show_bank_delivery && $order->is_paid() ? count( $delivery['links'] ) : 0;
 	$multi = $expected > 1;
 	$journey_step = $state['step'] >= 3 ? 3 : 2;
 	$refresh = add_query_arg( 'artnovo_status', wp_generate_uuid4(), received_order_url( $order ) ) . '#artnovo-received-status';
 	$support = add_query_arg( 'order', $order->get_id(), account_url( 'support' ) );
+	$bank_retry = 'failed_final' === ( $bank_payment['phase'] ?? '' ) && true === ( $bank_payment['can_retry'] ?? false );
+	$poll_bank = null !== $bank_payment && in_array( $state['state'], [ 'pending', 'issuing', 'partial' ], true );
 	$primary = match ( $state['state'] ) {
-		'pending' => $order->needs_payment() && ! in_array( $order->get_payment_method(), [ 'bacs', 'wpvpn_wallet' ], true )
+		'pending' => null === $bank_payment && $order->needs_payment() && ! in_array( $order->get_payment_method(), [ 'bacs', 'wpvpn_wallet' ], true )
 			? [ $order->get_checkout_payment_url(), 'ادامهٔ پرداخت همین سفارش' ] : [ $refresh, 'به‌روزرسانی وضعیت' ],
 		'receipt', 'issuing', 'partial' => [ $refresh, 'به‌روزرسانی وضعیت' ],
 		'ready' => [ '#artnovo-received-services', 'دریافت لینک اتصال' ],
-		'failed' => $order->needs_payment() && 'wpvpn_wallet' !== $order->get_payment_method()
+		'failed' => ( null === $bank_payment || $bank_retry ) && $order->needs_payment() && 'wpvpn_wallet' !== $order->get_payment_method()
 			? [ $order->get_checkout_payment_url(), 'ادامهٔ پرداخت همین خرید' ] : [ $support, 'پیگیری پرداخت با پشتیبانی' ],
 		default => [ $support, 'پشتیبانی این خرید' ],
 	};
 	?>
-		<main id="content" class="artnovo-account artnovo-received" dir="rtl" data-state="<?php echo esc_attr( $state['state'] ); ?>" data-artnovo-received-multi="<?php echo $multi ? '1' : '0'; ?>" <?php if ( $quick_transfer ) : ?>data-artnovo-quick-transfer<?php endif; ?>>
+		<main id="content" class="artnovo-account artnovo-received" dir="rtl" data-state="<?php echo esc_attr( $state['state'] ); ?>" data-artnovo-received-multi="<?php echo $multi ? '1' : '0'; ?>" <?php if ( $quick_transfer ) : ?>data-artnovo-quick-transfer<?php endif; ?>
+			<?php if ( $poll_bank ) : ?>
+				data-artnovo-payment-status-url="<?php echo esc_url( \WC_AJAX::get_endpoint( 'artnovo_received_payment_status' ) ); ?>"
+				data-artnovo-payment-track-url="<?php echo esc_url( $refresh ); ?>"
+				data-artnovo-payment-status-order="<?php echo esc_attr( (string) $order->get_id() ); ?>"
+				data-artnovo-payment-status-key="<?php echo esc_attr( $order->get_order_key() ); ?>"
+				data-artnovo-payment-status-nonce="<?php echo esc_attr( wp_create_nonce( 'artnovo_received_payment_status_' . $order->get_id() ) ); ?>"
+				data-artnovo-payment-ready-count="<?php echo esc_attr( (string) $ready_count ); ?>"
+			<?php endif; ?>>
 		<header class="artnovo-received-header">
 			<p class="artnovo-account-muted"><?php if ( $quick_transfer || $receipt_review ) : ?>پرداخت کارت‌به‌کارت<?php else : ?>خرید <bdi><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></bdi><?php endif; ?></p>
 			<a href="<?php echo esc_url( account_url() ); ?>">اکانت‌های من</a>
@@ -517,6 +583,9 @@ function render_received_page(): void {
 						<span class="artnovo-received-state-mark" aria-hidden="true"><?php echo 'ready' === $state['state'] ? '✓' : '•'; ?></span>
 						<div><h1><?php echo esc_html( \Artnovo\Core\display_digits( $state['title'] ) ); ?></h1><p><?php echo esc_html( $state['message'] ); ?></p></div>
 					</div>
+						<?php if ( $poll_bank ) : ?>
+							<p data-artnovo-payment-poll-expired role="status" hidden>بررسی خودکار متوقف شد. برای دیدن نتیجهٔ تازه، وضعیت همین سفارش را دوباره بررسی کنید.</p>
+						<?php endif; ?>
 						<p class="artnovo-received-fact" data-artnovo-notice-permanent><?php echo esc_html( \Artnovo\Core\display_digits( in_array( $state['state'], [ 'issuing', 'partial', 'ready' ], true ) ? 'پرداخت تأیید شده است.' : ( 'receipt' === $state['state'] ? 'پرداخت در انتظار بررسی است.' : 'شمارهٔ پیگیری: ' . $order->get_order_number() ) ) ); ?></p>
 					<?php wc_print_notices(); ?>
 						<?php if ( 0 === $ready_count ) : ?>
@@ -547,7 +616,7 @@ function render_received_page(): void {
 						<?php if ( $order->get_date_created() ) : ?><dt>تاریخ خرید</dt><dd><?php echo esc_html( \Artnovo\Core\display_digits( wc_format_datetime( $order->get_date_created() ) ) ); ?></dd><?php endif; ?>
 					</dl>
 					<?php if ( $has_receipt && 'pending' !== $state['state'] ) : ?><?php render_received_receipt( $order ); ?><?php endif; ?>
-					<?php received_integrations( $order ); ?>
+					<?php received_integrations( $order, $bank_payment ); ?>
 				</details>
 					<?php endif; ?>
 			</div>
