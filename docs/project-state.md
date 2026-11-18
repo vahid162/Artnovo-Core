@@ -1,14 +1,31 @@
 # Current project state
 
-## Release candidate: compact receipt status / Core 1.8.1
+## Completed delivery: compact receipt status / Core 1.8.1 (2026-11-18)
 
-The pending BACS receipt page uses the Quick Transfer visual treatment and shows
-the payment review status, one reference and one status check. Receipt tools and
-native order details are in a closed disclosure. An error from the same receipt
-submission opens those tools. The existing post returns to the same order and key,
-with a separate fragment for success or error. The owner approved PR28 for merge, publication and installation of Core only.
-The native and browser evidence covers the approved code. Release metadata and
-package identity are verified separately before installation.
+The owner approved [PR28](https://github.com/vahid162/Artnovo-Core/pull/28) and
+Core-only publication and installation. The pending BACS receipt page now shows
+payment review, one order reference and one status check. Receipt tools and native
+order details remain available in a closed disclosure. A same-order submission
+error opens those tools. The native POST returns to the same order and key.
+
+The native suite passed 251 synthetic checks including multipart redirects.
+Chromium passed seven widths, keyboard and no-JavaScript use. Only version
+metadata, documentation and the version assertion changed after those tests.
+The release head `cf06926b00fb413e9a19c60af4fc19aea4572e11` passed branch/PR
+validation 44240052729/44240056876. Merge/tag target
+`d35c378db4504f4d3d0f2b6ce73d90c7bfd56015`, tree
+`0c109ba15360cba6477c4adc04be530429f13da9`, passed main validation 44240139679
+and publication 44240196956.
+
+The official [1.8.1 ZIP](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.8.1)
+SHA256 `b85a5331579f240f678c6fbecb3a061104cd814fec563d10ce53738d5d9dc46a`
+matches all 36 installed files. Recovery rehearsal and private backup:
+`/var/backups/artnovo-core/20261118T045229Z-y49ysxg6`. Live home/login returned
+HTTP 200, receipt CSS/JS matched the official payload and an unauthenticated
+receipt request returned to sign-in without displaying private details.
+Bridge, Wallet and Pinova file inventories, activation and wp-config matched
+before/after. Authenticated receipt flows were tested with synthetic data in an
+isolated environment. No production customer order or payment was used.
 
 ## Completed delivery: Quick Transfer / Core 1.8.0 (2026-11-18)
 
