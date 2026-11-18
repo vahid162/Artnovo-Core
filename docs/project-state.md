@@ -1,13 +1,37 @@
 # Current project state
 
-## Quick Transfer / Core 1.8.0
+## Completed delivery: Quick Transfer / Core 1.8.0 (2026-11-18)
 
-The owner selected the Quick Transfer design and authorized Core-only
-implementation, GitHub validation, release and production installation.
-The pending BACS receipt view is in scope. WooCommerce owns order totals and
-bank details, and Bridge owns receipt authorization, storage and payment review.
-Verify the actual receipt and responsive states in an isolated fixture before
-publication. Install only the official artifact with a private rollback copy.
+The approved receipt design applies to pending, receipt-eligible bank transfers.
+WooCommerce renders the destination and total. The page offers a copy action only
+when the displayed figure and currency agree with the stored order amount. Receipt
+previews stay local while the existing native form submits to Bridge's protected
+receipt flow. If the destination is absent, customers see the support link and can
+still send the receipt of a previous transfer.
+
+[PR27](https://github.com/vahid162/Artnovo-Core/pull/27) was reviewed and merged at
+`8831c408399b5773be85b46e36dee7a2253923d0`, tree
+`c85ea8fc48b84b649a2ecdfd4ae80820ab42d1c3`. Exact-head branch/PR validation
+44227399550/44227411690, main validation 44227655913 and publication 44227722790
+passed. The automatic review covered the first PR commit and found no issues.
+Local review and responsive verification also covered the final centering adjustment.
+
+68 standalone/lint/build checks and 235 native checks passed. The native runs used
+private synthetic WordPress orders, IRT and fa_IR. Chromium passed widths 320, 390,
+554, 768, 1024, 1206 and 1440, including keyboard copying, manual selection,
+receipt preview, invalid files, replacement and the form without JavaScript.
+The temporary database, clone and synthetic credentials were removed.
+
+The official [1.8.0 release](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.8.0)
+and installed files match all 36 tested runtime files. ZIP SHA256
+`8b411fd8334c87bef0445ea578e93e560117bf985d8811c50f4d1e2282c87a96`.
+The private backup and tested rollback are at
+`/var/backups/artnovo-core/20261118T030500Z-nso9kdah`. Live home/login returned 200,
+receipt CSS/JS matched the official artifact and an anonymous order-received request
+could not see the bank details or the receipt form. The installed Bridge, Wallet and
+Pinova files and plugin activation set were verified against the preinstall inventory.
+The authorized private receipt journey was tested in isolation. No actual customer
+order, receipt, payment, or service issuance was used for production verification.
 
 ## Completed delivery: issues19–25 / Core1.7.0 (2026-11-17)
 
