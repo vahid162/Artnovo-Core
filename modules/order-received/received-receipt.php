@@ -55,7 +55,7 @@ function render_received_receipt( \WC_Order $order, bool $quick_transfer = false
 			<?php if ( ! $quick_transfer ) : ?>
 				<p class="artnovo-account-muted">تصویر رسید را با فرمت JPG یا PNG و حجم حداکثر ۲ مگابایت بفرستید. تأیید پرداخت پس از بررسی رسید انجام می‌شود.</p>
 			<?php endif; ?>
-			<form method="post" enctype="multipart/form-data" action="<?php echo esc_url( received_order_url( $order ) ); ?>" class="artnovo-received-receipt-form" data-artnovo-receipt-form <?php if ( $quick_transfer ) : ?>data-artnovo-receipt-preview<?php endif; ?>>
+			<form method="post" enctype="multipart/form-data" action="<?php echo esc_url( isset( $_GET['artnovo_status'] ) ? received_tracking_url( $order ) : received_order_url( $order ) ); ?>" class="artnovo-received-receipt-form" data-artnovo-receipt-form <?php if ( $quick_transfer ) : ?>data-artnovo-receipt-preview<?php endif; ?>>
 				<?php wp_nonce_field( 'artnovo_received_receipt_' . $order->get_id(), 'artnovo_received_receipt_nonce', false ); ?>
 				<input type="hidden" name="artnovo_received_receipt" value="1">
 				<input type="hidden" name="MAX_FILE_SIZE" value="2097152">
@@ -129,6 +129,7 @@ add_action( 'template_redirect', static function (): void {
 		WC()->session->save_data();
 	}
 	$anchor = is_wp_error( $result ) ? '#artnovo-received-receipt' : '#artnovo-received-status';
-	wp_safe_redirect( received_order_url( $order ) . $anchor, 303 );
+	$destination = isset( $_GET['artnovo_status'] ) ? received_tracking_url( $order ) : received_order_url( $order );
+	wp_safe_redirect( $destination . $anchor, 303 );
 	exit;
 }, 6 );

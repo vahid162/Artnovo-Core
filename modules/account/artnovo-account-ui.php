@@ -2,6 +2,8 @@
 
 namespace Artnovo\AccountUI;
 
+use WPVPNBridge\Commerce\Orders;
+
 defined( 'ABSPATH' ) || exit;
 
 require_once dirname( __DIR__ ) . '/auth/account-auth.php';
@@ -177,6 +179,48 @@ foreach ( [ 'woocommerce_order_item_name', 'woocommerce_order_item_quantity_html
 	}, 30 );
 }
 
+/** Describe the existing purchase without changing how it can be paid or fulfilled. */
+function subscription_payment_presentation( \WC_Order $order, array $snapshot ): ?array {
+	$track = received_tracking_url( $order );
+	if ( $order->has_status( [ 'cancelled', 'refunded', 'trash' ] ) || (float) $order->get_total_refunded() > 0 ) {
+		return [ 'state' => 'closed', 'label' => 'خرید بسته شده است', 'action_url' => $order->get_view_order_url(), 'action_label' => 'مشاهدهٔ جزئیات خرید' ];
+	}
+	if ( ! class_exists( Orders::class ) || ! Orders::matches_purchase( $order, $snapshot ) ) {
+		return [ 'state' => 'review', 'label' => 'خرید نیاز به بررسی دارد', 'action_url' => $order->get_view_order_url(), 'action_label' => 'پیگیری خرید' ];
+	}
+	if ( $order->is_paid() ) {
+		return null;
+	}
+	if ( $order->has_status( 'failed' ) ) {
+		return [ 'state' => 'pending', 'label' => 'پرداخت کامل نشده است', 'action_url' => $track, 'action_label' => 'بررسی وضعیت پرداخت' ];
+	}
+	if ( 'bacs' === $order->get_payment_method() ) {
+		if ( received_receipt_exists( $order ) ) {
+			return [ 'state' => 'receipt', 'label' => 'رسید در حال بررسی', 'action_url' => $track . '#artnovo-received-status', 'action_label' => 'بررسی وضعیت پرداخت' ];
+		}
+		if ( received_receipt_can_upload( $order ) ) {
+			return [ 'state' => 'transfer', 'label' => 'رسید ارسال نشده', 'action_url' => $track, 'action_label' => 'واریز و ارسال رسید' ];
+		}
+	}
+	return [ 'state' => 'pending', 'label' => 'در انتظار تأیید پرداخت', 'action_url' => $track, 'action_label' => 'بررسی وضعیت پرداخت' ];
+}
+
+function subscription_delivery_presentation( \WC_Order $order, ?array $stage, int $expiry, string $buy_url, string $buy_label, string $support ): array {
+	$status = $stage['status'] ?? '';
+	if ( 'awaiting_payment' === $status ) {
+		return [ 'state' => 'pending', 'label' => 'در انتظار تأیید پرداخت', 'action_url' => received_tracking_url( $order ), 'action_label' => 'بررسی وضعیت پرداخت' ];
+	}
+	if ( 'succeeded' === $status && $expiry > 0 && $expiry <= time() ) {
+		return [ 'state' => 'expired', 'label' => 'پایان اعتبار', 'action_url' => $buy_url, 'action_label' => $buy_label ];
+	}
+	if ( in_array( $status, [ 'pending', 'running', 'retry_wait', 'reconcile' ], true ) ) {
+		return [ 'state' => 'issuing', 'label' => 'در حال آماده‌سازی اکانت', 'action_url' => received_tracking_url( $order ), 'action_label' => 'پیگیری آماده‌سازی' ];
+	}
+	// Only the native connection controls can establish that an account is ready.
+	return [ 'state' => 'review', 'label' => $stage ? 'اکانت نیاز به بررسی دارد' : 'پرداخت در انتظار بررسی است',
+		'action_url' => $stage ? $support : received_tracking_url( $order ), 'action_label' => $stage ? 'پیگیری با پشتیبانی' : 'بررسی وضعیت پرداخت' ];
+}
+
 function decorate_subscriptions( string $html ): string {
 	$tags = new \WP_HTML_Tag_Processor( $html );
 	$base = trailingslashit( wc_get_account_endpoint_url( 'view-order' ) );
@@ -207,12 +251,17 @@ function decorate_subscriptions( string $html ): string {
 			continue;
 		}
 		if ( ! isset( $contexts[ $id ] ) ) {
-			$contexts[ $id ] = [ $store?->get_by_order( $id ), $store?->get_units( $id ) ?? [] ];
+			$contexts[ $id ] = [
+				$store?->get_by_order( $id ),
+				$store?->get_units( $id ) ?? [],
+				subscription_payment_presentation( $order, $snapshot ),
+			];
 		}
 		$number = ( $unit_numbers[ $id ] ?? 0 ) + 1;
 		$unit_numbers[ $id ] = $number;
-		[ $operation, $units ] = $contexts[ $id ];
-		$expiry = (int) ( $units[ $number - 1 ]['expires_at'] ?? $operation['expires_at'] ?? 0 );
+		[ $operation, $units, $payment ] = $contexts[ $id ];
+		$stage = $units ? ( $units[ $number - 1 ] ?? null ) : $operation;
+		$expiry = (int) ( $stage['expires_at'] ?? 0 );
 		$product = wc_get_product( $snapshot['product_id'] ?? 0 );
 		$can_buy = $product && $product->is_in_stock() && $product->is_purchasable()
 			&& function_exists( '\Artnovo\PlanCheckout\wizard_url' );
@@ -224,11 +273,15 @@ function decorate_subscriptions( string $html ): string {
 			$usage = [ 'used_bytes' => $usage['used_bytes'], 'remaining_bytes' => $usage['remaining_bytes'] ];
 		}
 		$renew = apply_filters( 'artnovo_account_subscription_renewal_url', '', $order, $number );
+		$buy = $can_buy ? \Artnovo\PlanCheckout\wizard_url( $product->get_id() ) : home_url( '/#artnovo-categories' );
+		$buy_label = $can_buy ? 'خرید دوبارهٔ این پلن' : 'انتخاب پلن جدید';
+		$support = add_query_arg( 'order', $id, account_url( 'support' ) );
 		$data = [
-			'buy_url' => $can_buy ? \Artnovo\PlanCheckout\wizard_url( $product->get_id() ) : home_url( '/#artnovo-categories' ),
-			'buy_label' => $can_buy ? 'خرید دوبارهٔ این پلن' : 'انتخاب پلن جدید',
+			'presentation' => $payment ?? subscription_delivery_presentation( $order, $stage, $expiry, $buy, $buy_label, $support ),
+			'buy_url' => $buy,
+			'buy_label' => $buy_label,
 			'help_url' => account_url( 'help' ),
-			'support_url' => add_query_arg( 'order', $id, account_url( 'support' ) ),
+			'support_url' => $support,
 			'days_left' => $expiry > 0 ? max( 0, (int) ceil( ( $expiry - time() ) / DAY_IN_SECONDS ) ) : null,
 			'usage' => $usage,
 			'renew_url' => is_string( $renew ) && $renew ? wp_validate_redirect( $renew, '' ) : '',
@@ -271,8 +324,9 @@ add_filter( 'gettext_wp-vpn-bridge', static function ( string $translated, strin
 		'Expired' => 'پایان اعتبار',
 		'Access held' => 'نیازمند بررسی پشتیبانی',
 		'Awaiting verified wallet payment' => 'در انتظار تأیید پرداخت',
+		'Awaiting verified payment confirmation' => 'در انتظار تأیید پرداخت',
 		'Payment needs administrator verification' => 'در انتظار بررسی پرداخت',
-		'Awaiting bank transfer confirmation' => 'در انتظار تأیید رسید پرداخت',
+		'Awaiting bank transfer confirmation' => 'در انتظار تأیید پرداخت کارت‌به‌کارت',
 		'Queued for issuance' => 'در صف آماده‌سازی اشتراک',
 		'Issuing service' => 'در حال آماده‌سازی اشتراک',
 		'Waiting to retry safely' => 'در انتظار ادامهٔ آماده‌سازی',

@@ -12,7 +12,7 @@
 		if (typeof value !== 'string' || !value) return null;
 		try {
 			const url = new URL(value, base);
-			return url.origin === location.origin ? url.href : null;
+			return url.protocol === location.protocol && url.origin === location.origin ? url.href : null;
 		} catch {
 			return null;
 		}
@@ -33,131 +33,174 @@
 	}
 
 	function initSubscriptionTools() {
+		const list = root.querySelector('.artnovo-account-subscriptions');
+		if (!list) return;
+		const cards = [...list.querySelectorAll(':scope > .wpvpn-subscription[data-artnovo-card]')];
 		const number = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 });
-		for (const card of root.querySelectorAll('.wpvpn-subscription[data-artnovo-card]')) {
+		const groups = [
+			{ key: 'ready', label: 'اکانت‌های آماده', states: ['ready'], rows: [] },
+			{ key: 'pending', label: 'در حال پیگیری', states: ['transfer', 'receipt', 'pending', 'issuing', 'review'], rows: [] },
+			{ key: 'ended', label: 'پایان‌یافته', states: ['expired', 'closed'], rows: [] }
+		];
+		let first = null;
+		let enhanced = 0;
+		for (const card of cards) {
 			let data;
 			try {
 				data = JSON.parse(card.dataset.artnovoCard);
 			} catch {
 				continue;
 			}
-			if (!data || typeof data !== 'object' || card.classList.contains('artnovo-account-row')) continue;
+			const presentation = data?.presentation;
+			const controls = card.querySelector(':scope > .wpvpn-subscription-link');
+			const input = controls?.querySelector('input[readonly][type="url"]');
+			const copy = controls?.querySelector('button');
+			const ready = Boolean(input?.value && copy);
+			const state = ready ? 'ready' : presentation?.state;
+			const group = groups.find(item => item.states.includes(state));
+			const viewUrl = localUrl(data?.purchase?.view_url);
+			const purchaseLink = [...card.querySelectorAll('a[href]')].find(link => localUrl(link.getAttribute('href')) === viewUrl);
+			const primaryUrl = ready ? null : localUrl(presentation?.action_url);
+			const label = ready ? 'آمادهٔ اتصال' : presentation?.label;
+			const title = card.querySelector(':scope > h3');
+			const status = card.querySelector(':scope > p');
+
+			if (!group || !viewUrl || !purchaseLink || !title || !status || status.querySelector('a') ||
+				typeof label !== 'string' || !label.trim() ||
+				(!ready && (state === 'ready' || controls || !primaryUrl || typeof presentation?.action_label !== 'string' ||
+					!presentation.action_label.trim()))) continue;
+
 			card.classList.add('artnovo-account-row');
-			const information = document.createElement('div');
-			information.className = 'artnovo-account-row-info';
-			for (const child of Array.from(card.children)) {
-				if (child.tagName === 'H3' || child.tagName === 'P' && !child.querySelector('a')) information.append(child);
-			}
-			const heading = document.createElement('div');
-			heading.className = 'artnovo-account-row-heading';
-			const title = information.querySelector('h3');
-			const state = information.querySelector('p');
-			if (title) heading.append(title);
-			if (state) {
-				state.classList.add('artnovo-account-row-status');
-				heading.append(state);
-			}
-			const meta = document.createElement('div');
-			meta.className = 'artnovo-account-row-meta';
-			meta.append(...Array.from(information.children));
-			information.append(heading, meta);
-			card.prepend(information);
-			const controls = card.querySelector('.wpvpn-subscription-link');
-			const connectionDetails = controls ? compactConnectionTools(controls) : null;
-			const metrics = document.createElement('div');
-			metrics.className = 'artnovo-account-metrics';
+			card.dataset.artnovoState = state;
+			status.classList.add('artnovo-account-row-status');
+			status.textContent = label;
 
-			function addMetric(label, value, note = '') {
-				const metric = document.createElement('div');
-				metric.className = 'artnovo-account-metric';
-				const title = document.createElement('span');
-				title.textContent = label;
-				const amount = document.createElement('strong');
-				amount.textContent = value;
-				metric.append(title, amount);
-				if (note) {
-					const hint = document.createElement('small');
-					hint.textContent = note;
-					metric.append(hint);
-				}
-				metrics.append(metric);
+			const rowControls = controls || document.createElement('div');
+			rowControls.classList.add('artnovo-account-row-controls');
+			if (ready) {
+				copy.classList.add('artnovo-account-button', 'artnovo-account-row-action');
+				compactConnectionTools(controls);
+			} else {
+				const action = document.createElement('a');
+				action.className = 'artnovo-account-button artnovo-account-row-action';
+				action.href = primaryUrl;
+				action.textContent = presentation.action_label;
+				rowControls.append(action);
+				card.append(rowControls);
 			}
+			renderSubscriptionRow(card, title, status, rowControls, purchaseLink, data, primaryUrl, ready, number);
+			first ??= card;
+			group.rows.push(card);
+			enhanced++;
+		}
 
-			if (Number.isInteger(data.days_left) && data.days_left >= 0) {
-				addMetric('زمان باقی‌مانده', data.days_left ? number.format(data.days_left) + ' روز' : 'پایان اعتبار');
-			}
-			const usage = data.usage;
-			const hasUsage = usage && Number.isFinite(usage.used_bytes) && usage.used_bytes >= 0 &&
-				Number.isFinite(usage.remaining_bytes) && usage.remaining_bytes >= 0;
-			if (hasUsage) {
-				addMetric('حجم مصرف‌شده', number.format(usage.used_bytes / 1073741824) + ' گیگابایت');
-				addMetric('حجم باقی‌مانده', number.format(usage.remaining_bytes / 1073741824) + ' گیگابایت');
-			}
+		if (!first) return;
+		// The Bridge still owns the query and pagination. Group only rows in its current response.
+		for (const group of groups.filter(item => item.rows.length)) {
+			const section = document.createElement('section');
+			section.className = 'artnovo-account-group';
+			section.dataset.artnovoGroup = group.key;
+			const heading = document.createElement('h2');
+			heading.id = 'artnovo-account-group-' + group.key;
+			heading.textContent = group.label;
+			const count = document.createElement('span');
+			count.className = 'artnovo-account-group-count';
+			count.textContent = number.format(group.rows.length);
+			heading.append(' ', count);
+			section.setAttribute('aria-labelledby', heading.id);
+			section.append(heading);
+			first.before(section);
+			group.container = section;
+		}
+		for (const group of groups) group.container?.append(...group.rows);
 
-			const actions = document.createElement('div');
-			actions.className = 'artnovo-account-actions';
-			for (const [key, label] of [['buy_url', 'خرید دوبارهٔ این پلن'], ['help_url', 'راهنمای اتصال'], ['support_url', 'پشتیبانی']]) {
-				const destination = localUrl(data[key]);
-				if (!destination) continue;
-				const link = document.createElement('a');
-				link.href = destination;
-				link.textContent = key === 'buy_url' && typeof data.buy_label === 'string' && data.buy_label.trim()
-					? data.buy_label
-					: label;
-				link.className = key === 'buy_url' ? 'artnovo-account-button' : 'artnovo-account-button artnovo-account-button-secondary';
-				actions.append(link);
-			}
-			const renewUrl = localUrl(data.renew_url);
-			if (renewUrl) {
-				const renewal = document.createElement('a');
-				renewal.className = 'artnovo-account-button artnovo-account-button-secondary';
-				renewal.textContent = 'تمدید همین اکانت';
-				renewal.href = renewUrl;
-				actions.append(renewal);
-			}
-			if (metrics.childElementCount) meta.append(metrics);
+		const nativeHeading = list.querySelector(':scope > h2');
+		if (enhanced === list.querySelectorAll('.wpvpn-subscription').length &&
+			nativeHeading?.textContent.trim() === 'اکانت‌های من') {
+			nativeHeading.remove();
+		}
+	}
 
-			const purchase = data.purchase;
-			const viewUrl = localUrl(purchase?.view_url);
-			if (viewUrl) {
-				const details = connectionDetails || document.createElement('details');
-				details.classList.add('artnovo-account-purchase');
-				const summary = details.querySelector('summary') || document.createElement('summary');
-				summary.textContent = controls ? 'جزئیات اکانت و خرید' : 'جزئیات خرید و پرداخت';
-				if (!details.contains(summary)) details.prepend(summary);
-				const expiry = Array.from(meta.children).find(e => e.tagName === 'P' && e.textContent.trim().startsWith('پایان اعتبار '));
-				if (expiry) details.append(expiry);
-				const values = document.createElement('dl');
-				for (const [key, label] of [['number', 'شماره پیگیری'], ['date', 'تاریخ خرید'], ['amount', 'مبلغ خرید']]) {
-					if (typeof purchase[key] !== 'string' || !purchase[key]) continue;
-					const title = document.createElement('dt');
-					title.textContent = label;
-					const value = document.createElement('dd');
-					value.textContent = displayDigits(purchase[key], key === 'amount');
-					values.append(title, value);
-				}
-				const original = Array.from(card.querySelectorAll('a[href]')).find((link) =>
-					localUrl(link.getAttribute('href')) === viewUrl);
-				const previousParent = original?.parentElement;
-				const link = original || document.createElement('a');
-				if (!original) link.href = viewUrl;
-				link.textContent = 'مشاهدهٔ خرید و رسید';
-				if (controls) {
-					details.append(values, link, actions);
-				} else {
-					link.className = 'artnovo-account-button artnovo-account-button-secondary';
-					const pending = document.createElement('div');
-					pending.className = 'artnovo-account-pending-action';
-					pending.append(link);
-					card.append(pending);
-					details.append(values, actions);
-				}
-				if (previousParent?.tagName === 'P' && !previousParent.childElementCount && !previousParent.textContent.trim()) {
-					previousParent.remove();
-				}
-				if (!connectionDetails) card.append(details);
+	function renderSubscriptionRow(card, title, status, controls, purchaseLink, data, primaryUrl, ready, number) {
+		const information = document.createElement('div');
+		information.className = 'artnovo-account-row-info';
+		const heading = document.createElement('div');
+		heading.className = 'artnovo-account-row-heading';
+		heading.append(title, status);
+		const meta = document.createElement('div');
+		meta.className = 'artnovo-account-row-meta';
+		const purchase = document.createElement('details');
+		purchase.className = 'artnovo-account-purchase';
+		const summary = document.createElement('summary');
+		summary.textContent = 'جزئیات خرید';
+		purchase.append(summary);
+		for (const paragraph of card.querySelectorAll(':scope > p')) {
+			if (paragraph.querySelector('a')) continue;
+			const expiry = paragraph.textContent.trim().startsWith('پایان اعتبار ');
+			(ready && !expiry ? meta : purchase).append(paragraph);
+		}
+
+		const purchaseData = data.purchase;
+		if (ready && Number.isInteger(data.days_left) && data.days_left > 0) {
+			const time = document.createElement('p');
+			time.textContent = number.format(data.days_left) + ' روز اعتبار باقی‌مانده';
+			meta.prepend(time);
+		} else if (!ready && typeof purchaseData.number === 'string' && purchaseData.number) {
+			const reference = document.createElement('p');
+			reference.textContent = 'خرید ' + displayDigits(purchaseData.number);
+			meta.append(reference);
+		}
+		if (card.dataset.artnovoState === 'transfer' && typeof purchaseData.amount === 'string' && purchaseData.amount) {
+			const amount = document.createElement('p');
+			amount.textContent = displayDigits(purchaseData.amount, true);
+			meta.append(amount);
+		}
+		const usage = data.usage;
+		if (ready && Number.isFinite(usage?.used_bytes) && usage.used_bytes >= 0 &&
+			Number.isFinite(usage.remaining_bytes) && usage.remaining_bytes >= 0) {
+			for (const [label, bytes] of [['حجم مصرف‌شده', usage.used_bytes], ['حجم باقی‌مانده', usage.remaining_bytes]]) {
+				const value = document.createElement('p');
+				value.textContent = label + ' ' + number.format(bytes / 1073741824) + ' گیگابایت';
+				meta.append(value);
 			}
 		}
+		information.append(heading, meta);
+		card.prepend(information);
+
+		const values = document.createElement('dl');
+		for (const [key, label] of [['number', 'شماره پیگیری'], ['date', 'تاریخ خرید'], ['amount', 'مبلغ خرید']]) {
+			if (typeof purchaseData[key] !== 'string' || !purchaseData[key]) continue;
+			const term = document.createElement('dt');
+			term.textContent = label;
+			const value = document.createElement('dd');
+			value.textContent = displayDigits(purchaseData[key], key === 'amount');
+			values.append(term, value);
+		}
+		if (values.childElementCount) purchase.append(values);
+
+		const previousParent = purchaseLink.parentElement;
+		purchaseLink.textContent = 'مشاهدهٔ سفارش و رسید';
+		purchase.append(purchaseLink);
+		if (previousParent.tagName === 'P' && !previousParent.childElementCount && !previousParent.textContent.trim()) {
+			previousParent.remove();
+		}
+		const actions = document.createElement('div');
+		actions.className = 'artnovo-account-actions';
+		for (const [url, label] of [
+			[data.buy_url, data.buy_label || 'خرید دوبارهٔ این پلن'],
+			[data.renew_url, 'تمدید همین اکانت'],
+			[data.help_url, 'راهنمای اتصال'],
+			[data.support_url, 'پشتیبانی']
+		]) {
+			const destination = localUrl(url);
+			if (!destination || destination === primaryUrl || typeof label !== 'string') continue;
+			const link = document.createElement('a');
+			link.href = destination;
+			link.textContent = label;
+			actions.append(link);
+		}
+		if (actions.childElementCount) purchase.append(actions);
+		controls.append(purchase);
 	}
 
 	function compactConnectionTools(controls) {
@@ -356,8 +399,9 @@
 			status.className = 'artnovo-account-muted';
 			status.hidden = true;
 			status.setAttribute('role', 'status');
-			controls.insertBefore(toggle, controls.querySelector('.artnovo-account-link-details'));
-			controls.append(target, status);
+			const details = controls.querySelector('.artnovo-account-link-details');
+			if (details) details.querySelector('summary').textContent = 'لینک و کد QR';
+			(details || controls).append(toggle, target, status);
 			toggle.addEventListener('click', () => {
 				if (!target.childElementCount) {
 					try {

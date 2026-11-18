@@ -20,6 +20,10 @@ function received_order_url( \WC_Order $order ): string {
 		wc_get_endpoint_url( 'order-received', (string) $order->get_id(), wc_get_page_permalink( 'checkout' ) ) );
 }
 
+function received_tracking_url( \WC_Order $order ): string {
+	return add_query_arg( 'artnovo_status', '1', received_order_url( $order ) );
+}
+
 // A valid key identifies a route; private Core output additionally requires its owner below.
 function received_keyed_order(): \WC_Order|false {
 	if ( ! received_page() ) {
@@ -41,6 +45,14 @@ function received_order(): \WC_Order|false {
 	$order = received_keyed_order();
 	return $order && get_current_user_id() === $order->get_customer_id() ? $order : false;
 }
+
+add_filter( 'woocommerce_should_clear_cart_after_payment', static function ( bool $clear ): bool {
+	if ( ! $clear || ! isset( $_GET['artnovo_status'] ) ) {
+		return $clear;
+	}
+	$order = received_order();
+	return ! $order || ! \Artnovo\Core\is_service_order( $order );
+}, PHP_INT_MAX );
 
 function received_payment_order(): \WC_Order|false {
 	if ( ! \Artnovo\Core\bridge_available() || ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'order-pay' ) || get_current_user_id() < 1 ) {
@@ -189,8 +201,10 @@ function received_state( \WC_Order $order, ?array $delivery = null ): array {
 	}
 	$stages = $units ?: ( $operation ? [ $operation ] : [] );
 	$issuing = false;
+	$awaiting_payment = false;
 	$expired = [] !== $stages;
 	foreach ( $stages as $stage ) {
+		$awaiting_payment = $awaiting_payment || 'awaiting_payment' === ( $stage['status'] ?? '' );
 		if ( in_array( $stage['status'] ?? '', [ 'pending', 'running', 'retry_wait', 'reconcile' ], true ) ) {
 			$issuing = true;
 		}
@@ -203,6 +217,9 @@ function received_state( \WC_Order $order, ?array $delivery = null ): array {
 	}
 	if ( $issuing ) {
 		return [ 'state' => 'issuing', 'title' => 'اکانت در حال آماده‌سازی است', 'message' => 'پرداخت تأیید شده است. لینک اتصال پس از آماده‌شدن در همین بخش نمایش داده می‌شود.', 'step' => 3 ];
+	}
+	if ( $awaiting_payment ) {
+		return [ 'state' => 'pending', 'title' => 'در انتظار تأیید پرداخت', 'message' => 'تأیید پرداخت هنوز دریافت نشده است. وضعیت همین سفارش را دوباره بررسی کنید.', 'step' => 2 ];
 	}
 	return [ 'state' => 'review', 'title' => 'آماده‌سازی نیاز به بررسی دارد', 'message' => 'برای پیگیری وضعیت پرداخت یا تحویل اشتراک، شمارهٔ خرید را به پشتیبانی بفرست.', 'step' => 3 ];
 }
@@ -228,8 +245,12 @@ function received_integrations( \WC_Order $order ): void {
 		remove_action( 'woocommerce_thankyou_bacs', [ $bacs, 'thankyou_page' ], $bank_priority );
 	}
 	try {
-		do_action( 'woocommerce_thankyou_' . $order->get_payment_method(), $order->get_id() );
-		do_action( 'woocommerce_thankyou', $order->get_id() );
+		if ( isset( $_GET['artnovo_status'] ) ) {
+			woocommerce_order_details_table( $order->get_id() );
+		} else {
+			do_action( 'woocommerce_thankyou_' . $order->get_payment_method(), $order->get_id() );
+			do_action( 'woocommerce_thankyou', $order->get_id() );
+		}
 	} finally {
 		foreach ( $removed as [ $callback, $priority, $args ] ) {
 			add_action( 'woocommerce_order_details_after_order_table', $callback, $priority, $args );
@@ -388,12 +409,15 @@ function render_received_page(): void {
 	// A gateway can print and clear queued errors before Core renders the receipt tools.
 	$show_receipt_tools = WC()->session && array_filter( wc_get_notices( 'error' ),
 		static fn( $notice ): bool => $order->get_id() === ( $notice['data']['artnovo_receipt_order'] ?? null ) );
-	do_action( 'woocommerce_before_thankyou', $order->get_id() );
-	if ( WC()->session && (int) WC()->session->get( 'order_awaiting_payment' ) === $order->get_id() ) {
-		WC()->session->__unset( 'order_awaiting_payment' );
-	}
-	if ( WC()->cart && ! WC()->cart->is_empty() && $order->has_cart_hash( WC()->cart->get_cart_hash() ) ) {
-		wc_empty_cart();
+	// Tracking a previous order must not clear a new selection with the same cart hash.
+	if ( ! isset( $_GET['artnovo_status'] ) ) {
+		do_action( 'woocommerce_before_thankyou', $order->get_id() );
+		if ( WC()->session && (int) WC()->session->get( 'order_awaiting_payment' ) === $order->get_id() ) {
+			WC()->session->__unset( 'order_awaiting_payment' );
+		}
+		if ( WC()->cart && ! WC()->cart->is_empty() && $order->has_cart_hash( WC()->cart->get_cart_hash() ) ) {
+			wc_empty_cart();
+		}
 	}
 	$delivery = received_services( $order );
 	$billing_email = $order->get_billing_email();

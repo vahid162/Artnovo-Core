@@ -75,6 +75,8 @@ foreach ( [ 'subscriptions', 'help', 'support', 'profile' ] as $view ) {
 	$copy = file_get_contents( WP_PLUGIN_DIR . '/wp-vpn-bridge/assets/subscriptions.js' );
 	if ( 'subscriptions' === $view ) {
 		$assert( str_contains( $markup, '<h1>اکانت‌های من</h1>' ), 'selected account layout uses its customer-facing page title' );
+		$assert( 1 === substr_count( $markup, '#artnovo-categories' ) && str_contains( $markup, 'artnovo-account-mobile-nav' ),
+			'compact subscriptions expose one purchase link and a native mobile menu' );
 		$data = [
 			'buy_url' => 'https://artnovo.ir/?artnovo_plan=25#artnovo-order',
 			'buy_label' => 'خرید دوبارهٔ این پلن',
@@ -99,7 +101,7 @@ foreach ( [ 'subscriptions', 'help', 'support', 'profile' ] as $view ) {
 		$position = strpos( $markup, '<section class="artnovo-account-card artnovo-account-empty">' );
 		if ( false !== $position ) {
 			$end = strpos( $markup, '</section>', $position ) + strlen( '</section>' );
-			$markup = substr_replace( $markup, $card, $position, $end - $position );
+			$markup = substr_replace( $markup, '<div class="artnovo-account-subscriptions">' . $card . '</div>', $position, $end - $position );
 		}
 	}
 	$document = '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
