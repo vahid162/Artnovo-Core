@@ -83,7 +83,25 @@ add_action( 'wp_enqueue_scripts', static function (): void {
 	}
 	wp_enqueue_style( 'artnovo-account-ui', plugins_url( '../account/artnovo-account.css', __FILE__ ), [], (string) filemtime( dirname( __DIR__ ) . '/account/artnovo-account.css' ) );
 	wp_enqueue_style( 'artnovo-received-ui', plugins_url( 'received.css', __FILE__ ), [ 'artnovo-account-ui' ], (string) filemtime( __DIR__ . '/received.css' ) );
+	wp_enqueue_script( 'artnovo-received-ui', plugins_url( 'received.js', __FILE__ ), [], (string) filemtime( __DIR__ . '/received.js' ), true );
 }, 20 );
+
+function received_pay_amount( \WC_Order $order ): string {
+	$price = wc_price( $order->get_total(), [
+		'currency' => $order->get_currency(),
+		'price_format' => '%2$s&nbsp;%1$s',
+	] );
+	$allowed_html = wp_kses_allowed_html( 'post' ) + [ 'bdi' => [ 'dir' => true ] ];
+	return \Artnovo\Core\display_number_html( wp_kses( $price, $allowed_html ), true );
+}
+
+add_filter( 'woocommerce_pay_order_button_text', static function ( string $label ): string {
+	if ( __( 'Pay for order', 'woocommerce' ) !== $label ) {
+		return $label;
+	}
+	$order = received_payment_order();
+	return $order ? 'پرداخت ' . html_entity_decode( wp_strip_all_tags( received_pay_amount( $order ) ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ) : $label;
+} );
 
 $received_payment_skin = false;
 add_action( 'woocommerce_before_template_part', static function ( string $name, string $path, string $located, array $args ) use ( &$received_payment_skin ): void {
@@ -96,13 +114,30 @@ add_action( 'woocommerce_before_template_part', static function ( string $name, 
 	}
 	$received_payment_skin = true;
 	?>
-	<section class="artnovo-account artnovo-received artnovo-order-pay" dir="rtl" data-artnovo-native-order-pay>
-		<div class="artnovo-account-card artnovo-received-focus">
-			<?php render_received_summary( $order ); ?>
-			<?php render_received_steps( 2 ); ?>
-			<header class="artnovo-order-pay-heading"><h2>پرداخت همین سفارش را ادامه دهید</h2><p>مبلغ و روش پرداخت این خرید حفظ شده است. پرداخت را با گزینهٔ مجاز همین سفارش ادامه دهید.</p></header>
+	<section class="artnovo-account artnovo-received artnovo-order-pay" dir="rtl" data-artnovo-native-order-pay aria-labelledby="artnovo-order-pay-title">
+		<div class="artnovo-account-card artnovo-order-pay-card">
+			<header class="artnovo-order-pay-heading">
+				<h2 id="artnovo-order-pay-title">ادامهٔ پرداخت سفارش</h2>
+				<p class="artnovo-order-pay-status"><?php echo $order->has_status( 'failed' ) ? 'پرداخت ناموفق' : 'پرداخت تکمیل نشده'; ?></p>
+			</header>
+			<div class="artnovo-order-pay-amount"><span>مبلغ قابل پرداخت</span><strong><?php echo received_pay_amount( $order ); ?></strong></div>
+			<div class="artnovo-order-pay-plans">
+				<?php foreach ( $order->get_items() as $item ) : ?>
+					<?php if ( ! apply_filters( 'woocommerce_order_item_visible', true, $item ) ) { continue; } ?>
+					<div>
+						<strong><?php echo esc_html( \Artnovo\Core\display_digits( $item->get_name() ) ); ?></strong>
+						<span><?php echo esc_html( \Artnovo\Core\display_digits( (string) $item->get_quantity() ) ); ?> اکانت</span>
+					</div>
+				<?php endforeach; ?>
+			</div>
+			<p class="artnovo-order-pay-reference">سفارش <bdi><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></bdi></p>
 	<?php
 }, 10, 4 );
+add_action( 'woocommerce_pay_order_before_payment', static function () use ( &$received_payment_skin ): void {
+	if ( $received_payment_skin ) {
+		echo '<h3 class="artnovo-order-pay-method-heading">روش پرداخت</h3>';
+	}
+} );
 add_action( 'woocommerce_after_template_part', static function ( string $name ) use ( &$received_payment_skin ): void {
 	if ( 'checkout/form-pay.php' === $name && $received_payment_skin ) {
 		$received_payment_skin = false;

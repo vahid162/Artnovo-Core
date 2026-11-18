@@ -1,5 +1,14 @@
 # Current project state
 
+## Approved delivery: one-card order payment / Core 1.11.0 (2026-11-18)
+
+The owner selected the one-card order-payment design on mobile and desktop.
+The approved layout applies to the existing authorized service-order payment
+screen. It places payment status, native total, current plan, order reference
+and the WooCommerce payment action together. The native form, itemized amount,
+terms, gateway fields and payment permissions retain their existing ownership.
+Only Core is authorized for GitHub-first publication and installation.
+
 ## Completed delivery: checkout preparation indicator / Core 1.10.1 (2026-11-18)
 
 The owner selected the small loading ring for payment preparation on mobile and

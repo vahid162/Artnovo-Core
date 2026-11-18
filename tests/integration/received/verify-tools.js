@@ -6,6 +6,27 @@ const path = require('node:path');
 const source = fs.readFileSync(path.resolve(__dirname, '../../../modules/order-received/received.js'), 'utf8');
 let checks = 0;
 const check = (value, label) => { assert(value, label); checks++; };
+
+function paymentTableFixture(hasControl) {
+	const elements = [];
+	const table = {
+		querySelector: () => hasControl ? { required: true } : null,
+		before(details) { this.insertedBefore = details; }
+	};
+	const root = { dataset: { artnovoNativeOrderPay: '' }, querySelector: () => table };
+	vm.runInNewContext(source, {
+		document: {
+			querySelector: () => root,
+			createElement(tag) {
+				const element = { tag, append(...children) { this.children = children; } };
+				elements.push(element);
+				return element;
+			}
+		}
+	});
+	return { table, elements };
+}
+
 function fixture({ failure = false, value = 'https://example.invalid/ready-1\nhttps://example.invalid/ready-3' } = {}) {
 	const copied = [];
 	const status = { hidden: true, textContent: '' };
@@ -112,6 +133,13 @@ function amountFixture(failure) {
 }
 
 (async () => {
+	const payment = paymentTableFixture(false);
+	const [details, summary] = payment.elements;
+	check(details === payment.table.insertedBefore && details.tag === 'details' && summary.tag === 'summary'
+		&& details.children[0] === summary && details.children[1] === payment.table, 'payment disclosure reuses the native table inside the form');
+	const extendedPayment = paymentTableFixture(true);
+	check(extendedPayment.elements.length === 0 && !extendedPayment.table.insertedBefore, 'tables with additional payment controls stay open');
+
 	const ready = fixture();
 	check(!ready.button.hidden, 'ready-link batch enables its primary copy action');
 	await ready.button.click();

@@ -2,6 +2,19 @@
 	const root = document.querySelector('.artnovo-received');
 	if (!root) return;
 
+	if (root.dataset?.artnovoNativeOrderPay !== undefined) {
+		const table = root.querySelector('form#order_review > table.shop_table');
+		if (table && !table.querySelector('input:not([type="hidden"]), select, textarea, button, [contenteditable="true"]')) {
+			const details = document.createElement('details');
+			details.className = 'artnovo-order-pay-breakdown';
+			const summary = document.createElement('summary');
+			summary.textContent = 'جزئیات مبلغ سفارش';
+			table.before(details);
+			details.append(summary, table);
+		}
+		return;
+	}
+
 	initServiceLinks();
 	initBankCopy();
 	initReadyCopy();
