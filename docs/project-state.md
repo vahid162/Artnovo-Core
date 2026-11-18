@@ -1,5 +1,14 @@
 # Current project state
 
+## In review: compact receipt status
+
+The pending BACS receipt page uses the Quick Transfer visual treatment and shows
+the payment review status, one reference and one status check. Receipt tools and
+native order details are in a closed disclosure. An error from the same receipt
+submission opens those tools. The existing post returns to the same order and key,
+with a separate fragment for success or error. This is a Core design change under
+review. Version 1.8.0 remains the published production release.
+
 ## Completed delivery: Quick Transfer / Core 1.8.0 (2026-11-18)
 
 The approved receipt design applies to pending, receipt-eligible bank transfers.

@@ -108,6 +108,7 @@ foreach ( array_keys( $cases ) as $name ) {
 	$order = $orders[ $name ];
 	$set_route( $order );
 	$frozen = [ $order->get_status(), $order->get_total(), $order->get_payment_method(), $order->get_meta( '_wpvpn_snapshot', true ) ];
+	$before_thankyou = did_action( 'woocommerce_thankyou' );
 	ob_start();
 	\Artnovo\AccountUI\render_received_page();
 	$markup = ob_get_clean();
@@ -116,8 +117,9 @@ foreach ( array_keys( $cases ) as $name ) {
 	$check( $name . ' rendering preserves payment state, amount, method and frozen purchase', $frozen === [ $order->get_status(), $order->get_total(), $order->get_payment_method(), $order->get_meta( '_wpvpn_snapshot', true ) ] );
 	$summary_position = strpos( $markup, 'class="artnovo-received-summary"' );
 	$status_position = strpos( $markup, 'id="artnovo-received-status"' );
+	$receipt_review = in_array( $name, [ 'receipt', 'receipt-with-stale-service' ], true );
 	$check( $name . ' uses Quick Transfer only before a bank receipt is recorded', ( 'pending' === $name ) === str_contains( $markup, 'data-artnovo-quick-transfer' ) );
-	if ( 'pending' !== $name ) {
+	if ( 'pending' !== $name && ! $receipt_review ) {
 		$check( $name . ' puts its compact plan summary before the persistent state', false !== $summary_position
 			&& false !== $status_position && $summary_position < $status_position && str_contains( $markup, 'artnovo-received-total' ) );
 		preg_match( '/<ol class="artnovo-received-progress"[^>]*>(.*?)<\/ol>/s', $markup, $progress );
@@ -127,6 +129,22 @@ foreach ( array_keys( $cases ) as $name ) {
 	$tags = new WP_HTML_Tag_Processor( $markup );
 	$invoice = $tags->next_tag( [ 'tag_name' => 'DETAILS', 'class_name' => 'artnovo-received-details' ] );
 	$check( $name . ' keeps its native invoice available in an initially closed disclosure', $invoice && null === $tags->get_attribute( 'open' ) );
+	$check( $name . ' uses the compact review card only while awaiting payment review',
+		$receipt_review === str_contains( $markup, 'artnovo-receipt-review-reference' ) );
+	if ( $receipt_review ) {
+		$before_disclosure = explode( '<details class="artnovo-received-details', $markup, 2 )[0];
+		$check( $name . ' shows a single order reference and no plan, price, or receipt controls in the visible status',
+			1 === substr_count( $before_disclosure, 'شمارهٔ پیگیری' )
+			&& str_contains( $before_disclosure, 'رسید ثبت شد؛ منتظر تأیید پرداخت' )
+			&& false === $summary_position && ! str_contains( $markup, 'artnovo-received-progress' )
+			&& ! str_contains( $before_disclosure, 'woocommerce-Price-amount' )
+			&& ! str_contains( $markup, 'wc-bacs-bank-details' )
+			&& ! str_contains( $before_disclosure, 'wpvpn_download_receipt' )
+			&& ! str_contains( $before_disclosure, 'data-artnovo-receipt-form' ) );
+		$check( $name . ' preserves the private receipt link and native integrations inside the disclosure',
+			str_contains( $markup, 'wpvpn_download_receipt' ) && str_contains( $markup, 'id="artnovo-received-receipt"' )
+			&& $before_thankyou + 1 === did_action( 'woocommerce_thankyou' ) );
+	}
 	$tags = new WP_HTML_Tag_Processor( $markup );
 	$primary = [];
 	while ( $tags->next_tag() ) {
@@ -226,6 +244,32 @@ foreach ( array_keys( $cases ) as $name ) {
 		. $received_js . '</script><script>' . $copy . '</script><script>' . $account_js . '</script><script>' . $notices_js . '</script></body></html>';
 	artnovo_fixture_write( 'received-' . $name . '.html', $document );
 }
+
+$set_route( $orders['receipt'] );
+wc_add_notice( 'Synthetic replacement error.', 'error', [ 'artnovo_receipt_order' => $orders['receipt']->get_id() ] );
+$print_early = static function (): void { wc_print_notices(); };
+add_action( 'woocommerce_before_thankyou', $print_early, 1 );
+try {
+	ob_start();
+	\Artnovo\AccountUI\render_received_page();
+	$retry_markup = ob_get_clean();
+} finally {
+	remove_action( 'woocommerce_before_thankyou', $print_early, 1 );
+}
+$retry_tags = new WP_HTML_Tag_Processor( $retry_markup );
+$check( 'replacement error remains visible and opens receipt tools even when a gateway prints the notice',
+	str_contains( $retry_markup, 'Synthetic replacement error.' )
+	&& $retry_tags->next_tag( [ 'tag_name' => 'DETAILS', 'class_name' => 'artnovo-received-details' ] )
+	&& true === $retry_tags->get_attribute( 'open' ) && str_contains( $retry_markup, 'data-artnovo-receipt-form' ) );
+wc_add_notice( 'Synthetic unrelated error.', 'error', [ 'artnovo_receipt_order' => $orders['pending']->get_id() ] );
+ob_start();
+\Artnovo\AccountUI\render_received_page();
+$unrelated_markup = ob_get_clean();
+$unrelated_tags = new WP_HTML_Tag_Processor( $unrelated_markup );
+$check( 'another order notice stays visible without opening these receipt tools',
+	str_contains( $unrelated_markup, 'Synthetic unrelated error.' )
+	&& $unrelated_tags->next_tag( [ 'tag_name' => 'DETAILS', 'class_name' => 'artnovo-received-details' ] )
+	&& null === $unrelated_tags->get_attribute( 'open' ) );
 
 if ( $failures ) {
 	WP_CLI::error( $failures . ' received-page checks failed.' );

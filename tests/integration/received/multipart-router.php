@@ -139,7 +139,7 @@ if ( 'GET' === $_SERVER['REQUEST_METHOD'] ) {
 	$probe = \WPVPNBridge\Commerce\Orders::fresh_order( 2147000082 );
 	echo wp_json_encode( [
 		'nonce' => wp_create_nonce( 'artnovo_received_receipt_2147000082' ),
-		'return' => Artnovo\AccountUI\received_order_url( wc_get_order( 2147000082 ) ) . '#artnovo-received-receipt',
+		'return' => Artnovo\AccountUI\received_order_url( wc_get_order( 2147000082 ) ),
 		'fixture_authorization' => [ Artnovo\AccountUI\received_page(), get_current_user_id(), $probe ? $probe->get_customer_id() : null, $probe ? $probe->get_order_key() === ( $_GET['key'] ?? '' ) : false, (bool) Artnovo\AccountUI\received_order() ],
 	] );
 	exit;

@@ -349,6 +349,32 @@ function render_received_steps( int $current, bool $ready = false ): void {
 	<?php
 }
 
+function render_received_receipt_review( \WC_Order $order, string $title, string $refresh, string $support, bool $show_receipt_tools ): void {
+	?>
+	<section class="artnovo-account-card artnovo-received-focus artnovo-receipt-review" aria-labelledby="artnovo-receipt-review-title">
+		<div class="artnovo-transfer-intro" id="artnovo-received-status" data-state="receipt">
+			<span class="artnovo-received-state-mark" aria-hidden="true">◷</span>
+			<h1 id="artnovo-receipt-review-title"><?php echo esc_html( $title ); ?></h1>
+			<p>پس از تأیید پرداخت، اکانت در بخش «اکانت‌های من» در دسترس خواهد بود.</p>
+		</div>
+		<?php wc_print_notices(); ?>
+		<dl class="artnovo-receipt-review-reference">
+			<dt>شمارهٔ پیگیری</dt>
+			<dd><bdi><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></bdi></dd>
+		</dl>
+		<div class="artnovo-received-primary"><a class="artnovo-account-button" data-artnovo-received-primary href="<?php echo esc_url( $refresh ); ?>">بررسی وضعیت پرداخت</a></div>
+	</section>
+	<nav class="artnovo-received-links" aria-label="پیگیری پرداخت">
+		<a href="<?php echo esc_url( $support ); ?>">پشتیبانی این خرید</a>
+	</nav>
+	<details class="artnovo-received-details woocommerce" <?php if ( $show_receipt_tools ) : ?>open<?php endif; ?>>
+		<summary>رسید و جزئیات خرید</summary>
+		<?php render_received_receipt( $order, review: true ); ?>
+		<?php received_integrations( $order ); ?>
+	</details>
+	<?php
+}
+
 function render_received_page(): void {
 	$order = received_order();
 	if ( ! $order ) {
@@ -359,6 +385,9 @@ function render_received_page(): void {
 		<?php
 		return;
 	}
+	// A gateway can print and clear queued errors before Core renders the receipt tools.
+	$show_receipt_tools = WC()->session && array_filter( wc_get_notices( 'error' ),
+		static fn( $notice ): bool => $order->get_id() === ( $notice['data']['artnovo_receipt_order'] ?? null ) );
 	do_action( 'woocommerce_before_thankyou', $order->get_id() );
 	if ( WC()->session && (int) WC()->session->get( 'order_awaiting_payment' ) === $order->get_id() ) {
 		WC()->session->__unset( 'order_awaiting_payment' );
@@ -369,6 +398,7 @@ function render_received_page(): void {
 	$delivery = received_services( $order );
 	$billing_email = $order->get_billing_email();
 	$state = received_state( $order, $delivery );
+	$receipt_review = 'receipt' === $state['state'] && 'bacs' === $order->get_payment_method();
 	$can_upload = received_receipt_can_upload( $order );
 	$quick_transfer = 'pending' === $state['state'] && $can_upload && 'bacs' === $order->get_payment_method();
 	$has_receipt = received_receipt_exists( $order );
@@ -392,12 +422,14 @@ function render_received_page(): void {
 	?>
 		<main id="content" class="artnovo-account artnovo-received" dir="rtl" data-state="<?php echo esc_attr( $state['state'] ); ?>" data-artnovo-received-multi="<?php echo $multi ? '1' : '0'; ?>" <?php if ( $quick_transfer ) : ?>data-artnovo-quick-transfer<?php endif; ?>>
 		<header class="artnovo-received-header">
-			<p class="artnovo-account-muted"><?php if ( $quick_transfer ) : ?>پرداخت کارت‌به‌کارت<?php else : ?>خرید <bdi><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></bdi><?php endif; ?></p>
+			<p class="artnovo-account-muted"><?php if ( $quick_transfer || $receipt_review ) : ?>پرداخت کارت‌به‌کارت<?php else : ?>خرید <bdi><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></bdi><?php endif; ?></p>
 			<a href="<?php echo esc_url( account_url() ); ?>">اکانت‌های من</a>
 		</header>
 			<div class="artnovo-received-layout">
 				<div class="artnovo-received-main">
-					<?php if ( $quick_transfer ) : ?>
+					<?php if ( $receipt_review ) : ?>
+						<?php render_received_receipt_review( $order, $state['title'], $refresh, $support, $show_receipt_tools ); ?>
+					<?php elseif ( $quick_transfer ) : ?>
 						<?php render_received_quick_transfer( $order, $support ); ?>
 					<?php else : ?>
 					<section class="artnovo-account-card artnovo-received-focus">
@@ -424,6 +456,7 @@ function render_received_page(): void {
 					<?php endif; ?>
 				</section>
 				<?php endif; ?>
+				<?php if ( ! $receipt_review ) : ?>
 				<nav class="artnovo-received-links" aria-label="پیگیری و راهنمای خرید">
 						<?php if ( $quick_transfer || $primary[0] !== $refresh || $ready_count > 0 ) : ?><a href="<?php echo esc_url( $refresh ); ?>"><?php echo 'partial' === $state['state'] ? 'بررسی باقی اکانت‌ها' : 'به‌روزرسانی وضعیت'; ?></a><?php endif; ?>
 					<?php if ( ! $quick_transfer ) : ?><a href="<?php echo esc_url( account_url( 'help' ) ); ?>">راهنمای اتصال</a><?php endif; ?>
@@ -438,6 +471,7 @@ function render_received_page(): void {
 					<?php if ( $has_receipt && 'pending' !== $state['state'] ) : ?><?php render_received_receipt( $order ); ?><?php endif; ?>
 					<?php received_integrations( $order ); ?>
 				</details>
+					<?php endif; ?>
 			</div>
 		</div>
 	</main>
