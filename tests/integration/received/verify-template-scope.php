@@ -89,7 +89,9 @@ $preview_pay = static function ( string $name, string $markup ): void {
 		. artnovo_fixture_font_css() . $style . '</style><body class="woocommerce-checkout"><main class="woocommerce">'
 		. $markup . '</main><script>' . $script . '</script></body></html>' );
 };
-$total_html = \Artnovo\Core\display_number_html( wc_price( $pay->get_total(), [ 'currency' => $pay->get_currency() ] ), true );
+$total_html = \Artnovo\Core\display_number_html( wc_price( $pay->get_total(), [
+	'currency' => $pay->get_currency(), 'price_format' => '%2$s&nbsp;%1$s',
+] ), true );
 $total_plain = trim( html_entity_decode( wp_strip_all_tags( $total_html ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
 $pay_text = apply_filters( 'woocommerce_pay_order_button_text', $default_pay_text );
 $check( 'default button shows the same Persian amount in the saved order currency',
@@ -120,11 +122,22 @@ try {
 }
 $check( 'payment skin wraps the actual native form and table', str_contains( $payment_markup, 'data-artnovo-native-order-pay' )
 	&& str_contains( $payment_markup, '<form id="order_review" method="post">' ) && str_contains( $payment_markup, 'shop_table' ) );
+$amount_tags = new WP_HTML_Tag_Processor( $payment_markup );
+$visible_amount = '';
+$has_directional_amount = false;
+if ( $amount_tags->next_tag( [ 'tag_name' => 'DIV', 'class_name' => 'artnovo-order-pay-amount' ] ) ) {
+	while ( $amount_tags->next_token() && ! ( 'DIV' === $amount_tags->get_tag() && $amount_tags->is_tag_closer() ) ) {
+		$has_directional_amount = $has_directional_amount || ( 'BDI' === $amount_tags->get_tag() && ! $amount_tags->is_tag_closer() );
+		if ( '#text' === $amount_tags->get_token_name() ) {
+			$visible_amount .= $amount_tags->get_modifiable_text();
+		}
+	}
+}
 $check( 'compact card shows the stored amount, selected plan and failed-order status',
 	str_contains( $payment_markup, 'artnovo-order-pay-card' ) && str_contains( $payment_markup, 'artnovo-order-pay-amount' )
 	&& str_contains( $payment_markup, 'artnovo-order-pay-plans' ) && str_contains( $payment_markup, 'artnovo-order-pay-reference' )
 	&& str_contains( $payment_markup, 'پرداخت ناموفق' ) && str_contains( $payment_markup, 'اشتراک آزمایشی' )
-	&& str_contains( $payment_markup, $total_html ) );
+	&& $has_directional_amount && str_contains( $visible_amount, $total_plain ) );
 $tags = new WP_HTML_Tag_Processor( $payment_markup );
 $payment_fields = [];
 while ( $tags->next_tag( 'INPUT' ) ) {

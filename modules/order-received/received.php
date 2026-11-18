@@ -87,7 +87,12 @@ add_action( 'wp_enqueue_scripts', static function (): void {
 }, 20 );
 
 function received_pay_amount( \WC_Order $order ): string {
-	return \Artnovo\Core\display_number_html( wp_kses_post( wc_price( $order->get_total(), [ 'currency' => $order->get_currency() ] ) ), true );
+	$price = wc_price( $order->get_total(), [
+		'currency' => $order->get_currency(),
+		'price_format' => '%2$s&nbsp;%1$s',
+	] );
+	$allowed_html = wp_kses_allowed_html( 'post' ) + [ 'bdi' => [ 'dir' => true ] ];
+	return \Artnovo\Core\display_number_html( wp_kses( $price, $allowed_html ), true );
 }
 
 add_filter( 'woocommerce_pay_order_button_text', static function ( string $label ): string {
