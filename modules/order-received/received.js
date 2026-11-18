@@ -19,6 +19,80 @@
 	initBankCopy();
 	initReadyCopy();
 	initReceiptForms();
+	initPaymentStatus();
+
+	function initPaymentStatus() {
+		const {
+			artnovoPaymentStatusUrl: endpoint,
+			artnovoPaymentTrackUrl: tracking,
+			artnovoPaymentStatusOrder: order,
+			artnovoPaymentStatusKey: key,
+			artnovoPaymentStatusNonce: nonce,
+			artnovoPaymentReadyCount: readyCount,
+			state,
+		} = root.dataset || {};
+		if (!endpoint) return;
+
+		const body = new URLSearchParams({ order, key, _ajax_nonce: nonce });
+		const deadline = performance.now() + 16 * 60 * 1000;
+		let delay = 3000;
+		let timer;
+		let reading = false;
+		let stopped = false;
+
+		function schedule() {
+			clearTimeout(timer);
+			if (stopped || reading || document.hidden) return;
+			const remaining = deadline - performance.now();
+			if (remaining <= 0) {
+				stopped = true;
+				root.querySelector('[data-artnovo-payment-poll-expired]').hidden = false;
+				return;
+			}
+			timer = setTimeout(check, Math.min(delay, remaining));
+		}
+
+		async function check() {
+			if (document.hidden || performance.now() >= deadline) {
+				schedule();
+				return;
+			}
+			reading = true;
+			try {
+				const response = await fetch(endpoint, {
+					method: 'POST',
+					mode: 'same-origin',
+					credentials: 'same-origin',
+					cache: 'no-store',
+					redirect: 'error',
+					referrerPolicy: 'no-referrer',
+					signal: AbortSignal.timeout(10000),
+					body,
+				});
+				if ([401, 403].includes(response.status)) {
+					stopped = true;
+					return;
+				}
+				if (response.ok) {
+					const result = await response.json();
+					const next = result?.data;
+					if (!document.hidden && result?.success && typeof next?.state === 'string' && Number.isInteger(next.ready_count)
+						&& (next.state !== state || next.ready_count !== Number(readyCount))) {
+						stopped = true;
+						window.location.replace(tracking);
+					}
+				}
+			} catch {
+				// Keep the current status and the manual refresh action available.
+			} finally {
+				reading = false;
+				delay = Math.min(delay + 2000, 30000);
+				schedule();
+			}
+		}
+		document.addEventListener('visibilitychange', schedule);
+		schedule();
+	}
 
 	function initServiceLinks() {
 		for (const link of root.querySelectorAll('.wpvpn-service a[rel~="noreferrer"]')) {

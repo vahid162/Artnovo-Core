@@ -42,7 +42,9 @@ class Artnovo_Received_QA_Order_Store extends WC_Order_Data_Store_CPT {
 		if ( ! $case ) { parent::read( $order ); return; }
 		$order->set_props( [
 			'customer_id' => $case['owner'], 'status' => $case['status'], 'order_key' => 'wc_order_received_fixture_' . $order->get_id(),
-			'payment_method' => 'bacs', 'payment_method_title' => 'کارت‌به‌کارت', 'currency' => get_woocommerce_currency(),
+			'payment_method' => $case['snapshot']['payment_method'],
+			'payment_method_title' => 'bacs' === $case['snapshot']['payment_method'] ? 'کارت‌به‌کارت' : 'پرداخت بانکی آزمایشی',
+			'currency' => get_woocommerce_currency(),
 			'total' => '100000', 'billing_email' => 'received-qa@example.invalid', 'date_created' => time() - 120,
 		] );
 		$item = new WC_Order_Item_Product();
@@ -81,10 +83,10 @@ function artnovo_received_qa_row( int $id, array $snapshot, string $status, int 
 	];
 }
 
-function artnovo_received_qa_order( int $id, string $status = 'on-hold', ?string $operation = null, bool $receipt = false, int $quantity = 1, array $unit_states = [], ?int $owner = null ): WC_Order {
+function artnovo_received_qa_order( int $id, string $status = 'on-hold', ?string $operation = null, bool $receipt = false, int $quantity = 1, array $unit_states = [], ?int $owner = null, string $method = 'bacs' ): WC_Order {
 	$owner ??= ARTNOVO_RECEIVED_TEST_USER;
 	$snapshot = [ 'product_id' => 25, 'customer_id' => $owner, 'quantity' => $quantity, 'quota_bytes' => 10737418240, 'duration_days' => 30,
-		'profile_ids' => [ 1 ], 'total' => '100000', 'currency' => get_woocommerce_currency(), 'payment_method' => 'bacs' ];
+		'profile_ids' => [ 1 ], 'total' => '100000', 'currency' => get_woocommerce_currency(), 'payment_method' => $method ];
 	$GLOBALS['artnovo_received_cases'][ $id ] = [ 'owner' => $owner, 'status' => $status, 'quantity' => $quantity, 'snapshot' => $snapshot ];
 	$GLOBALS['artnovo_received_ledger'][ $id ] = [ 'operation' => $operation ? artnovo_received_qa_row( $id, $snapshot, $operation ) : null,
 		'units' => array_map( static fn( string $state, int $n ) => artnovo_received_qa_row( $id, $snapshot, $state, $n + 1 ), $unit_states, array_keys( $unit_states ) ) ];

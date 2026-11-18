@@ -132,11 +132,63 @@ function amountFixture(failure) {
 	return { button, copied, fallback, status, target };
 }
 
+function paymentFixture(responses) {
+	let timer;
+	const requests = [];
+	const navigations = [];
+	const expired = { hidden: true };
+	let now = 0;
+	const root = {
+		dataset: {
+			state: 'partial',
+			artnovoPaymentStatusUrl: '/?wc-ajax=artnovo_received_payment_status',
+			artnovoPaymentTrackUrl: '/checkout/order-received/1/?artnovo_status=1',
+			artnovoPaymentStatusOrder: '1',
+			artnovoPaymentStatusKey: 'fixture-order-key',
+			artnovoPaymentStatusNonce: 'fixture-nonce',
+			artnovoPaymentReadyCount: '1',
+		},
+		querySelector: selector => selector === '[data-artnovo-payment-poll-expired]' ? expired : null,
+		querySelectorAll: () => [],
+	};
+	const document = {
+		hidden: false,
+		querySelector: () => root,
+		addEventListener(name, callback) { if (name === 'visibilitychange') this.visibilityChange = callback; },
+	};
+	vm.runInNewContext(source, {
+		document,
+		window: { location: { replace: url => navigations.push(url) } },
+		performance: { now: () => now },
+		URLSearchParams,
+		AbortSignal,
+		setTimeout: (callback, delay) => timer = { callback, delay },
+		clearTimeout: () => { timer = null; },
+		async fetch(url, options) {
+			requests.push({ url, options });
+			const response = responses.shift();
+			if (response instanceof Error) throw response;
+			return response;
+		},
+	});
+	return {
+		requests, navigations, expired, tracking: root.dataset.artnovoPaymentTrackUrl,
+		get timer() { return timer; },
+		visibility(hidden) { document.hidden = hidden; document.visibilityChange(); },
+		async next(after) {
+			const { callback, delay } = timer;
+			timer = null;
+			now += after ?? delay;
+			await callback();
+		},
+	};
+}
+
 (async () => {
-	const payment = paymentTableFixture(false);
-	const [details, summary] = payment.elements;
-	check(details === payment.table.insertedBefore && details.tag === 'details' && summary.tag === 'summary'
-		&& details.children[0] === summary && details.children[1] === payment.table, 'payment disclosure reuses the native table inside the form');
+	const paymentTable = paymentTableFixture(false);
+	const [details, summary] = paymentTable.elements;
+	check(details === paymentTable.table.insertedBefore && details.tag === 'details' && summary.tag === 'summary'
+		&& details.children[0] === summary && details.children[1] === paymentTable.table, 'payment disclosure reuses the native table inside the form');
 	const extendedPayment = paymentTableFixture(true);
 	check(extendedPayment.elements.length === 0 && !extendedPayment.table.insertedBefore, 'tables with additional payment controls stay open');
 
@@ -188,5 +240,30 @@ function amountFixture(failure) {
 		'browser return restores the selected image and leaves the form retryable');
 	receipt.select([]);
 	check(receipt.submit.disabled && receipt.image.hidden && receipt.prompt.hidden && receipt.error.hidden, 'clearing selection returns to the initial state');
-	console.log(`PASS ${checks} received copy, manual fallback and receipt assertions`);
+	const ok = (state, ready_count) => ({ ok: true, status: 200, json: async () => ({ success: true, data: { state, ready_count } }) });
+	const payment = paymentFixture([ok('partial', 1), new Error('temporary failure'), ok('partial', 2)]);
+	await payment.next();
+	const { url, options } = payment.requests[0];
+	check(url.endsWith('wc-ajax=artnovo_received_payment_status') && options.method === 'POST'
+		&& options.credentials === 'same-origin' && options.mode === 'same-origin' && options.cache === 'no-store'
+		&& options.body.get('order') === '1' && options.body.get('key') === 'fixture-order-key'
+		&& options.body.get('_ajax_nonce') === 'fixture-nonce' && !url.includes('fixture-'),
+		'status reads use the private same-origin projection and send proof of access in the body');
+	check(!payment.navigations.length && payment.timer.delay === 5000, 'unchanged status backs off without refreshing the page');
+	payment.visibility(true);
+	check(!payment.timer && payment.requests.length === 1, 'hiding the tab cancels the next read');
+	payment.visibility(false);
+	await payment.next();
+	check(!payment.navigations.length && payment.timer.delay === 7000, 'temporary failures preserve current state and back off');
+	await payment.next();
+	check(payment.navigations[0] === payment.tracking && !payment.timer, 'another ready unit refreshes only the protected tracking view');
+
+	const unauthorized = paymentFixture([{ ok: false, status: 403 }]);
+	await unauthorized.next();
+	check(!unauthorized.navigations.length && !unauthorized.timer, 'access denial stops status reads without exposing private state');
+	const expired = paymentFixture([]);
+	await expired.next(16 * 60 * 1000);
+	check(!expired.requests.length && !expired.navigations.length && !expired.timer && !expired.expired.hidden,
+		'automatic status monitoring is bounded and shows the manual fallback afterward');
+	console.log(`PASS ${checks} received payment, copy and receipt assertions`);
 })().catch(error => { console.error(error); process.exitCode = 1; });
