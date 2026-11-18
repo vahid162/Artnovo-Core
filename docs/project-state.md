@@ -1,12 +1,29 @@
 # Current project state
 
-## Approved delivery: checkout preparation indicator / Core 1.10.1 (2026-11-18)
+## Completed delivery: checkout preparation indicator / Core 1.10.1 (2026-11-18)
 
 The owner selected the small loading ring for payment preparation on mobile and
 desktop. Checkout step three shows it only while an authenticated selection is
 being prepared. The ring is static with reduced motion. The existing checkout,
 sign-in, selection recovery and payment ownership remain in their native paths.
 Only the Core release is authorized for GitHub-first publication and installation.
+
+[PR31](https://github.com/vahid162/Artnovo-Core/pull/31) merged at
+`8d4c876d5c09d55f0af3ec305c67dd898be390bd` with tested tree
+`84812259238fb77fd693b7745b2f132f21b12881`. Branch, PR, main and release
+validation passed in runs 44298721936, 44298765727, 44298908093 and 44298997055.
+PHP, JavaScript, migration and package checks passed. Chromium used the Core
+renderer with synthetic dependencies at 320, 390 and 1024 pixels with normal
+and reduced motion, including pending, success, error, retry, guest and
+no-JavaScript paths.
+
+The official [1.10.1 ZIP](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.10.1)
+SHA256 `efa19a5c127b793c4e96405359e55aafba9e3927342e78226e85689e30094dd6`
+matches the tested package and all 43 installed files. A private backup and
+rollback rehearsal passed. Live home and sign-in returned 200. The public home
+contained the new status and served both wizard assets from the official ZIP.
+Bridge, Wallet, Pinova and Gateland files, plugin activation and wp-config matched
+before and after installation. Guest routes continued to withhold private data.
 
 ## Completed delivery: compact customer pages / Core 1.10.0 (2026-11-18)
 
