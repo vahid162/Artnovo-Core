@@ -309,8 +309,11 @@
 			nativeHost.hidden = pending || !reviewCurrent;
 			nativeHost.inert = pending || !reviewCurrent;
 		}
-		if (preparationPanel) preparationPanel.hidden = Boolean(form) || !pending && reviewCurrent;
-		if (preparationStatus) preparationStatus.textContent = message || 'انتخاب شما حفظ شده است؛ مبلغ و روش‌های پرداخت در حال بررسی است.';
+		if (preparationPanel) {
+			preparationPanel.hidden = Boolean(form) || !pending && reviewCurrent;
+			preparationPanel.dataset.artnovoPreparing = pending && !form ? '1' : '0';
+		}
+		if (preparationStatus) preparationStatus.textContent = message || (pending ? preparationStatus.dataset.artnovoPrepareMessage : '');
 		if (retryPrepare) retryPrepare.hidden = pending;
 		if (pending) {
 			nativeRefreshAllowed = false;

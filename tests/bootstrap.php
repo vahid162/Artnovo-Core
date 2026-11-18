@@ -125,7 +125,7 @@ if ( in_array( $case, [ 'legacy-mail', 'restored-mail', 'retired-loaded-mail' ],
 $entry = dirname( __DIR__ ) . '/artnovo-core.php';
 check( is_file( $entry ), 'Core entrypoint must exist' );
 require $entry;
-check( '1.10.0' === Artnovo\Core\VERSION, 'release version' );
+check( '1.10.1' === Artnovo\Core\VERSION, 'release version' );
 check( count( $hooks['plugins_loaded'][30] ?? [] ) === 1, 'one dependency-ready loader at priority 30' );
 check( count( $hooks['wp_mail_from'][10] ?? [] ) === 1, 'exactly one early sender filter' );
 check( 'orders@artnovo.ir' === mail_sender( 'wordpress@artnovo.ir' ), 'default sender retained' );

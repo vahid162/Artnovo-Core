@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.10.1 — 2026-11-18
+
+- Show a small mint loading ring and a short Persian status while retrieving
+  payment methods in checkout step three. Keep the ring still when reduced
+  motion is preferred and remove it when checkout is ready or needs recovery.
+
 ## 1.10.0 — 2026-11-18
 
 - Show open purchases first on each native orders page and keep WooCommerce
