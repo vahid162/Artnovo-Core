@@ -278,7 +278,8 @@ function render_order( ?\WC_Product $plan ): string {
 			</div>
 			<div class="artnovo-order-panel" data-artnovo-preparation <?php echo $login && ! $review ? '' : 'hidden'; ?>>
 				<h3>آماده‌سازی پرداخت</h3>
-				<p role="status" data-artnovo-prepare-status data-artnovo-notice-permanent><?php echo $auto_prepare ? 'انتخاب شما حفظ شده است؛ فرم پرداخت در حال آماده‌سازی است.' : ( $can_checkout ? 'فرم پرداخت آماده نشد. برای ادامهٔ همین خرید دوباره تلاش کنید.' : 'روش پرداخت مجاز برای این پلن در دسترس نیست. کمی بعد دوباره بررسی کنید.' ); ?></p>
+				<p role="status" data-artnovo-prepare-status data-artnovo-notice-permanent
+					data-artnovo-prepare-message="در حال دریافت روش‌های پرداخت…"><?php echo $auto_prepare ? '' : ( $can_checkout ? 'فرم پرداخت آماده نشد. برای ادامهٔ همین خرید دوباره تلاش کنید.' : 'روش پرداخت مجاز برای این پلن در دسترس نیست. کمی بعد دوباره بررسی کنید.' ); ?></p>
 				<button type="button" data-artnovo-retry-prepare class="artnovo-order-submit" <?php disabled( ! $can_checkout ); ?> <?php echo $auto_prepare ? 'hidden' : ''; ?>>ادامهٔ همین خرید</button>
 				<noscript>
 					<form method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>">

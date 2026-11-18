@@ -341,7 +341,8 @@ const queueFixture = ({ signedIn = false } = {}) => {
 	const bindings = {
 		form: signedIn ? null : select, prepare: signedIn ? select : null, selectionForm: select,
 		nativeHost, nativeCheckout: null, nativeRefreshAllowed: false, nativeAssetsFailed: false,
-		preparationPanel: { hidden: true }, preparationStatus: {}, retryPrepare: {},
+		preparationPanel: { hidden: true, dataset: {} },
+		preparationStatus: { dataset: { artnovoPrepareMessage: 'در حال دریافت روش‌های پرداخت…' } }, retryPrepare: {},
 		state: { step: '2', category: '1', plan: null }, quantity: 1,
 		selectionPending: false, selectionRecovery: false, selectionSerial: 0, preparing: false,
 		queuedSelection: null, requestedIdentity: '', confirmedIdentity: '', historyRecovering: false,
@@ -394,6 +395,8 @@ async function testAsyncSelection() {
 	flow.choose('25');
 	assert.deepEqual(flow.sequence.slice(0, 3), ['location:25', 'render:25', 'fetch:25'], 'مرحلهٔ سوم پیش از پایان یا حتی شروع انتظار شبکه نمایش داده می‌شود');
 	assert.equal(flow.context.selectionPending, true);
+	assert.equal(flow.context.preparationPanel.hidden, true, 'مهمان نشانگر دریافت روش‌های پرداخت را نمی‌بیند');
+	assert.equal(flow.context.preparationPanel.dataset.artnovoPreparing, '0');
 	assert.match(flow.context.status.message, /اولیه است/);
 	assert.equal(flow.context.status.pending, true, 'مبلغ تخمینی به‌عنوان مبلغ قطعی پرداخت معرفی نمی‌شود');
 	assert.equal(flow.nativeHost.inert, true);
@@ -498,18 +501,25 @@ async function testAsyncSelection() {
 	previous.context.confirmedIdentity = '25:1';
 	previous.context.review = previous.context.reviewCurrent = true;
 	previous.choose('26');
+	assert.equal(previous.context.preparationPanel.dataset.artnovoPreparing, '1');
 	previous.context.state = { step: '2', category: '2', plan: null };
 	previous.context.abandonSelection();
+	assert.equal(previous.context.preparationPanel.dataset.artnovoPreparing, '0', 'ترک انتخاب نشانگر را متوقف می‌کند');
 	previous.succeed(0);
 	await flush();
 	previous.choose('25');
 	assert.equal(previous.requests.length, 2, 'بازانتخاب پلن آمادهٔ قبلی پس از رهاکردن انتخاب جدید باید دوباره با نشست واقعی تأیید شود');
 	assert.equal(previous.nativeHost.inert, true, 'در زمان بازتأیید، پرداخت قبلی همچنان بسته می‌ماند');
+	assert.equal(previous.context.preparationPanel.hidden, false);
+	assert.equal(previous.context.preparationStatus.textContent, 'در حال دریافت روش‌های پرداخت…');
+	assert.equal(previous.context.retryPrepare.hidden, true);
 	previous.succeed(1);
 	await flush();
 	assert.equal(previous.context.confirmedIdentity, '25:1');
 	assert.equal(previous.context.reviewCurrent, true);
 	assert.equal(previous.nativeHost.inert, false, 'انتخاب صریح قبلی پس از تأیید تازه دوباره قابل پرداخت می‌شود');
+	assert.equal(previous.context.preparationPanel.dataset.artnovoPreparing, '0');
+	assert.equal(previous.context.preparationPanel.hidden, true);
 	const signed = queueFixture({ signedIn: true });
 	signed.context.refreshOrderReview = async () => false;
 	signed.choose('25');
@@ -518,6 +528,9 @@ async function testAsyncSelection() {
 	assert.equal(signed.context.installed, true);
 	assert.equal(signed.context.assetsLoaded, true);
 	assert.equal(signed.context.reviewCurrent, false, 'بدون رویداد تأیید مبلغ بومی، فرم درج‌شده هم اجازهٔ پرداخت ندارد');
+	assert.equal(signed.context.preparationPanel.dataset.artnovoPreparing, '0');
+	assert.match(signed.context.preparationStatus.textContent, /مبلغ نهایی تأیید نشد/);
+	assert.equal(signed.context.retryPrepare.hidden, false);
 	const swapping = queueFixture({ signedIn: true });
 	let assetsDone;
 	let assetLoads = 0;
@@ -536,6 +549,7 @@ async function testAsyncSelection() {
 	assert.equal(swapping.requests.length, 2);
 	assert.equal(swapping.context.reviewCurrent, false);
 	assert.equal(swapping.nativeHost.inert, true);
+	assert.equal(swapping.context.preparationPanel.dataset.artnovoPreparing, '1', 'تعویض پلن حلقه را تا تأیید انتخاب تازه نگه می‌دارد');
 	assert.equal(refreshes, 0, 'تکمیل دیرهنگام asset انتخاب A موجب تأیید پرداخت A نمی‌شود');
 	swapping.succeed(1);
 	await flush();

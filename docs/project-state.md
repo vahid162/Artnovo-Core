@@ -1,5 +1,13 @@
 # Current project state
 
+## Approved delivery: checkout preparation indicator / Core 1.10.1 (2026-11-18)
+
+The owner selected the small loading ring for payment preparation on mobile and
+desktop. Checkout step three shows it only while an authenticated selection is
+being prepared. The ring is static with reduced motion. The existing checkout,
+sign-in, selection recovery and payment ownership remain in their native paths.
+Only the Core release is authorized for GitHub-first publication and installation.
+
 ## Completed delivery: compact customer pages / Core 1.10.0 (2026-11-18)
 
 The owner selected Quick Follow-up for purchases, Summary and Action for order
