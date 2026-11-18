@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.11.0 — 2026-11-18
+
+- Present authorized subscription order payments in one responsive card, with
+  status, the order's payable amount, plan and reference. Keep the native payment
+  form, gateway fields, terms and itemized pricing available.
+
 ## 1.10.1 — 2026-11-18
 
 - Show a small mint loading ring and a short Persian status while retrieving

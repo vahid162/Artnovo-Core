@@ -137,27 +137,116 @@ body.artnovo-received-page { background: #0c1723; color: #f0f9f7; }
 [data-artnovo-quick-transfer] .artnovo-received-receipt-form [data-artnovo-receipt-error] { margin: 0; color: #ffc2b9; font-size: .8125rem; }
 [data-artnovo-quick-transfer] .artnovo-received-receipt-form button:disabled { background: #244c47; color: #bdd1d0; cursor: not-allowed; box-shadow: none; }
 [data-artnovo-quick-transfer] .artnovo-received-receipt > .artnovo-transfer-label { margin-block-start: .625rem; }
-.artnovo-order-pay .artnovo-received-focus { margin-inline: auto; }
-.artnovo-order-pay-heading { margin-block: 0 1rem; }
-.artnovo-order-pay-heading h2 { margin-block-end: .375rem; font-size: 1.25rem; }
-.artnovo-order-pay-heading p { margin: 0; font-size: .8125rem; }
-.artnovo-order-pay #order_review { display: grid; gap: 1rem; }
-.artnovo-order-pay table.shop_table { background: #10212f; font-size: .75rem; }
-.artnovo-order-pay table.shop_table :is(th,td) { padding: .5rem .375rem; font-size: .75rem; }
+.artnovo-order-pay > .artnovo-order-pay-card {
+ width: 100%;
+ max-width: 29rem;
+ margin-inline: auto;
+ padding: clamp(.9375rem, 3vw, 1.5rem);
+ border: 1px solid #9adaf026;
+ border-radius: 1rem;
+}
+.artnovo-order-pay-heading { margin-block-end: .9375rem; }
+.artnovo-order-pay .artnovo-order-pay-heading h2 { margin: 0; font-size: clamp(1.1875rem, 3vw, 1.5rem); line-height: 1.5; }
+.artnovo-order-pay .artnovo-order-pay-status { display: flex; align-items: center; gap: .5rem; margin: .1875rem 0 0; color: var(--received-state-text); font-size: .8125rem; }
+.artnovo-order-pay-status::before { content: ""; width: .375rem; height: .375rem; flex: 0 0 .375rem; border-radius: 50%; background: currentColor; }
+.artnovo-order-pay-amount {
+ display: grid;
+ justify-items: center;
+ gap: .1875rem;
+ margin-block-end: .75rem;
+ padding: .75rem .875rem;
+ border-radius: .75rem;
+ background: var(--account-navy);
+ color: var(--account-muted);
+ font-size: .8125rem;
+ text-align: center;
+}
+.artnovo-order-pay .artnovo-order-pay-amount > strong {
+ min-width: 0;
+ max-width: 100%;
+ color: var(--account-emerald);
+ font-size: clamp(1.625rem, 6vw, 2.125rem);
+ line-height: 1.35;
+ overflow-wrap: anywhere;
+}
+.artnovo-order-pay .woocommerce-Price-amount bdi { flex-direction: row; flex-wrap: wrap; }
+.artnovo-order-pay-amount .woocommerce-Price-amount bdi { justify-content: center; max-width: 100%; }
+.artnovo-order-pay-amount .woocommerce-Price-currencySymbol { font-size: .55em; }
+.artnovo-order-pay-plans { display: grid; gap: .4375rem; }
+.artnovo-order-pay-plans > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: .125rem .625rem; }
+.artnovo-order-pay-plans strong { overflow-wrap: anywhere; }
+.artnovo-order-pay :is(.artnovo-order-pay-plans span,.artnovo-order-pay-reference) { color: var(--account-muted); font-size: .8125rem; }
+.artnovo-order-pay .artnovo-order-pay-reference { margin: .1875rem 0 .75rem; }
+.artnovo-order-pay #order_review {
+ display: grid;
+ grid-template-columns: minmax(0,1fr);
+ gap: .4375rem;
+ min-width: 0;
+ margin: 0;
+ padding-block-start: .375rem;
+ border-block-start: 1px solid #bdd1d026;
+}
+.artnovo-order-pay .artnovo-order-pay-breakdown { min-width: 0; }
+.artnovo-order-pay .artnovo-order-pay-breakdown > summary { min-height: 44px; padding-block: .625rem; color: var(--account-focus); font-size: .8125rem; cursor: pointer; }
+.artnovo-order-pay :is(#order_review > table.shop_table,.artnovo-order-pay-breakdown > table.shop_table) { width: 100%; margin-block: 0 .5rem; table-layout: fixed; background: var(--account-navy); color: var(--account-muted); font-size: .75rem; }
+.artnovo-order-pay :is(#order_review > table.shop_table,.artnovo-order-pay-breakdown > table.shop_table) :is(th,td) { padding: .4375rem .3125rem; text-align: start; overflow-wrap: anywhere; }
+.artnovo-order-pay :is(#order_review > table.shop_table,.artnovo-order-pay-breakdown > table.shop_table) .product-name { width: 41%; }
+.artnovo-order-pay .artnovo-order-pay-method-heading { margin: 0; color: var(--account-muted); font-size: .8125rem; }
 .artnovo-order-pay #payment { padding: 0; background: transparent; }
-.artnovo-order-pay #payment ul.payment_methods { display: grid; gap: .5rem; margin: 0 0 1rem; padding: 0; border: 0; list-style: none; }
-.artnovo-order-pay #payment li.wc_payment_method { padding: .75rem; border: 1px solid #bdd1d026; border-radius: .8125rem; background: transparent; }
-.artnovo-order-pay #payment li.wc_payment_method:has(input:checked) { border-color: #46d7a67a; background: #46d7a609; }
-.artnovo-order-pay #payment label { min-height: 44px; font-size: .8125rem; }
-.artnovo-order-pay #payment .wc_payment_method > label { display: inline-flex; align-items: center; }
-.artnovo-order-pay #payment input[type="radio"] { accent-color: var(--account-emerald); }
-.artnovo-order-pay #payment .payment_box { margin: .5rem 0 0; background: #10212f; color: var(--account-muted); font-size: .8125rem; }
-.artnovo-order-pay #payment .payment_box::before { display: none; }
-.artnovo-order-pay #payment > .form-row { padding: 0; margin: 0; }
-.artnovo-order-pay #place_order { width: 100%; min-height: 50px; }
-.artnovo-order-pay .woocommerce-terms-and-conditions-wrapper { font-size: .75rem; }
-.artnovo-order-pay .woocommerce-form__label-for-checkbox { display: flex; align-items: start; gap: .625rem; padding: .75rem; border-radius: .75rem; background: #10212f; }
-.artnovo-order-pay input[type="checkbox"] { accent-color: var(--account-emerald); }
+.artnovo-order-pay #payment ul.payment_methods { display: grid; gap: .4375rem; margin: 0 0 .625rem; padding: 0; border: 0; list-style: none; }
+.artnovo-order-pay #payment ul.payment_methods::before,
+.artnovo-order-pay #payment ul.payment_methods::after { display: none; }
+.artnovo-order-pay #payment li.wc_payment_method { min-width: 0; padding: 0 .6875rem; border: 1px solid #bdd1d026; border-radius: .75rem; background: transparent; text-align: start; }
+.artnovo-order-pay #payment li.wc_payment_method:not(:only-child):has(> input:checked) { border-color: #46d7a67a; background: #46d7a609; }
+.artnovo-order-pay #payment li.wc_payment_method:only-child { padding: 0; border: 0; background: transparent; }
+.artnovo-order-pay #payment .wc_payment_method > label { display: inline-flex; flex-wrap: wrap; align-items: center; min-height: 44px; max-width: 90%; color: var(--account-text); font-size: .875rem; font-weight: 700; vertical-align: middle; cursor: pointer; }
+.artnovo-order-pay #payment .wc_payment_method > input[type="radio"] { margin: 0 0 0 .375rem; accent-color: var(--account-emerald); vertical-align: middle; }
+.artnovo-order-pay #payment div.payment_box { margin: 0 0 .625rem; background: var(--account-navy); color: var(--account-muted); font-size: .8125rem; overflow-wrap: anywhere; }
+.artnovo-order-pay #payment div.payment_box::before { display: none; }
+.artnovo-order-pay #payment > div.form-row { padding: 0; margin: 0; }
+.artnovo-order-pay #payment .woocommerce-terms-and-conditions-wrapper { margin-block-end: .375rem; color: var(--account-muted); font-size: .8125rem; }
+.artnovo-order-pay #payment .woocommerce-terms-and-conditions-wrapper > .form-row { margin: 0; padding: 0; }
+.artnovo-order-pay #payment .woocommerce-form__label-for-checkbox { display: flex; align-items: center; gap: .5rem; min-height: 44px; padding-block: .3125rem; color: var(--account-muted); line-height: 1.75; cursor: pointer; }
+.artnovo-order-pay #payment #terms {
+ appearance: none;
+ display: inline-grid;
+ place-items: center;
+ flex: none;
+ width: 1.1875rem;
+ height: 1.1875rem;
+ margin: 0;
+ padding: 0;
+ border: 1px solid #7996a3;
+ border-radius: 50%;
+ background: var(--account-navy);
+ color: var(--account-ink);
+ cursor: pointer;
+}
+.artnovo-order-pay #payment #terms:checked { border-color: var(--account-emerald); background: var(--account-emerald); }
+.artnovo-order-pay #payment #terms:checked::before { content: "✓"; font-size: .75rem; font-weight: 800; line-height: 1; }
+.artnovo-order-pay #payment #place_order {
+ display: flex;
+ justify-content: center;
+ float: none;
+ width: 100%;
+ min-height: 50px;
+ padding: .625rem .875rem;
+ border: 0;
+ border-radius: .6875rem;
+ background: var(--account-emerald);
+ color: var(--account-ink);
+ font-weight: 700;
+ line-height: 1.6;
+ text-align: center;
+ white-space: normal;
+}
+.artnovo-order-pay #payment #place_order:hover:enabled { background: #67e0b7; }
+.artnovo-order-pay #payment #place_order:is(:disabled,[aria-disabled="true"]) { background: #263b48; color: var(--account-muted); }
+@media (forced-colors: active) {
+ .artnovo-order-pay #payment #terms { appearance: auto; }
+ .artnovo-order-pay #payment #terms::before { content: none; }
+ .artnovo-order-pay :is(button,input,summary):focus-visible { outline: 2px solid Highlight; outline-offset: 3px; }
+}
 @media (max-width: 680px) {
  .artnovo-account.artnovo-received { padding: .875rem .875rem 2rem; }
  .artnovo-received-summary { align-items: flex-start; gap: .75rem; }

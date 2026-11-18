@@ -70,21 +70,61 @@ $gateway = new class extends WC_Payment_Gateway {
 	public function __construct() { $this->id = 'bacs'; $this->title = 'روش بومی آزمایشی'; $this->has_fields = true; $this->chosen = true; }
 	public function payment_fields() { ++$this->fields_rendered; echo '<p data-native-payment-field>فیلد بومی آزمایشی<input name="artnovo_fixture_payment_field" value="fixture-only"></p>'; }
 };
+$default_pay_text = __( 'Pay for order', 'woocommerce' );
+$native_pay = static function ( WC_Order $order, array $gateways, string $button ): string {
+	ob_start();
+	try {
+		wc_get_template( 'checkout/form-pay.php', [ 'order' => $order, 'available_gateways' => $gateways, 'order_button_text' => $button ] );
+		return ob_get_contents();
+	} finally {
+		ob_end_clean();
+	}
+};
+$preview_pay = static function ( string $name, string $markup ): void {
+	$root = artnovo_fixture_root() . '/modules/';
+	$style = file_get_contents( $root . 'account/artnovo-account.css' ) . file_get_contents( $root . 'order-received/received.css' );
+	$script = file_get_contents( $root . 'order-received/received.js' );
+	artnovo_fixture_write( $name, '<!doctype html><html lang="fa" dir="rtl"><meta charset="utf-8">'
+		. '<meta name="viewport" content="width=device-width,initial-scale=1"><style>html{background:#0c1723}body{margin:0;font-family:Vazir,Tahoma,sans-serif}'
+		. artnovo_fixture_font_css() . $style . '</style><body class="woocommerce-checkout"><main class="woocommerce">'
+		. $markup . '</main><script>' . $script . '</script></body></html>' );
+};
+$total_html = \Artnovo\Core\display_number_html( wc_price( $pay->get_total(), [ 'currency' => $pay->get_currency() ] ), true );
+$total_plain = trim( html_entity_decode( wp_strip_all_tags( $total_html ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
+$pay_text = apply_filters( 'woocommerce_pay_order_button_text', $default_pay_text );
+$check( 'default button shows the same Persian amount in the saved order currency',
+	str_contains( $pay_text, 'پرداخت' ) && str_contains( $pay_text, $total_plain ) );
+$check( 'a gateway can keep its existing native button label',
+	'درگاه آزمایشی' === apply_filters( 'woocommerce_pay_order_button_text', 'درگاه آزمایشی' ) );
 $before = $after = 0;
 $observe_before = static function () use ( &$before ): void { ++$before; };
 $observe_after = static function () use ( &$after ): void { ++$after; };
+$terms_page_id = 2147100490;
+if ( get_post( $terms_page_id ) ) {
+	WP_CLI::error( 'Synthetic terms page ID is already in use.' );
+}
+wp_cache_set( $terms_page_id, (object) [
+	'ID' => $terms_page_id, 'post_type' => 'page', 'post_status' => 'publish',
+	'post_title' => 'شرایط خرید آزمایشی', 'post_name' => 'test-terms',
+	'post_content' => 'متن شرایط آزمایشی.', 'post_parent' => 0,
+], 'posts' );
+$fixture_terms_page = static fn() => $terms_page_id;
+add_filter( 'woocommerce_terms_and_conditions_page_id', $fixture_terms_page );
 add_action( 'woocommerce_pay_order_before_payment', $observe_before );
 add_action( 'woocommerce_pay_order_after_submit', $observe_after );
 try {
-	ob_start();
-	wc_get_template( 'checkout/form-pay.php', [ 'order' => $pay, 'available_gateways' => [ 'bacs' => $gateway ], 'order_button_text' => 'ادامهٔ پرداخت آزمایشی' ] );
-	$payment_markup = ob_get_clean();
+	$payment_markup = $native_pay( $pay, [ 'bacs' => $gateway ], $pay_text );
 } finally {
 	remove_action( 'woocommerce_pay_order_before_payment', $observe_before );
 	remove_action( 'woocommerce_pay_order_after_submit', $observe_after );
 }
 $check( 'payment skin wraps the actual native form and table', str_contains( $payment_markup, 'data-artnovo-native-order-pay' )
 	&& str_contains( $payment_markup, '<form id="order_review" method="post">' ) && str_contains( $payment_markup, 'shop_table' ) );
+$check( 'compact card shows the stored amount, selected plan and failed-order status',
+	str_contains( $payment_markup, 'artnovo-order-pay-card' ) && str_contains( $payment_markup, 'artnovo-order-pay-amount' )
+	&& str_contains( $payment_markup, 'artnovo-order-pay-plans' ) && str_contains( $payment_markup, 'artnovo-order-pay-reference' )
+	&& str_contains( $payment_markup, 'پرداخت ناموفق' ) && str_contains( $payment_markup, 'اشتراک آزمایشی' )
+	&& str_contains( $payment_markup, $total_html ) );
 $tags = new WP_HTML_Tag_Processor( $payment_markup );
 $payment_fields = [];
 while ( $tags->next_tag( 'INPUT' ) ) {
@@ -95,8 +135,48 @@ $check( 'native payment fields, original method and pay nonce remain', 1 === $ga
 	&& 'bacs' === ( $payment_fields['payment_method'] ?? null ) && '1' === ( $payment_fields['woocommerce_pay'] ?? null )
 	&& 'fixture-only' === ( $payment_fields['artnovo_fixture_payment_field'] ?? null )
 	&& wp_verify_nonce( $payment_fields['woocommerce-pay-nonce'] ?? '', 'woocommerce-pay' ) );
+$check( 'native terms and submit button still have their original attributes and label integration',
+	array_key_exists( 'terms', $payment_fields ) && '1' === ( $payment_fields['terms-field'] ?? null )
+	&& str_contains( $payment_markup, 'id="place_order" value="' . esc_attr( $pay_text ) . '" data-value="' . esc_attr( $pay_text ) . '"' ) );
 $check( 'native pay hooks run once without changing frozen order data', 1 === $before && 1 === $after
 	&& 'failed' === $pay->get_status() && 'bacs' === $pay->get_payment_method() && '100000' === $pay->get_total() );
+$preview_pay( 'order-pay-failed.html', $payment_markup );
+
+$pending = artnovo_received_qa_order( 2147100403, 'pending' );
+$pay_route( $pending );
+$secondary = clone $gateway;
+$secondary->id = 'artnovo_fixture_secondary';
+$secondary->title = 'درگاه دوم آزمایشی';
+$secondary->order_button_text = 'ادامه در درگاه دوم';
+$secondary->chosen = false;
+$multiple = $native_pay( $pending, [ 'bacs' => $gateway, $secondary->id => $secondary ], $pay_text );
+$check( 'pending payment keeps the approved status and all native gateway choices',
+	str_contains( $multiple, 'پرداخت تکمیل نشده' ) && substr_count( $multiple, 'name="payment_method"' ) === 2
+	&& str_contains( $multiple, 'data-order_button_text="ادامه در درگاه دوم"' ) );
+$preview_pay( 'order-pay-multiple.html', $multiple );
+
+$no_gateway_notice = static fn() => 'روش پرداخت آزمایشی در دسترس نیست.';
+add_filter( 'woocommerce_no_available_payment_methods_message', $no_gateway_notice );
+try {
+	$unavailable = $native_pay( $pending, [], $pay_text );
+} finally {
+	remove_filter( 'woocommerce_no_available_payment_methods_message', $no_gateway_notice );
+}
+$check( 'missing gateway retains the native message and produces no invented payment method',
+	str_contains( $unavailable, 'روش پرداخت آزمایشی در دسترس نیست.' ) && ! str_contains( $unavailable, 'name="payment_method"' ) );
+$preview_pay( 'order-pay-unavailable.html', $unavailable );
+
+add_filter( 'woocommerce_order_item_visible', '__return_false' );
+try {
+	$hidden_product = $native_pay( $pending, [ 'bacs' => $gateway ], $pay_text );
+	$check( 'compact summary respects the native line-item visibility filter',
+		! str_contains( $hidden_product, 'اشتراک آزمایشی' ) );
+} finally {
+	remove_filter( 'woocommerce_order_item_visible', '__return_false' );
+	remove_filter( 'woocommerce_terms_and_conditions_page_id', $fixture_terms_page );
+	wp_cache_delete( $terms_page_id, 'posts' );
+}
+
 $deny_skin = static function ( WC_Order $order ) use ( $check ): void {
 	ob_start();
 	do_action( 'woocommerce_before_template_part', 'checkout/form-pay.php', '', '', [ 'order' => $order ] );
@@ -107,6 +187,8 @@ $deny_skin = static function ( WC_Order $order ) use ( $check ): void {
 };
 $pay_route( $pay, 'wrong-key' );
 $check( 'wrong payment key cannot activate the payment skin', false === \Artnovo\AccountUI\received_payment_order() );
+$check( 'wrong payment key retains the default submit text without amount',
+	$default_pay_text === apply_filters( 'woocommerce_pay_order_button_text', $default_pay_text ) );
 $deny_skin( $pay );
 $GLOBALS['artnovo_received_cases'][ $pay->get_id() ]['owner'] = ARTNOVO_RECEIVED_TEST_USER + 1;
 $pay_route( $pay );
