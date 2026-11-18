@@ -1,6 +1,6 @@
 # Current project state
 
-## Approved delivery: compact customer pages / Core 1.10.0 (2026-11-18)
+## Completed delivery: compact customer pages / Core 1.10.0 (2026-11-18)
 
 The owner selected Quick Follow-up for purchases, Summary and Action for order
 details, and Sectioned Editing for account details, on mobile and desktop. The
@@ -10,6 +10,25 @@ Bridge still authorizes receipt actions and delivery. Pinova still supplies the
 mobile field and its validation. Other native and extension routes retain their
 existing handlers, and the normal account templates remain available when
 Bridge is absent.
+
+[PR30](https://github.com/vahid162/Artnovo-Core/pull/30) merged at
+`0ed2b0f1db16664c91e88b9dd1243e156b569013` with the tested tree
+`9290a1e14e827958f88c75aeb24a245355b340a1`. Branch, PR, main and release
+workflows passed in runs 44291788514, 44291848445, 44292037071 and 44292150105.
+All 65 standalone checks and 653 isolated WordPress assertions passed, including
+native WooCommerce profile saves and multipart receipt flows with Gateland
+active. The receipt renderer preserves the WooCommerce notice that Gateland's
+direct callback otherwise consumes. Chromium passed 48 responsive page/state
+combinations from 320 to 1280 pixels, including keyboard and no-JavaScript use.
+
+The official [1.10.0 ZIP](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.10.0)
+SHA256 `522b0d715c74beeb6d080e442c213d45bf997eb3e01e5e016694ae78376a80fa`
+matches the tested package and all 43 installed files. A private backup and
+rollback rehearsal passed. Live home and sign-in returned 200, all five served
+account assets matched the official ZIP, and the anonymous account and receipt
+routes withheld private information. Bridge, Wallet, Pinova and Gateland files,
+the activation state and wp-config matched before and after installation. The
+authenticated flows were verified with synthetic data in isolation.
 
 ## Completed delivery: compact account list / Core 1.9.0 (2026-11-18)
 
