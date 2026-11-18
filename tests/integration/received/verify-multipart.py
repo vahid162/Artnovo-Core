@@ -42,9 +42,11 @@ with (output / "multipart-server.log").open("wb") as log:
             raise RuntimeError("Local PHP fixture did not start.")
 
         png = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jY3sAAAAASUVORK5CYII=")
-        for name, image, expected in [
-            ("real PNG multipart upload", png, "success"),
-            ("invalid image multipart upload", b"fixture is not an image", "error"),
+        for name, image, expected, tracking in [
+            ("real PNG multipart upload", png, "success", ""),
+            ("invalid image multipart upload", b"fixture is not an image", "error", ""),
+            ("tracked PNG multipart upload", png, "success", "&artnovo_status=1"),
+            ("invalid tracked image multipart upload", b"fixture is not an image", "error", "&artnovo_status=1"),
         ]:
             boundary = "ArtnovoReceiptFixtureBoundary"
             fields = {
@@ -59,12 +61,12 @@ with (output / "multipart-server.log").open("wb") as log:
                 "Content-Type: image/png\r\n\r\n"
             ).encode() + image + f"\r\n--{boundary}--\r\n".encode()
             connection = http.client.HTTPConnection("127.0.0.1", port, timeout=20)
-            connection.request("POST", "/?key=wc_order_receipt_qa", body, {"Content-Type": f"multipart/form-data; boundary={boundary}"})
+            connection.request("POST", "/?key=wc_order_receipt_qa" + tracking, body, {"Content-Type": f"multipart/form-data; boundary={boundary}"})
             response = connection.getresponse()
             result = response.read()
             assert response.status == 303, (name, response.status, result[:400])
             anchor = "#artnovo-received-status" if expected == "success" else "#artnovo-received-receipt"
-            assert response.getheader("Location") == state["return"] + anchor, (name, response.getheader("Location"))
+            assert response.getheader("Location") == state["return"] + tracking + anchor, (name, response.getheader("Location"))
             assert response.getheader("X-ArtNovo-Test-Uploaded") == "1", name
             assert response.getheader("X-ArtNovo-Test-Notice") == expected, (name, result[:400])
             assert response.getheader("X-ArtNovo-Test-Saved") == ("1" if expected == "success" else "0"), name

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 1.9.0 — 2026-11-18
+
+- Present My Accounts as a compact responsive list with ready, follow-up and
+  ended groups on each page, a single purchase entry, and a compact mobile menu.
+- Distinguish a bank transfer without a receipt from one under review. Point
+  each state to its own existing payment, delivery or support action while
+  keeping connection tools and purchase details separately available.
+- Preserve a separate cart selection when a customer opens tracking or submits
+  a receipt from their account. Keep Bridge receipt permissions and native
+  connection controls authoritative.
+
 ## 1.8.1 — 2026-11-18
 
 - Simplify the pending receipt review with one status card, an order reference,

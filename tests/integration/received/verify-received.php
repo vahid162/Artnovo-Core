@@ -25,6 +25,7 @@ $cases = [
 	'pending' => [ 'on-hold', null, false, 1, [] ],
 	'receipt' => [ 'on-hold', null, true, 1, [] ],
 	'issuing' => [ 'processing', 'pending', false, 1, [] ],
+	'awaiting-authorization' => [ 'processing', 'awaiting_payment', false, 1, [] ],
 	'ready' => [ 'processing', 'succeeded', false, 1, [] ],
 	'failed' => [ 'failed', null, false, 1, [] ],
 	'closed' => [ 'refunded', 'succeeded', false, 1, [] ],
@@ -47,10 +48,22 @@ foreach ( $cases as $name => $config ) {
 	$check( $name . ' is private to the owner with matching key', $current instanceof WC_Order && $current->get_id() === $order->get_id() );
 	$delivery = \Artnovo\AccountUI\received_services( $current );
 	$state = \Artnovo\AccountUI\received_state( $current, $delivery );
-	$expected = match ( $name ) { 'multi-ready', 'ready-with-receipt' => 'ready', 'multi-partial', 'multi-mixed' => 'partial', 'receipt-with-stale-service' => 'receipt', 'missing-service', 'failed-service' => 'review', default => $name };
+	$expected = match ( $name ) { 'multi-ready', 'ready-with-receipt' => 'ready', 'multi-partial', 'multi-mixed' => 'partial', 'receipt-with-stale-service' => 'receipt', 'missing-service', 'failed-service' => 'review', 'awaiting-authorization' => 'pending', default => $name };
 	$check( $name . ' displays ' . $expected, $state['state'] === $expected );
 	$expected_links = match ( $name ) { 'ready', 'multi-partial', 'ready-with-receipt' => 1, 'multi-ready', 'multi-mixed' => 2, default => 0 };
 	$check( $name . ' has only authorized private service links', count( $delivery['links'] ) === $expected_links );
+	if ( in_array( $name, [ 'pending', 'receipt', 'failed', 'closed', 'issuing', 'awaiting-authorization' ], true ) ) {
+		$html = '<section class="wpvpn-subscription"><h3>اشتراک آزمایشی</h3><p><a href="' . esc_url( $order->get_view_order_url() ) . '">جزئیات خرید</a></p></section>';
+		$tags = new WP_HTML_Tag_Processor( \Artnovo\AccountUI\decorate_subscriptions( $html ) );
+		$tags->next_tag( 'SECTION' );
+		$data = json_decode( $tags->get_attribute( 'data-artnovo-card' ) ?? '', true );
+		$expected = match ( $name ) { 'pending' => 'transfer', 'failed', 'awaiting-authorization' => 'pending', default => $name };
+		$check( $name . ' has the right account presentation and keeps the native purchase link',
+			$expected === ( $data['presentation']['state'] ?? null ) && $order->get_view_order_url() === ( $data['purchase']['view_url'] ?? null ) );
+		$destination = 'closed' === $name ? $order->get_view_order_url() : \Artnovo\AccountUI\received_tracking_url( $order );
+		if ( 'receipt' === $name ) { $destination .= '#artnovo-received-status'; }
+		$check( $name . ' account action opens the same authorized order', $destination === ( $data['presentation']['action_url'] ?? null ) );
+	}
 }
 
 $own = $orders['pending'];
@@ -64,6 +77,34 @@ $check( 'invalid link shows no customer/order details', ! str_contains( $denied_
 $check( 'invalid link preserves unrelated purchase session', 777 === WC()->session->get( 'order_awaiting_payment' )
 	&& $cart_before === WC()->cart->get_cart_contents() );
 $set_route( $own );
+$cart = WC()->cart;
+$saved_cart = $cart->get_cart_contents();
+$product = wc_get_product( 25 );
+$cart->set_cart_contents( [ 'account-tracking-fixture' => [ 'product_id' => 25, 'quantity' => 1, 'data' => $product ] ] );
+$matching_hash = $cart->get_cart_hash();
+$cart_hash = static fn( string $hash, WC_Order $order ): string => $own->get_id() === $order->get_id() ? $matching_hash : $hash;
+add_filter( 'woocommerce_order_get_cart_hash', $cart_hash, 10, 2 );
+WC()->session->set( 'order_awaiting_payment', $own->get_id() );
+$_GET['artnovo_status'] = '1';
+try {
+	$checkout_actions = [ did_action( 'woocommerce_before_thankyou' ), did_action( 'woocommerce_thankyou' ) ];
+	wc_clear_cart_after_payment();
+	ob_start(); \Artnovo\AccountUI\render_received_page(); $tracking_html = ob_get_clean();
+	$check( 'account tracking keeps the matching cart selection and session',
+		! $cart->is_empty() && $matching_hash === $cart->get_cart_hash() && $own->get_id() === WC()->session->get( 'order_awaiting_payment' ) );
+	$tags = new WP_HTML_Tag_Processor( $tracking_html );
+	$check( 'the tracking receipt form keeps the same order key and tracking flag',
+		$tags->next_tag( [ 'tag_name' => 'FORM', 'class_name' => 'artnovo-received-receipt-form' ] )
+		&& \Artnovo\AccountUI\received_tracking_url( $own ) === $tags->get_attribute( 'action' ) );
+	$check( 'tracking renders native details without replaying checkout hooks',
+		$checkout_actions === [ did_action( 'woocommerce_before_thankyou' ), did_action( 'woocommerce_thankyou' ) ]
+		&& str_contains( $tracking_html, 'woocommerce-order-details' ) );
+} finally {
+	remove_filter( 'woocommerce_order_get_cart_hash', $cart_hash, 10 );
+	$cart->set_cart_contents( $saved_cart );
+	WC()->session->__unset( 'order_awaiting_payment' );
+	$set_route( $own );
+}
 ob_start(); \Artnovo\AccountUI\render_received_page(); $email_html = ob_get_clean();
 $check( 'real order email remains visible in the purchase summary', str_contains( $email_html, '<dt>ایمیل خرید</dt>' )
 	&& str_contains( $email_html, 'received-qa@example.invalid' ) );

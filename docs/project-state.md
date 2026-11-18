@@ -1,5 +1,21 @@
 # Current project state
 
+## Approved delivery: compact account list / Core 1.9.0 (2026-11-18)
+
+The owner selected the compact list for mobile and desktop and authorized the
+Core-only GitHub-first release and installation. On each native subscription
+page, ready accounts come first, followed by purchases needing follow-up and
+ended accounts. The compact mobile menu and desktop navigation preserve native
+account destinations, with one purchase entry and separate connection and
+purchase tools. Receipt status and its primary action use the existing private
+tracking route. A tracking visit preserves an independent cart selection and
+does not replay actual checkout-completion hooks.
+
+Bridge remains authoritative for receipt access, payment and delivery. The new
+source change does not install or modify Bridge, Wallet, Pinova or a gateway.
+The preceding record identifies the last verified installation until the new
+package and its deployment are verified.
+
 ## Completed delivery: compact receipt status / Core 1.8.1 (2026-11-18)
 
 The owner approved [PR28](https://github.com/vahid162/Artnovo-Core/pull/28) and

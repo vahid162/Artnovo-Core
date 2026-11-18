@@ -28,36 +28,58 @@ function account_navigation(): array {
 	return [ 'primary' => $primary, 'secondary' => $secondary ];
 }
 
-function render_account(): void {
+function render_account_links( array $links ): void {
+	foreach ( $links as $item ) : ?>
+		<a href="<?php echo esc_url( $item['url'] ); ?>" <?php if ( $item['current'] ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( \Artnovo\Core\display_digits( $item['label'] ) ); ?></a>
+	<?php endforeach;
+}
+
+function render_account_navigation( array $navigation, bool $compact ): void {
+	if ( $compact ) {
+		unset( $navigation['primary']['buy'] );
+	}
 	?>
-	<main id="content" class="artnovo-account" dir="rtl" data-artnovo-price-thousand-separator="<?php echo esc_attr( wc_get_price_thousand_separator() ); ?>" data-artnovo-price-decimal-separator="<?php echo esc_attr( wc_get_price_decimal_separator() ); ?>">
-		<?php if ( ! is_user_logged_in() ) : ?>
+	<nav class="artnovo-account-nav" aria-label="بخش‌های حساب آرت‌نوو">
+		<?php render_account_links( $navigation['primary'] ); ?>
+		<details class="artnovo-account-more" <?php if ( array_filter( $navigation['secondary'], static fn( array $item ): bool => $item['current'] ) ) : ?>open<?php endif; ?>>
+			<summary>بخش‌های دیگر حساب</summary>
+			<div class="artnovo-account-more-links"><?php render_account_links( $navigation['secondary'] ); ?></div>
+		</details>
+	</nav>
+	<?php if ( $compact ) : ?>
+		<details class="artnovo-account-mobile-nav">
+			<summary>منوی حساب</summary>
+			<nav class="artnovo-account-nav" aria-label="بخش‌های حساب آرت‌نوو">
+				<?php render_account_links( array_merge( $navigation['primary'], $navigation['secondary'] ) ); ?>
+			</nav>
+		</details>
+	<?php endif;
+}
+
+function render_account(): void {
+	$logged_in = is_user_logged_in();
+	$current = $logged_in ? account_view() : '';
+	$compact = 'subscriptions' === $current;
+	?>
+	<main id="content" class="artnovo-account<?php if ( $compact ) : ?> artnovo-account--subscriptions<?php endif; ?>" dir="rtl" data-artnovo-price-thousand-separator="<?php echo esc_attr( wc_get_price_thousand_separator() ); ?>" data-artnovo-price-decimal-separator="<?php echo esc_attr( wc_get_price_decimal_separator() ); ?>">
+		<?php if ( ! $logged_in ) : ?>
 			<?php render_account_login(); ?>
 		<?php else :
 			$navigation = account_navigation();
-			$current = account_view();
-			$title = 'اکانت‌های من';
-			foreach ( array_merge( $navigation['primary'], $navigation['secondary'] ) as $item ) {
-				if ( $item['current'] ) { $title = $item['label']; break; }
-			}
-			if ( is_wc_endpoint_url( 'view-order' ) ) { $title = 'جزئیات خرید و رسید'; }
+			if ( ! $compact ) :
+				$title = 'اکانت‌های من';
+				foreach ( array_merge( $navigation['primary'], $navigation['secondary'] ) as $item ) {
+					if ( $item['current'] ) { $title = $item['label']; break; }
+				}
+				if ( is_wc_endpoint_url( 'view-order' ) ) { $title = 'جزئیات خرید و رسید'; }
 			?>
-			<header class="artnovo-account-header">
-				<div><p class="artnovo-account-muted">حساب آرت‌نوو</p><h1><?php echo esc_html( \Artnovo\Core\display_digits( $title ) ); ?></h1><p class="artnovo-account-muted"><?php echo 'subscriptions' === $current ? 'لینک اتصال و اعتبار اکانت‌هایت همیشه اینجاست.' : 'اکانت‌ها، خریدها و راهنمای استفاده در یک حساب.'; ?></p></div>
-				<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">خرید اکانت جدید</a>
-			</header>
+				<header class="artnovo-account-header">
+					<div><p class="artnovo-account-muted">حساب آرت‌نوو</p><h1><?php echo esc_html( \Artnovo\Core\display_digits( $title ) ); ?></h1><p class="artnovo-account-muted">اکانت‌ها، خریدها و راهنمای استفاده در یک حساب.</p></div>
+					<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">خرید اکانت جدید</a>
+				</header>
+			<?php endif; ?>
 			<div class="artnovo-account-layout">
-				<nav class="artnovo-account-nav" aria-label="بخش‌های حساب آرت‌نوو">
-					<?php foreach ( $navigation['primary'] as $item ) : ?>
-						<a href="<?php echo esc_url( $item['url'] ); ?>" <?php if ( $item['current'] ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( \Artnovo\Core\display_digits( $item['label'] ) ); ?></a>
-					<?php endforeach; ?>
-					<details class="artnovo-account-more" <?php if ( array_filter( $navigation['secondary'], static fn( array $item ): bool => $item['current'] ) ) : ?>open<?php endif; ?>>
-						<summary>بخش‌های دیگر حساب</summary>
-						<?php foreach ( $navigation['secondary'] as $item ) : ?>
-							<a href="<?php echo esc_url( $item['url'] ); ?>" <?php if ( $item['current'] ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( \Artnovo\Core\display_digits( $item['label'] ) ); ?></a>
-						<?php endforeach; ?>
-					</details>
-				</nav>
+				<?php render_account_navigation( $navigation, $compact ); ?>
 				<div class="artnovo-account-main">
 					<?php
 					wc_print_notices();
@@ -140,7 +162,8 @@ function render_account_login( bool $complete = false ): void {
 
 function render_account_subscriptions(): void {
 	if ( ! has_action( 'woocommerce_account_vpn-subscriptions_endpoint' ) ) {
-		echo '<section class="artnovo-account-card"><h2>اشتراک‌های من</h2><p>دریافت اشتراک‌ها موقتاً در دسترس نیست. کمی بعد دوباره تلاش کنید.</p></section>';
+		render_subscriptions_title( false );
+		echo '<section class="artnovo-account-card"><p>دریافت اکانت‌ها موقتاً در دسترس نیست. کمی بعد دوباره تلاش کنید.</p></section>';
 		return;
 	}
 	$page = max( 1, absint( get_query_var( 'vpn-subscriptions', 1 ) ) );
@@ -156,18 +179,30 @@ function render_account_subscriptions(): void {
 	}
 	$error = __( 'Subscriptions could not be loaded.', 'wp-vpn-bridge' );
 	$empty = __( 'No subscriptions on this page.', 'wp-vpn-bridge' );
-	if ( ! $has_cards && ! $has_error && 1 === $page && str_contains( $html, esc_html( $empty ) ) && ! str_contains( $html, esc_html( $error ) ) ) {
+	$is_empty = ! $has_cards && ! $has_error && 1 === $page && str_contains( $html, esc_html( $empty ) ) && ! str_contains( $html, esc_html( $error ) );
+	render_subscriptions_title( ! $is_empty );
+	if ( $is_empty ) {
 		?>
 		<section class="artnovo-account-card artnovo-account-empty">
-			<span class="artnovo-account-badge">اکانت‌های من</span>
-			<h2>هنوز اکانتی نخریده‌ای</h2>
-			<p>یک پلن انتخاب کن؛ پس از تأیید پرداخت و آماده‌شدن اکانت، لینک اتصال را همین‌جا دریافت می‌کنی.</p>
-			<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">انتخاب اکانت</a>
+			<h2>هنوز اکانتی ندارید</h2>
+			<p>پس از خرید، وضعیت اکانت و لینک اتصال را همین‌جا می‌بینید.</p>
+			<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">خرید اولین اکانت</a>
 		</section>
 		<?php
 		return;
 	}
 	echo '<div class="artnovo-account-subscriptions">' . decorate_subscriptions( localize_subscription_display( $html ) ) . '</div>';
+}
+
+function render_subscriptions_title( bool $show_buy ): void {
+	?>
+	<header class="artnovo-account-header">
+		<h1>اکانت‌های من</h1>
+		<?php if ( $show_buy ) : ?>
+			<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">خرید اکانت جدید</a>
+		<?php endif; ?>
+	</header>
+	<?php
 }
 
 function render_account_profile(): void {
