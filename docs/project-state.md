@@ -1,5 +1,22 @@
 # Current project state
 
+## Delivery candidate: confirmed payment before issuance / Core 1.11.2 (2026-11-19)
+
+Private tracking, purchases and order details distinguish an open bank attempt
+from a payment that Pay Bridge verified while the same WP VPN Bridge operation
+still awaits promotion. The private poll keeps checking through a deferred
+recovery and leaves a manual refresh available. WooCommerce supplies the native
+order actions. The Core view uses the optional Pay Bridge status and preserves
+connection links that WP VPN Bridge still authorizes when that status is absent.
+
+PHP 8.5, JavaScript and package validation passed. The isolated WordPress checks
+passed 266 assertions and Firefox passed 14 scenarios with Pay Bridge 0.1.0,
+including the deferred recovery, authorized partial delivery and private status
+access. Both used synthetic orders and bank and issuance responses. The prior
+release is [Core 1.11.1](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.11.1).
+If the tracking UI needs a rollback after installation, restore that Core
+package with the upgraded Pay Bridge active.
+
 ## Completed delivery: one-card order payment / Core 1.11.0 (2026-11-18)
 
 The owner selected the one-card order-payment design on mobile and desktop.

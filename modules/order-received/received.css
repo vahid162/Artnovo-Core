@@ -19,7 +19,7 @@ body.artnovo-received-page { background: #0c1723; color: #f0f9f7; }
 .artnovo-received-main { width: 100%; max-width: 592px; margin-inline: auto; }
 .artnovo-received .artnovo-received-focus { width: 100%; max-width: 592px; padding: 1.25rem 1.5rem; border: 1px solid #9adaf017; border-radius: 1.375rem; box-shadow: 0 .75rem 2.5rem #00000012; }
 .artnovo-received { --received-state-background: #403923; --received-state-text: #f6df9b; }
-.artnovo-received[data-state="issuing"] { --received-state-background: #172e41; --received-state-text: #d0edff; }
+.artnovo-received:is([data-state="paid_waiting_fulfillment"],[data-state="issuing"]) { --received-state-background: #172e41; --received-state-text: #d0edff; }
 .artnovo-received:is([data-state="ready"],[data-state="partial"]) { --received-state-background: #173b3c; --received-state-text: #b8f4db; }
 .artnovo-received:is([data-state="failed"],[data-state="review"],[data-state="unavailable"]) { --received-state-background: #392934; --received-state-text: #ffd5dd; }
 .artnovo-received[data-state="closed"] { --received-state-background: #203440; --received-state-text: #bdd1d0; }

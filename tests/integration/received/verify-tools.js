@@ -132,7 +132,7 @@ function amountFixture(failure) {
 	return { button, copied, fallback, status, target };
 }
 
-function paymentFixture(responses) {
+function paymentFixture(responses, state = 'partial', count = '1') {
 	let timer;
 	const requests = [];
 	const navigations = [];
@@ -140,13 +140,13 @@ function paymentFixture(responses) {
 	let now = 0;
 	const root = {
 		dataset: {
-			state: 'partial',
+			state,
 			artnovoPaymentStatusUrl: '/?wc-ajax=artnovo_received_payment_status',
 			artnovoPaymentTrackUrl: '/checkout/order-received/1/?artnovo_status=1',
 			artnovoPaymentStatusOrder: '1',
 			artnovoPaymentStatusKey: 'fixture-order-key',
 			artnovoPaymentStatusNonce: 'fixture-nonce',
-			artnovoPaymentReadyCount: '1',
+			artnovoPaymentReadyCount: count,
 		},
 		querySelector: selector => selector === '[data-artnovo-payment-poll-expired]' ? expired : null,
 		querySelectorAll: () => [],
@@ -265,5 +265,19 @@ function paymentFixture(responses) {
 	await expired.next(16 * 60 * 1000);
 	check(!expired.requests.length && !expired.navigations.length && !expired.timer && !expired.expired.hidden,
 		'automatic status monitoring is bounded and shows the manual fallback afterward');
+	const confirmed = paymentFixture([ok('paid_waiting_fulfillment', 0)], 'pending', '0');
+	await confirmed.next();
+	check(confirmed.navigations[0] === confirmed.tracking && !confirmed.timer,
+		'bank confirmation refreshes the view before issuance even when the ready count stays zero');
+	const waiting = paymentFixture([ok('paid_waiting_fulfillment', 0), ok('issuing', 0)], 'paid_waiting_fulfillment', '0');
+	await waiting.next(16 * 60 * 1000 + 1);
+	check(waiting.requests.length === 1 && waiting.expired.hidden && waiting.timer && !waiting.navigations.length,
+		'confirmed payment keeps monitoring while recovery can exceed the old deadline');
+	await waiting.next();
+	check(waiting.navigations[0] === waiting.tracking && !waiting.timer, 'Bridge recovery refreshes the view with zero ready accounts');
+	const waitingExpired = paymentFixture([], 'paid_waiting_fulfillment', '0');
+	await waitingExpired.next(35 * 60 * 1000);
+	check(!waitingExpired.requests.length && !waitingExpired.navigations.length && !waitingExpired.timer && !waitingExpired.expired.hidden,
+		'a delayed Bridge uses a bounded window and preserves the manual fallback');
 	console.log(`PASS ${checks} received payment, copy and receipt assertions`);
 })().catch(error => { console.error(error); process.exitCode = 1; });
