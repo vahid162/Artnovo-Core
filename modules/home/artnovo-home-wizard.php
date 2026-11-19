@@ -156,6 +156,13 @@ function render_native_checkout(): string {
 	ob_start();
 	try {
 		echo do_shortcode( '[woocommerce_checkout]' );
+		echo '<div role="status" data-artnovo-bank-connecting></div>';
+		$session = WC()->session;
+		$awaiting_id = (int) ( $session?->get( 'order_awaiting_payment' ) ?: $session?->get( 'store_api_draft_order' ) );
+		$awaiting = PlanCheckout\wizard_new_purchase_order( $awaiting_id );
+		if ( $awaiting && ! $awaiting->is_paid() ) {
+			PlanCheckout\wizard_new_purchase_form( $awaiting );
+		}
 		$content = (string) ob_get_contents();
 	} finally {
 		ob_end_clean();

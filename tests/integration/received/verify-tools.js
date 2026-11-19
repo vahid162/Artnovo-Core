@@ -9,12 +9,19 @@ const check = (value, label) => { assert(value, label); checks++; };
 
 function paymentTableFixture(hasControl) {
 	const elements = [];
+	const events = new Map();
+	const method = { value: 'artnovo_gpante' };
+	const status = { textContent: '' };
 	const table = {
 		querySelector: () => hasControl ? { required: true } : null,
 		before(details) { this.insertedBefore = details; }
 	};
-	const root = { dataset: { artnovoNativeOrderPay: '' }, querySelector: () => table };
+	const form = { elements: { namedItem: () => method }, querySelector: () => table,
+		addEventListener: (name, callback) => events.set(name, callback) };
+	const root = { dataset: { artnovoNativeOrderPay: '' }, querySelector: (selector) =>
+		selector === 'form#order_review' ? form : selector === '[data-artnovo-bank-connecting]' ? status : null };
 	vm.runInNewContext(source, {
+		window: { addEventListener: (name, callback) => events.set(name, callback) },
 		document: {
 			querySelector: () => root,
 			createElement(tag) {
@@ -24,7 +31,7 @@ function paymentTableFixture(hasControl) {
 			}
 		}
 	});
-	return { table, elements };
+	return { table, elements, events, method, status };
 }
 
 function fixture({ failure = false, value = 'https://example.invalid/ready-1\nhttps://example.invalid/ready-3' } = {}) {
@@ -189,6 +196,13 @@ function paymentFixture(responses, state = 'partial', count = '1') {
 	const [details, summary] = paymentTable.elements;
 	check(details === paymentTable.table.insertedBefore && details.tag === 'details' && summary.tag === 'summary'
 		&& details.children[0] === summary && details.children[1] === paymentTable.table, 'payment disclosure reuses the native table inside the form');
+	paymentTable.events.get('submit')();
+	check(paymentTable.status.textContent === 'در حال اتصال به درگاه پرداخت…', 'native bank retry announces the handoff');
+	paymentTable.events.get('pageshow')();
+	check(paymentTable.status.textContent === '', 'returning to the native form clears the old handoff message');
+	paymentTable.method.value = 'bacs';
+	paymentTable.events.get('submit')();
+	check(paymentTable.status.textContent === '', 'offline order payment does not announce a bank redirect');
 	const extendedPayment = paymentTableFixture(true);
 	check(extendedPayment.elements.length === 0 && !extendedPayment.table.insertedBefore, 'tables with additional payment controls stay open');
 

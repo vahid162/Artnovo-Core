@@ -21,13 +21,15 @@ if ( 'pending' === $state && 'bacs' === $method && received_receipt_can_upload( 
 }
 
 $expired = 'closed' === $state && 4 === $purchase_state['step'];
+$bank_cancelled = 'failed' === $state && received_bank_cancelled( $bank_payment ?? [] );
+$bank_retry = $bank_cancelled && received_bank_retry( $order, $bank_payment );
 $tracking = received_tracking_url( $order );
 $support = add_query_arg( 'order', $order_id, account_url( 'support' ) );
 $payment = match ( $state ) {
 	'transfer' => 'در انتظار واریز و ارسال رسید',
 	'receipt' => 'رسید ثبت شد، منتظر تأیید',
 	'pending' => 'open' === ( $bank_payment['phase'] ?? '' ) ? $purchase_state['title'] : 'در انتظار تأیید پرداخت',
-	'failed' => 'پرداخت کامل نشده است',
+	'failed' => $bank_cancelled ? $purchase_state['title'] : 'پرداخت کامل نشده است',
 	'paid_waiting_fulfillment', 'issuing', 'ready', 'partial' => 'پرداخت تأیید شد',
 	'closed' => $expired ? 'پرداخت تأیید شد' : (
 		(float) $order->get_total_refunded() > 0 ? 'بازپرداخت ثبت شده است' : wc_get_order_status_name( $order->get_status() )
@@ -37,7 +39,9 @@ $payment = match ( $state ) {
 [ $delivery, $action_url, $action_text ] = match ( $state ) {
 	'transfer' => [ 'پس از تأیید پرداخت', $tracking, 'واریز و ارسال رسید' ],
 	'receipt', 'pending' => [ 'پس از تأیید پرداخت', $tracking, 'بررسی وضعیت پرداخت' ],
-	'failed' => [ 'تحویل انجام نشده است', $tracking, 'پیگیری پرداخت ناموفق' ],
+	'failed' => $bank_retry
+		? [ 'تحویل انجام نشده است', $order->get_checkout_payment_url(), 'پرداخت مجدد همین سفارش' ]
+		: [ 'تحویل انجام نشده است', $bank_cancelled ? $support : $tracking, 'پیگیری پرداخت ناموفق' ],
 	'paid_waiting_fulfillment' => [ 'آماده‌سازی اکانت در انتظار شروع است', $tracking . '#artnovo-received-status', 'بررسی وضعیت اکانت' ],
 	'issuing', 'partial' => [ $purchase_state['title'], $tracking . '#artnovo-received-status', 'بررسی وضعیت اکانت' ],
 	'ready' => [ 'آمادهٔ اتصال', account_url(), 'مشاهدهٔ اکانت' ],
@@ -70,6 +74,11 @@ $message = 'pending' === $state && 'bacs' === $method && ! $order->is_paid()
 			</dl>
 			<p><?php echo esc_html( \Artnovo\Core\display_digits( $message ) ); ?></p>
 			<a class="artnovo-account-button artnovo-account-order-primary" href="<?php echo esc_url( $action_url ); ?>"><?php echo esc_html( $action_text ); ?></a>
+			<?php if ( ! $order->is_paid() && in_array( $bank_payment['phase'] ?? '', [ 'open', 'review', 'failed_final' ], true )
+				&& in_array( $state, [ 'pending', 'review', 'failed' ], true )
+				&& function_exists( '\\Artnovo\\PlanCheckout\\wizard_new_purchase_form' ) ) : ?>
+				<?php \Artnovo\PlanCheckout\wizard_new_purchase_form( $order ); ?>
+			<?php endif; ?>
 		</section>
 
 		<section class="artnovo-account-order-invoice" aria-label="صورتحساب">

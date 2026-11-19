@@ -88,7 +88,12 @@
 		return true;
 	}
 	if (recoverPurchaseHistory()) return;
-	window.addEventListener('pageshow', (event) => { if (event.persisted) recoverPurchaseHistory(true); });
+	window.addEventListener('pageshow', (event) => {
+		if (event.persisted) {
+			showBankConnection(false);
+			recoverPurchaseHistory(true);
+		}
+	});
 
 	function selectionBadge() {
 		const badge = document.createElement('span');
@@ -477,7 +482,13 @@
 		window.jQuery.ajaxPrefilter((options, original, request) => {
 			let url;
 			try { url = new URL(options.url, location.href); } catch { return; }
-			if (url.origin !== location.origin || url.searchParams.get('wc-ajax') !== 'update_order_review') return;
+			if (url.origin !== location.origin) return;
+			const action = url.searchParams.get('wc-ajax');
+			if (action === 'checkout' && nativeCheckout?.classList.contains('processing')
+				&& nativeCheckout.querySelector('[name="payment_method"]:checked')?.value === 'artnovo_gpante') {
+				showBankConnection(true);
+			}
+			if (action !== 'update_order_review') return;
 			if ((!reviewCurrent || selectionPending) && !nativeRefreshAllowed) { request.abort(); return; }
 			nativeRequests.add(request);
 			request.always(() => nativeRequests.delete(request));
@@ -486,9 +497,15 @@
 			labelBankTransferButton();
 			syncNativeSummary();
 		});
+		body.on('checkout_error', () => showBankConnection(false));
 		body.on('applied_coupon_in_checkout removed_coupon_in_checkout', () => {
 			queueMicrotask(() => window.jQuery(order.querySelector('form.checkout_coupon')).stop(true, true).show());
 		});
+	}
+
+	function showBankConnection(active) {
+		const status = nativeHost?.querySelector('[data-artnovo-bank-connecting]');
+		if (status) status.textContent = active ? 'در حال اتصال به درگاه پرداخت…' : '';
 	}
 
 	function updateSelectionRevision(value, includeNative = true) {

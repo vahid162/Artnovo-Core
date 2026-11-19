@@ -438,10 +438,10 @@ check('an invalid stored account email does not become an order contact',''===($
 check('contact-free checkout still cannot update or merge the account',false===apply_filters('woocommerce_checkout_update_customer_data',true));
 function phone_validator_state(): array {
 	$phone=[new \Pinova\Integrations\Woocommerce\Checkout(),'validate_checkout_phone'];$other=static function():void{};
-	$GLOBALS['hooks']['woocommerce_checkout_process'][10]=[[$phone,0],[$other,0]];
-	$GLOBALS['wp_filter']['woocommerce_checkout_process']=(object)['callbacks'=>[10=>[['function'=>$phone],['function'=>$other]]]];
+	$GLOBALS['hooks']['woocommerce_after_checkout_validation'][10]=[[$phone,2],[$other,2]];
+	$GLOBALS['wp_filter']['woocommerce_after_checkout_validation']=(object)['callbacks'=>[10=>[['function'=>$phone],['function'=>$other]]]];
 	foreach($GLOBALS['hooks']['woocommerce_checkout_process'][9] as [$callback])$callback();
-	$remaining=array_column($GLOBALS['hooks']['woocommerce_checkout_process'][10],0);
+	$remaining=array_column($GLOBALS['hooks']['woocommerce_after_checkout_validation'][10],0);
 	return ['pinova'=>in_array($phone,$remaining,true),'unrelated'=>in_array($other,$remaining,true)];
 }
 foreach(['no','yes'] as $enabled){

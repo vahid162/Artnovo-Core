@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.11.3 — 2026-11-19
+
+- Show a confirmed Zibal cancellation and the native retry action on the same
+  order, using the optional cancellation reason from Pay Bridge.
+- Let customers explicitly start a separate checkout for the same plan and
+  quantity. Retain the previous order and its bank attempt.
+- Keep authenticated plan checkout contact-free with the Pinova billing validator.
+
 ## 1.11.2 — 2026-11-19
 
 - Show confirmed bank payment while the existing subscription purchase waits for
