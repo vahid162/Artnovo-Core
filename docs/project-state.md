@@ -1,5 +1,18 @@
 # Current project state
 
+## Delivery candidate: Pinova checkout compatibility / Core 1.11.4 (2026-11-19)
+
+A controlled live Core 1.11.3 checkout stopped at Pinova's phone validation
+before an order was created. A read-only check confirmed that the installed
+Pinova registers its validator on `woocommerce_checkout_process`. The newer
+Pinova fixture registers it on `woocommerce_after_checkout_validation`.
+Core 1.11.4 skips that exact validator on either hook for the authenticated
+contact-free plan checkout. Ordinary checkout keeps its native validators.
+
+PHP 8.5, JavaScript and package checks passed. Firefox passed native Classic
+payment preparation with each Pinova hook in isolated WooCommerce. Pay Bridge
+0.1.4 used synthetic bank replies in both browser runs.
+
 ## Delivery candidate: Zibal cancellation and independent checkout / Core 1.11.3 (2026-11-19)
 
 Core reads Pay Bridge's verified cancellation reason on the tracking and

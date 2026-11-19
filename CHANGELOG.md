@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.11.4 — 2026-11-19
+
+- Keep the authenticated plan checkout compatible with both Pinova phone
+  validation hooks. Ordinary checkout continues to validate contact fields.
+
 ## 1.11.3 — 2026-11-19
 
 - Show a confirmed Zibal cancellation and the native retry action on the same
