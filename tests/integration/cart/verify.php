@@ -5,7 +5,7 @@ require_once dirname( __DIR__ ) . '/fixture-paths.php';
 artnovo_fixture_boot_core();
 
 $prepare_function = new ReflectionFunction( 'Artnovo\\PlanCheckout\\prepare_wizard_cart' );
-$legacy = 5 === $prepare_function->getNumberOfParameters();
+$legacy = 5 === $prepare_function->getNumberOfRequiredParameters();
 
 add_filter( 'query', static function ( string $query ): string {
 	if ( ! preg_match( '/^\s*(SELECT|SHOW|DESCRIBE|EXPLAIN)\b/i', $query ) ) {

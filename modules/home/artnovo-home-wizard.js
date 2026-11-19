@@ -59,6 +59,7 @@
 	let selectionSerial = 0;
 	let queuedSelection = null;
 	let requestedIdentity = '';
+	let requestedPurchaseAction = '';
 	let confirmedIdentity = review ? draftPlan + ':' + order.dataset.artnovoDraftQuantity : '';
 	let selectionRecovery = false;
 	let nativeAssetsFailed = false;
@@ -261,13 +262,20 @@
 		}
 	}
 
-	function prepareCheckout(planId, count) {
+	function prepareCheckout(planId, count, purchaseAction = '') {
 		if (!selectionForm || !checkoutPlans.has(planId)) return false;
 		if (!asyncSupported) {
 			if (preparing || historyRecovering) return true;
 			preparing = true;
 			selectionForm.elements.namedItem('artnovo_product').value = planId;
 			selectionForm.elements.namedItem('artnovo_quantity').value = String(count);
+			if (purchaseAction) {
+				const action = document.createElement('input');
+				action.type = 'hidden';
+				action.name = 'artnovo_purchase_action';
+				action.value = purchaseAction;
+				selectionForm.append(action);
+			}
 			for (const name of ['artnovo_wizard_ajax', 'artnovo_wizard_select', 'artnovo_otp_action']) {
 				const field = selectionForm.elements.namedItem(name);
 				if (field) field.disabled = true;
@@ -280,9 +288,11 @@
 			return true;
 		}
 		const identity = planId + ':' + count;
-		if (identity === requestedIdentity && selectionPending || identity === confirmedIdentity && !selectionPending && reviewCurrent) return true;
-		queuedSelection = { product: planId, quantity: count, serial: ++selectionSerial };
+		if (identity === requestedIdentity && selectionPending && (!purchaseAction || requestedPurchaseAction)
+			|| !purchaseAction && identity === confirmedIdentity && !selectionPending && reviewCurrent) return true;
+		queuedSelection = { product: planId, quantity: count, purchaseAction, serial: ++selectionSerial };
 		requestedIdentity = identity;
+		requestedPurchaseAction = purchaseAction;
 		selectionPending = true;
 		reviewCurrent = false;
 		setSelectionState(true);
@@ -341,6 +351,7 @@
 		selectionSerial += 1;
 		queuedSelection = null;
 		requestedIdentity = '';
+		requestedPurchaseAction = '';
 		selectionPending = reviewCurrent = nativeRefreshAllowed = false;
 		cancelNativeReview();
 		for (const request of nativeRequests) request.abort();
@@ -362,6 +373,7 @@
 				payload.set('artnovo_quantity', String(intent.quantity));
 				payload.set('artnovo_wizard_ajax', '1');
 				payload.set('artnovo_wizard_select', '1');
+				if (intent.purchaseAction) payload.set('artnovo_purchase_action', intent.purchaseAction);
 				const controller = new AbortController();
 				const timer = setTimeout(() => controller.abort(), 25000);
 				let result;
@@ -699,12 +711,12 @@
 		}
 	}
 
-	function go(input) {
+	function go(input, purchaseAction = '') {
 		if (quantityPending || authPending || nativeCheckout?.classList.contains('processing')) return;
 		const next = normalize(input);
 		writeLocation(next);
 		render(next, true);
-		if (next.step === '3' && (!reviewCurrent || next.plan + ':' + quantity !== confirmedIdentity)) prepareCheckout(next.plan, quantity);
+		if (next.step === '3' && (purchaseAction || !reviewCurrent || next.plan + ':' + quantity !== confirmedIdentity)) prepareCheckout(next.plan, quantity, purchaseAction);
 	}
 
 	root.addEventListener('click', (event) => {
@@ -752,8 +764,11 @@
 		const plan = plans.find((entry) => entry.link === link && categoryAvailable(entry.category));
 		if (!plan) return;
 		event.preventDefault();
-		if (!asyncSupported || !selectionForm) location.assign(link.href);
-		else go({ step: '3', category: plan.category, plan: plan.id });
+		if (!selectionForm || !window.crypto?.getRandomValues) location.assign(link.href);
+		else {
+			const action = Array.from(window.crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, '0')).join('');
+			go({ step: '3', category: plan.category, plan: plan.id }, action);
+		}
 	});
 
 	root.addEventListener('toggle', (event) => {

@@ -75,9 +75,8 @@ $message = 'pending' === $state && 'bacs' === $method && ! $order->is_paid()
 			<p><?php echo esc_html( \Artnovo\Core\display_digits( $message ) ); ?></p>
 			<a class="artnovo-account-button artnovo-account-order-primary" href="<?php echo esc_url( $action_url ); ?>"><?php echo esc_html( $action_text ); ?></a>
 			<?php if ( ! $order->is_paid() && in_array( $bank_payment['phase'] ?? '', [ 'open', 'review', 'failed_final' ], true )
-				&& in_array( $state, [ 'pending', 'review', 'failed' ], true )
-				&& function_exists( '\\Artnovo\\PlanCheckout\\wizard_new_purchase_form' ) ) : ?>
-				<?php \Artnovo\PlanCheckout\wizard_new_purchase_form( $order ); ?>
+				&& in_array( $state, [ 'pending', 'review', 'failed' ], true ) ) : ?>
+				<a href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">مشاهدهٔ پلن‌ها</a>
 			<?php endif; ?>
 		</section>
 

@@ -157,11 +157,11 @@ function render_native_checkout(): string {
 	try {
 		echo do_shortcode( '[woocommerce_checkout]' );
 		echo '<div role="status" data-artnovo-bank-connecting></div>';
-		$session = WC()->session;
-		$awaiting_id = (int) ( $session?->get( 'order_awaiting_payment' ) ?: $session?->get( 'store_api_draft_order' ) );
-		$awaiting = PlanCheckout\wizard_new_purchase_order( $awaiting_id );
-		if ( $awaiting && ! $awaiting->is_paid() ) {
-			PlanCheckout\wizard_new_purchase_form( $awaiting );
+		$previous = PlanCheckout\wizard_new_purchase_order( (int) ( PlanCheckout\wizard_draft()['fresh_from'] ?? 0 ) );
+		$payment = $previous ? \Artnovo\AccountUI\received_bank_payment( $previous ) : [];
+		if ( $previous && in_array( $payment['phase'] ?? '', [ 'open', 'review' ], true ) ) {
+			printf( '<p class="artnovo-order-hint">نتیجهٔ پرداخت قبلی هنوز روشن نیست و ممکن است بعداً ثبت شود. <a href="%s">پیگیری سفارش قبلی</a></p>',
+				esc_url( \Artnovo\AccountUI\received_tracking_url( $previous ) ) );
 		}
 		$content = (string) ob_get_contents();
 	} finally {
@@ -216,6 +216,8 @@ function render_order( ?\WC_Product $plan ): string {
 	$quantity = $plan_id === $draft_plan ? $draft_quantity : 1;
 	$can_checkout = in_array( (string) $plan_id, $ready, true );
 	$auto_prepare = $login && $can_checkout && ! $review && '1' !== ( $_GET['artnovo_prepare_failed'] ?? null );
+	$previous = $review && $login ? PlanCheckout\wizard_previous_online_purchase( $draft ) : 0;
+	$no_script_reentry = $review && ( '1' !== ( $_GET['artnovo_checkout'] ?? null ) || ( is_int( $previous ) && $previous > 0 ) );
 	$unit_price = $plan ? ( $prices[ $plan->get_id() ] ?? 0 ) / ( 10 ** $decimals ) : 0;
 	$formatted_price = $plan ? \Artnovo\Core\display_number_html( wp_kses_post( wc_price( $unit_price ) ), true ) : '';
 	$formatted_total = $review && WC()->cart ? \Artnovo\Core\display_number_html( wp_kses_post( WC()->cart->get_total() ), true ) : ( $plan ? \Artnovo\Core\display_number_html( wp_kses_post( wc_price( $quantity * $unit_price ) ), true ) : '' );
@@ -288,16 +290,20 @@ function render_order( ?\WC_Product $plan ): string {
 				<p role="status" data-artnovo-prepare-status data-artnovo-notice-permanent
 					data-artnovo-prepare-message="در حال دریافت روش‌های پرداخت…"><?php echo $auto_prepare ? '' : ( $can_checkout ? 'فرم پرداخت آماده نشد. برای ادامهٔ همین خرید دوباره تلاش کنید.' : 'روش پرداخت مجاز برای این پلن در دسترس نیست. کمی بعد دوباره بررسی کنید.' ); ?></p>
 				<button type="button" data-artnovo-retry-prepare class="artnovo-order-submit" <?php disabled( ! $can_checkout ); ?> <?php echo $auto_prepare ? 'hidden' : ''; ?>>ادامهٔ همین خرید</button>
+			</div>
+			<?php if ( $checkout && $login && $plan && ( ! $review || $no_script_reentry ) ) : ?>
 				<noscript>
+					<?php if ( $no_script_reentry ) : ?><style>.artnovo-order [data-artnovo-native-checkout]{display:none}</style><?php endif; ?>
 					<form method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>">
 						<?php wp_nonce_field( 'artnovo_wizard_checkout', 'artnovo_wizard_nonce', false ); ?>
 						<input type="hidden" name="artnovo_selection_revision" value="<?php echo esc_attr( $selection_revision ); ?>">
+						<input type="hidden" name="artnovo_purchase_action" value="<?php echo esc_attr( bin2hex( random_bytes( 16 ) ) ); ?>">
 						<input type="hidden" name="artnovo_product" value="<?php echo esc_attr( (string) $plan_id ); ?>">
 						<input type="hidden" name="artnovo_quantity" value="<?php echo esc_attr( (string) $quantity ); ?>">
-						<button type="submit" <?php disabled( ! $can_checkout ); ?>>باز کردن فرم ثبت سفارش</button>
+						<button type="submit" <?php disabled( ! $can_checkout ); ?>>ادامهٔ خرید</button>
 					</form>
 				</noscript>
-			</div>
+			<?php endif; ?>
 			<?php if ( ! $login ) : ?>
 				<?php render_compact_auth( $plan_id, $quantity, $selection_revision, $can_checkout ); ?>
 			<?php endif; ?>
