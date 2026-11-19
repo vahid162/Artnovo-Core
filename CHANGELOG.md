@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.11.5 — 2026-11-19
+
+- Start an independent online service purchase from the regular plan card,
+  including when the previous order used the same plan and quantity.
+- Preserve the selected purchase through repeated submissions and keep native
+  order-pay available for a permitted retry of the original order.
+
 ## 1.11.4 — 2026-11-19
 
 - Keep the authenticated plan checkout compatible with both Pinova phone

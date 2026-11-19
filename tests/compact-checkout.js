@@ -348,7 +348,7 @@ const queueFixture = ({ signedIn = false } = {}) => {
 		preparationStatus: { dataset: { artnovoPrepareMessage: 'در حال دریافت روش‌های پرداخت…' } }, retryPrepare: {},
 		state: { step: '2', category: '1', plan: null }, quantity: 1,
 		selectionPending: false, selectionRecovery: false, selectionSerial: 0, preparing: false,
-		queuedSelection: null, requestedIdentity: '', confirmedIdentity: '', historyRecovering: false,
+		queuedSelection: null, requestedIdentity: '', requestedPurchaseAction: '', confirmedIdentity: '', historyRecovering: false,
 		reviewCurrent: false, review: false, quantityPending: false, authPending: false, asyncSupported: true,
 		checkoutPlans: new Set(['25', '26', '27']), nativeRequests: new Set(),
 		cancelNativeReview: () => {},
@@ -409,6 +409,7 @@ async function testAsyncSelection() {
 	assert.equal(flow.requests[0].options.method, 'POST');
 	assert.equal(flow.requests[0].options.credentials, 'same-origin');
 	assert.equal(flow.requests[0].options.body.get('artnovo_wizard_select'), '1');
+	assert.equal(flow.requests[0].options.body.get('artnovo_purchase_action'), undefined, 'آماده‌سازی عادی به‌تنهایی اقدام خرید مستقل نمی‌فرستد');
 	assert.equal(flow.requests[0].options.body.get('artnovo_auth_identifier'), undefined, 'شناسه و رمز ورود جزو درخواست انتخاب نیستند');
 	assert.equal(flow.requests[0].options.body.get('artnovo_auth_proof'), undefined);
 	assert.equal(new URL(flow.requests[0].url).searchParams.get('artnovo_checkout'), '1');
@@ -438,6 +439,17 @@ async function testAsyncSelection() {
 	flow.context.prepareCheckout('27', 1);
 	assert.equal(flow.requests.length, 2, 'خرید تأییدشدهٔ تکراری دوباره آماده نمی‌شود');
 	assert.equal(flow.context.prepareCheckout('999', 1), false, 'محصول بدون روش پرداخت مجاز آماده نمی‌شود');
+	const catalog = queueFixture({ signedIn: true });
+	catalog.context.confirmedIdentity = '25:1';
+	catalog.context.reviewCurrent = true;
+	catalog.context.review = true;
+	const purchaseAction = '1'.repeat(32);
+	catalog.context.go({ step: '3', category: '1', plan: '25' }, purchaseAction);
+	catalog.context.go({ step: '3', category: '1', plan: '25' }, '2'.repeat(32));
+	assert.equal(catalog.requests.length, 1, 'دوبار کلیک کارت با انتخاب یکسان فقط یک اقدام در حال اجرا دارد');
+	assert.equal(catalog.requests[0].options.body.get('artnovo_purchase_action'), purchaseAction, 'کلیک کارت حتی برای پلن و تعداد یکسان شناسهٔ اقدام را می‌فرستد');
+	catalog.succeed(0);
+	await flush();
 
 	const lost = queueFixture();
 	lost.choose('25');

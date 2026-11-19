@@ -46,12 +46,28 @@ function received_order(): \WC_Order|false {
 }
 
 add_filter( 'woocommerce_should_clear_cart_after_payment', static function ( bool $clear ): bool {
-	if ( ! $clear || ! isset( $_GET['artnovo_status'] ) ) {
+	if ( ! $clear ) {
 		return $clear;
 	}
 	$order = received_order();
-	return ! $order || ! \Artnovo\Core\is_service_order( $order );
+	return ! $order || ! ( received_keeps_wizard_cart( $order ) || isset( $_GET['artnovo_status'] ) && \Artnovo\Core\is_service_order( $order ) );
 }, PHP_INT_MAX );
+
+function received_keeps_wizard_cart( \WC_Order $order ): bool {
+	if ( 'artnovo_gpante' !== $order->get_payment_method( 'edit' ) || ! function_exists( '\\Artnovo\\PlanCheckout\\wizard_purchase_intent' )
+		|| ! WC()->session || ! WC()->cart ) {
+		return false;
+	}
+	$result = \Artnovo\PlanCheckout\wizard_selection_locked( static function () use ( $order ): bool {
+		if ( ! \Artnovo\PlanCheckout\wizard_refresh_selection_session() ) {
+			return true;
+		}
+		$intent = \Artnovo\PlanCheckout\wizard_purchase_intent( (array) WC()->session->get( \Artnovo\PlanCheckout\WIZARD_DRAFT ) );
+		return '' !== $intent && ! hash_equals( $intent, (string) $order->get_meta( \Artnovo\PlanCheckout\PURCHASE_META, true ) );
+	}, true );
+	// A competing selection owns the current cart until its session update is saved.
+	return false !== $result;
+}
 
 function received_payment_order(): \WC_Order|false {
 	if ( ! \Artnovo\Core\bridge_available() || ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'order-pay' ) || get_current_user_id() < 1 ) {
@@ -559,11 +575,12 @@ function render_received_page(): void {
 		static fn( $notice ): bool => $order->get_id() === ( $notice['data']['artnovo_receipt_order'] ?? null ) );
 	// Tracking a previous order must not clear a new selection with the same cart hash.
 	if ( ! isset( $_GET['artnovo_status'] ) ) {
+		$keep_cart = received_keeps_wizard_cart( $order );
 		received_before_thankyou( $order->get_id() );
-		if ( WC()->session && (int) WC()->session->get( 'order_awaiting_payment' ) === $order->get_id() ) {
+		if ( ! $keep_cart && WC()->session && (int) WC()->session->get( 'order_awaiting_payment' ) === $order->get_id() ) {
 			WC()->session->__unset( 'order_awaiting_payment' );
 		}
-		if ( WC()->cart && ! WC()->cart->is_empty() && $order->has_cart_hash( WC()->cart->get_cart_hash() ) ) {
+		if ( ! $keep_cart && WC()->cart && ! WC()->cart->is_empty() && $order->has_cart_hash( WC()->cart->get_cart_hash() ) ) {
 			wc_empty_cart();
 		}
 	}
@@ -655,9 +672,8 @@ function render_received_page(): void {
 					<?php if ( $primary[0] !== $support ) : ?><a href="<?php echo esc_url( $support ); ?>">پشتیبانی این خرید</a><?php endif; ?>
 				</nav>
 				<?php if ( ! $order->is_paid() && in_array( $bank_phase, [ 'open', 'review', 'failed_final' ], true )
-					&& in_array( $state['state'], [ 'pending', 'review', 'failed' ], true )
-					&& function_exists( '\\Artnovo\\PlanCheckout\\wizard_new_purchase_form' ) ) : ?>
-					<?php \Artnovo\PlanCheckout\wizard_new_purchase_form( $order ); ?>
+					&& in_array( $state['state'], [ 'pending', 'review', 'failed' ], true ) ) : ?>
+					<a href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">مشاهدهٔ پلن‌ها</a>
 				<?php endif; ?>
 				<details class="artnovo-received-details woocommerce"><summary>جزئیات خرید و فاکتور</summary>
 					<dl><dt>شمارهٔ پیگیری</dt><dd><bdi><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></bdi></dd>

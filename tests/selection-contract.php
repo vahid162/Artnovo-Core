@@ -1,15 +1,20 @@
 <?php
 // Actual Core selection/cart callbacks against two request snapshots and a shared synthetic session.
 // No WordPress installation, database, provider, real order, payment or email.
-namespace Artnovo\Core { function bridge_available(): bool { return true; } }
+namespace Artnovo\Core {
+	function bridge_available(): bool { return true; }
+	function is_service_order( \WC_Order $order ): bool { return $order->service; }
+}
 namespace Artnovo\HomeOrderUI\Wizard { function is_page(): bool { return $GLOBALS['wizard_page'] ?? false; } }
 namespace Artnovo\AccountUI {
 	function account_native_login_url( string $return ): string { return 'https://example.test/login?back_url=' . rawurlencode( $return ); }
+	function received_bank_payment( \WC_Order $order ): array { return []; }
 }
 namespace WPVPNBridge\Commerce {
 	class Orders {
 		public static function max_purchase_quantity( $product, ?string $method = null ): int { return 10; }
 		public static function product_terms( $product ): array { return []; }
+		public static function fresh_order( int $id ): \WC_Order|false { return \wc_get_order( $id ); }
 	}
 }
 namespace WPVPNBridge { class Settings { public function ready(): bool { return true; } } }
@@ -59,6 +64,12 @@ function remove_action(string $name,callable $callback,int $priority=10):void{fo
 function wp_verify_nonce( string $nonce, string $action ): bool { return ('valid-checkout' === $nonce && 'woocommerce-process_checkout' === $action)||('valid-review'===$nonce&&'update-order-review'===$action)||('valid-wizard'===$nonce&&'artnovo_wizard_checkout'===$action); }
 function wp_create_nonce( string $action ): string { return 'fresh-' . $action; }
 class SyntheticResponse extends RuntimeException { public function __construct(public array $payload){parent::__construct('Synthetic response');} }
+class WP_REST_Request {
+	public function __construct( private ?string $intent = null ) {}
+	public function get_method(): string { return 'GET'; }
+	public function get_route(): string { return '/WC/Store/V1/Checkout/'; }
+	public function get_header( string $name ): ?string { return 'X-Artnovo-Purchase-Intent' === $name ? $this->intent : null; }
+}
 function wp_send_json(array $payload):never{throw new SyntheticResponse($payload);}
 function wp_send_json_error(array $data,int $status=200):never{throw new SyntheticResponse(['success'=>false,'data'=>$data,'status'=>$status]);}
 function wp_send_json_success(array $data,int $status=200):never{throw new SyntheticResponse(['success'=>true,'data'=>$data,'status'=>$status]);}
@@ -112,6 +123,23 @@ class WC_Product {
 	public function get_max_purchase_quantity(): int { return -1; }
 }
 function wc_get_product( int $id ): WC_Product|false { return in_array($id,[25,26,99],true)?new WC_Product($id):false; }
+class WC_Order {
+	public array $meta = [];
+	public function __construct( public int $id, public string $method = 'artnovo_gpante', public string $status = 'pending', public int $owner = 7, public bool $service = true ) {}
+	public function get_id(): int { return $this->id; }
+	public function get_customer_id(): int { return $this->owner; }
+	public function get_payment_method( string $context = '' ): string { return $this->method; }
+	public function get_created_via(): string { return 'store-api'; }
+	public function get_transaction_id( string $context = '' ): string { return ''; }
+	public function is_paid(): bool { return false; }
+	public function get_meta( string $key, bool $single = true ): mixed { return $this->meta[$key] ?? ''; }
+	public function update_meta_data( string $key, mixed $value ): void { $this->meta[$key] = $value; }
+	public function has_status( string $status ): bool { return $this->status === $status; }
+}
+$orders = [];
+function wc_get_order( int $id ): WC_Order|false { return $GLOBALS['orders'][$id] ?? false; }
+function wc_get_orders( array $query ): array { return array_filter( $GLOBALS['orders'], static fn( WC_Order $order ) => $order->get_customer_id() === $query['customer_id'] ); }
+function wc_get_order_statuses(): array { return [ 'wc-pending' => 'pending' ]; }
 class WC_Session_Handler {
 	public bool $cookie = false;
 	public bool $browser_cookie = false;
@@ -121,7 +149,7 @@ class WC_Session_Handler {
 	}
 	public function set_customer_session_cookie(bool $set):void{$this->cookie=$set;$GLOBALS['cookie_events'][]='set';}
 	public function destroy_session_if_empty():void{if($this->browser_cookie&&$this->cookie&&!$this->data&&!is_user_logged_in()){$this->cookie=false;$GLOBALS['cookie_events'][]='destroy';}}
-	public function get_customer_id(): string { return 'synthetic-customer'; }
+	public function get_customer_id(): string { return $GLOBALS['synthetic_session_owner'] ?? 'synthetic-customer'; }
 	public function get( string $key, mixed $default = null ): mixed { return $this->data[$key]??$default; }
 	public function set( string $key, mixed $value ): void { if(null===$value){unset($this->data[$key]);}else{$this->data[$key]=$value;} }
 	public function __unset( string $key ): void { unset($this->data[$key]); }
@@ -149,6 +177,7 @@ class WC_Cart_Session {
 	public function get_cart_from_session(): void { $this->cart->items=WC()->session->get('cart',[]); }
 }
 function WC(): object { return $GLOBALS['woo']; }
+function wc_load_cart(): void {}
 $woo=(object)['session'=>new WC_Session_Handler(),'cart'=>new WC_Cart()];
 $woo->payment_gateways= new class {
 	public function payment_gateways(): array { return ['bacs'=>(object)['id'=>'bacs','enabled'=>'yes']]; }
@@ -160,6 +189,7 @@ class SyntheticWoo {
 	public WC_Cart $cart;
 	public function __construct(object $woo){$this->session=$woo->session;$this->cart=$woo->cart;$this->gateways=$woo->payment_gateways;}
 	private object $gateways;
+	public function initialize_session(): void {}
 	public function payment_gateways(): object { return $this->gateways; }
 }
 $woo=new SyntheticWoo($woo);
@@ -179,9 +209,10 @@ $wpdb=new class {
 };
 function check(string $name,bool $passed):void{++$GLOBALS['assertions'];if(!$passed){++$GLOBALS['failures'];fwrite(STDERR,'FAIL '.$name."\n");}}
 require dirname(__DIR__).'/modules/checkout/artnovo-plan-checkout.php';
-function choose(int $id,int $quantity,string $revision,bool $ajax=false):array|WP_Error {
+function choose(int $id,int $quantity,string $revision,bool $ajax=false,string $purchase_action=''):array|WP_Error {
 	$_POST=['artnovo_product'=>(string)$id,'artnovo_quantity'=>(string)$quantity,'artnovo_selection_revision'=>$revision];
 	if($ajax)$_POST['artnovo_wizard_cart']=$id.':'.(Artnovo\PlanCheckout\wizard_draft()['quantity']??1);
+	if ( '' !== $purchase_action ) $_POST['artnovo_purchase_action'] = $purchase_action;
 	return Artnovo\PlanCheckout\wizard_update_selection($ajax,'');
 }
 $initial=Artnovo\PlanCheckout\wizard_selection_revision();
@@ -301,8 +332,13 @@ try{do_action('woocommerce_checkout_update_order_review',http_build_query(['artn
 check('current Core review continues with its selection locked',[]===$review_response&&1===count($locks));
 WC()->session->set('chosen_payment_method','bacs');finish_request();
 check('native review can persist its current choice before lock release','bacs'===$persisted['chosen_payment_method']&&26===$persisted[Artnovo\PlanCheckout\WIZARD_DRAFT]['product']&&[]===$locks);
+$review_response=[];
+try{do_action('woocommerce_checkout_update_order_review','billing_email=ordinary%40example.test');}catch(SyntheticResponse $response){$review_response=$response->payload;}
+check('markerless service review checks current selection under lock and then continues natively',[]===$review_response&&1===count($locks));
+finish_request();
+WC()->cart->items=[['product_id'=>99,'quantity'=>1,'data'=>wc_get_product(99)]];
 $events=count($lock_events);do_action('woocommerce_checkout_update_order_review','billing_email=ordinary%40example.test');
-check('ordinary review never acquires a Core selection lock',count($lock_events)===$events);
+check('unrelated native review never acquires a Core selection lock',count($lock_events)===$events);
 WC()->session=new WC_Session_Handler($persisted);WC()->cart->items=$persisted['cart'];
 $wizard_page=true;$_SERVER['REQUEST_METHOD']='GET';$_GET=['artnovo_plan'=>'25','artnovo_checkout'=>'1'];$return=[];
 try{foreach($hooks['template_redirect'][9] as [$callback])$callback();}catch(SyntheticResponse $response){$return=$response->payload;}
@@ -474,6 +510,97 @@ check('native checkout AJAX with the current marker and nonce gets the same cont
 check( 'authenticated native checkout AJAX removes both Pinova phone validation hooks', phone_validator_state( $phone_variants['both'], false ) );
 WC()->cart->items=[['product_id'=>99,'quantity'=>1,'data'=>wc_get_product(99)]];
 check('an ordinary product or wallet top-up never inherits contact-free checkout',$native_fields===apply_filters('woocommerce_checkout_fields',$native_fields)&&$posted===apply_filters('woocommerce_checkout_posted_data',$posted));
+
+// The same catalog choice starts another intent only when it is a new authorized action.
+$persisted = []; WC()->session = new WC_Session_Handler(); WC()->cart->items = [];
+choose( 25, 1, Artnovo\PlanCheckout\wizard_selection_revision() );
+$old = $orders[801] = new WC_Order( 801 );
+$old->meta['original-order-item'] = 120;
+WC()->session->set( 'order_awaiting_payment', 801 );
+WC()->session->set( 'store_api_draft_order', 801 );
+WC()->session->save_data();
+$catalog_revision = Artnovo\PlanCheckout\wizard_selection_revision();
+$action = str_repeat( 'a', 32 );
+$fresh = choose( 25, 1, $catalog_revision, false, $action );
+$fresh_draft = Artnovo\PlanCheckout\wizard_draft();
+$intent = Artnovo\PlanCheckout\wizard_purchase_intent( $fresh_draft );
+check( 'ordinary same-plan catalog action detaches only the old online order and retains its saved item', ! isset( $fresh['error'] )
+	&& '' !== $intent && 801 === $fresh_draft['fresh_from'] && 120 === $old->meta['original-order-item']
+	&& null === WC()->session->get( 'order_awaiting_payment' ) && null === WC()->session->get( 'store_api_draft_order' ) );
+$replayed = choose( 25, 1, $catalog_revision, false, $action );
+check( 'same action and stale initial revision returns the confirmed context', true === ( $replayed['selection_changed'] ?? false ) && $fresh_draft === Artnovo\PlanCheckout\wizard_draft() );
+choose( 25, 2, Artnovo\PlanCheckout\wizard_selection_revision() );
+$edited = Artnovo\PlanCheckout\wizard_draft();
+check( 'quantity editing rotates revision without dropping the intent or earlier-order context', $edited['revision'] !== $fresh_draft['revision']
+	&& $intent === $edited['purchase_intent'] && 801 === $edited['fresh_from'] && 2 === $edited['quantity'] );
+check( 'same-cart requests must carry the current intent and revision', ! Artnovo\PlanCheckout\wizard_matches_purchase_request( $edited, '', $edited['revision'] )
+	&& ! Artnovo\PlanCheckout\wizard_matches_purchase_request( $edited, $intent, $fresh_draft['revision'] )
+	&& Artnovo\PlanCheckout\wizard_matches_purchase_request( $edited, $intent, $edited['revision'] ) );
+$synthetic_session_owner = '7';
+$stale_store = apply_filters( 'rest_dispatch_request', null, new WP_REST_Request( str_repeat( 'f', 64 ) ) );
+check( 'mixed-case Store API route with trailing slash rejects a stale intent before dispatch', $stale_store instanceof WP_Error
+	&& 'artnovo_selection_changed' === $stale_store->get_error_code() );
+$plan_cart = WC()->cart->get_cart();
+WC()->cart->set_cart_contents( [ 'ordinary-99' => [ 'product_id' => 99, 'quantity' => 1, 'data' => wc_get_product( 99 ) ] ] );
+WC()->session->save_data();
+check( 'native unrelated Blocks remains available even in a session that retains an online intent',
+	null === apply_filters( 'rest_dispatch_request', null, new WP_REST_Request() ) );
+WC()->cart->set_cart_contents( $plan_cart );
+WC()->session->save_data();
+unset( $synthetic_session_owner );
+
+$orders[802] = new WC_Order( 802, 'bacs' );
+WC()->session->set( 'order_awaiting_payment', 802 );
+WC()->session->save_data();
+check( 'an unrelated BACS pointer is guarded before classic WooCommerce can change its items', is_wp_error( Artnovo\PlanCheckout\wizard_fresh_purchase_checkout( true ) )
+	&& 802 === WC()->session->get( 'order_awaiting_payment' ) && [] === $orders[802]->meta );
+WC()->session->set( 'store_api_draft_order', 802 );
+WC()->session->save_data();
+check( 'managed Store API read or edit cannot rebuild an unrelated BACS draft reference',
+	is_wp_error( Artnovo\PlanCheckout\wizard_fresh_purchase_checkout( protect_store_pointer: true ) ) && 802 === WC()->session->get( 'store_api_draft_order' ) );
+WC()->session->__unset( 'store_api_draft_order' );
+Artnovo\PlanCheckout\wizard_bind_fresh_purchase_order( $orders[802] );
+check( 'selecting native BACS after catalog detachment follows the same BACS order without an online claim or marker',
+	802 === Artnovo\PlanCheckout\wizard_draft()['fresh_order'] && empty( Artnovo\PlanCheckout\wizard_draft()['purchase_claimed'] )
+	&& true === Artnovo\PlanCheckout\wizard_fresh_purchase_checkout() && [] === $orders[802]->meta );
+WC()->session->set( Artnovo\PlanCheckout\WIZARD_DRAFT, $edited );
+WC()->session->__unset( 'order_awaiting_payment' );
+WC()->session->save_data();
+$new_order = new WC_Order( 0 );
+Artnovo\PlanCheckout\wizard_claim_online_purchase( $new_order );
+check( 'missing order after durable claim fails closed', is_wp_error( Artnovo\PlanCheckout\wizard_fresh_purchase_checkout( true ) ) );
+$new_order->id = 803;
+$orders[803] = $new_order;
+check( 'interruption after order save and before session binding recovers the marked order', $new_order === Artnovo\PlanCheckout\wizard_fresh_purchase_checkout( true )
+	&& $intent === $new_order->get_meta( Artnovo\PlanCheckout\PURCHASE_META ) );
+$new_order->status = 'checkout-draft';
+check( 'verified owned Store API draft can resume without creating another order', true === Artnovo\PlanCheckout\wizard_fresh_purchase_checkout( true, true )
+	&& 803 === WC()->session->get( 'store_api_draft_order' ) );
+check( 'classic cannot recreate an unfinished Store API draft', is_wp_error( Artnovo\PlanCheckout\wizard_fresh_purchase_checkout( true ) ) );
+
+$current_user = 0;
+$wizard_page = true;
+$persisted = [];
+WC()->session = new WC_Session_Handler();
+WC()->cart->items = [];
+$online_action = str_repeat( 'b', 32 );
+$guest = wizard_post( [ 'artnovo_wizard_nonce' => 'valid-wizard', 'artnovo_wizard_ajax' => '1', 'artnovo_wizard_select' => '1',
+	'artnovo_login_method' => 'pinova', 'artnovo_product' => '25', 'artnovo_quantity' => '1',
+	'artnovo_selection_revision' => Artnovo\PlanCheckout\wizard_selection_revision(), 'artnovo_purchase_action' => $online_action ] );
+$guest_draft = Artnovo\PlanCheckout\wizard_draft();
+check( 'guest catalog action marks a resumable intent without preparing a paying cart', true === ( $guest['success'] ?? false )
+	&& true === ( $guest_draft['purchase_pending_login'] ?? null ) && '' !== Artnovo\PlanCheckout\wizard_purchase_intent( $guest_draft ) && [] === WC()->cart->items );
+finish_request();
+$current_user = 7;
+WC()->session->set( 'order_awaiting_payment', 801 );
+WC()->session->set( 'store_api_draft_order', 801 );
+WC()->session->save_data();
+$resumed = choose( 25, 1, $guest_draft['revision'] );
+$resumed_draft = Artnovo\PlanCheckout\wizard_draft();
+check( 'Pinova selection recovery detaches the older online pointer with the existing guest intent and action', ! isset( $resumed['error'] )
+	&& $guest_draft['purchase_intent'] === ( $resumed_draft['purchase_intent'] ?? null ) && 801 === ( $resumed_draft['fresh_from'] ?? null )
+	&& $online_action === ( $resumed_draft['purchase_action'] ?? null ) && empty( $resumed_draft['purchase_pending_login'] )
+	&& null === WC()->session->get( 'order_awaiting_payment' ) && null === WC()->session->get( 'store_api_draft_order' ) );
 echo "{$assertions} selection assertions, {$failures} failures\n";
 exit($failures?1:0);
 }

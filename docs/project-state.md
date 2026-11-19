@@ -1,5 +1,27 @@
 # Current project state
 
+## Delivery candidate: independent purchase from the catalogue / Core 1.11.5 (2026-11-19)
+
+In isolated Firefox and WooCommerce 11.3, Core 1.11.4 reused the previous
+same-plan order in bank review when the customer bought from the regular plan
+card. WooCommerce replaced a line item of that order even though the plan,
+quantity and price were identical. The earlier live independent purchase used
+the separate new-purchase form.
+
+The approved change makes the regular plan action the entry point for a separate
+online service checkout. Repeated submissions and recovery remain tied to the
+same purchase. Pay Bridge owns bank attempt eligibility, and native order-pay
+continues the original order when retry is permitted.
+
+Isolated Firefox and WooCommerce validated the ordinary Classic catalogue flow
+with a cancelled or open bank attempt, late settlement of the earlier order,
+duplicate submission, and the server-rendered flow with JavaScript disabled.
+Native WooCommerce order-pay added exactly one bank attempt to the original
+cancelled order and preserved its attempt history.
+Authenticated Store API requests covered stale tabs, and an unrelated native
+BACS checkout exercised the WooCommerce fallback. The site uses Classic for
+managed service checkout.
+
 ## Delivery candidate: Pinova checkout compatibility / Core 1.11.4 (2026-11-19)
 
 A controlled live Core 1.11.3 checkout stopped at Pinova's phone validation
