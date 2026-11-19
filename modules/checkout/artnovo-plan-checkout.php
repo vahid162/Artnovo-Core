@@ -339,12 +339,13 @@ add_action( 'woocommerce_checkout_process', static function (): void {
 		return;
 	}
 	// Account authentication is complete before this contact-free checkout.
-	$hooks = $GLOBALS['wp_filter']['woocommerce_after_checkout_validation']->callbacks[10] ?? [];
-	foreach ( $hooks as $hook ) {
-		$callback = $hook['function'];
-		if ( is_array( $callback ) && $callback[0] instanceof \Pinova\Integrations\Woocommerce\Checkout
-			&& 'validate_checkout_phone' === $callback[1] ) {
-			remove_action( 'woocommerce_after_checkout_validation', $callback );
+	foreach ( [ 'woocommerce_checkout_process', 'woocommerce_after_checkout_validation' ] as $hook_name ) {
+		foreach ( $GLOBALS['wp_filter'][ $hook_name ]->callbacks[10] ?? [] as $hook ) {
+			$callback = $hook['function'];
+			if ( is_array( $callback ) && $callback[0] instanceof \Pinova\Integrations\Woocommerce\Checkout
+				&& 'validate_checkout_phone' === $callback[1] ) {
+				remove_action( $hook_name, $callback );
+			}
 		}
 	}
 }, 9 );

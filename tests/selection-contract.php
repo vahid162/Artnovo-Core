@@ -436,25 +436,42 @@ check('an existing account email is retained for native order mail without askin
 $account_email='not-an-email';$invalid_email=apply_filters('woocommerce_checkout_posted_data',$posted);
 check('an invalid stored account email does not become an order contact',''===($invalid_email['billing_email']??null));
 check('contact-free checkout still cannot update or merge the account',false===apply_filters('woocommerce_checkout_update_customer_data',true));
-function phone_validator_state(): array {
-	$phone=[new \Pinova\Integrations\Woocommerce\Checkout(),'validate_checkout_phone'];$other=static function():void{};
-	$GLOBALS['hooks']['woocommerce_after_checkout_validation'][10]=[[$phone,2],[$other,2]];
-	$GLOBALS['wp_filter']['woocommerce_after_checkout_validation']=(object)['callbacks'=>[10=>[['function'=>$phone],['function'=>$other]]]];
-	foreach($GLOBALS['hooks']['woocommerce_checkout_process'][9] as [$callback])$callback();
-	$remaining=array_column($GLOBALS['hooks']['woocommerce_after_checkout_validation'][10],0);
-	return ['pinova'=>in_array($phone,$remaining,true),'unrelated'=>in_array($other,$remaining,true)];
+function phone_validator_state( array $phone_hooks, bool $expect_pinova ): bool {
+	$phone = [ new \Pinova\Integrations\Woocommerce\Checkout(), 'validate_checkout_phone' ];
+	$other = static function (): void {};
+	$locations = [ 'woocommerce_checkout_process' => 0, 'woocommerce_after_checkout_validation' => 2 ];
+	foreach ( $locations as $name => $accepted ) {
+		$callbacks = in_array( $name, $phone_hooks, true ) ? [ $phone, $other ] : [ $other ];
+		$GLOBALS['hooks'][ $name ][10] = array_map( static fn( $cb ) => [ $cb, $accepted ], $callbacks );
+		$GLOBALS['wp_filter'][ $name ] = (object) [ 'callbacks' => [ 10 => array_map( static fn( $cb ) => [ 'function' => $cb ], $callbacks ) ] ];
+	}
+	foreach ( $GLOBALS['hooks']['woocommerce_checkout_process'][9] as [ $callback ] ) {
+		$callback();
+	}
+	foreach ( $locations as $name => $accepted ) {
+		$remaining = array_column( $GLOBALS['hooks'][ $name ][10], 0 );
+		if ( $remaining !== ( $expect_pinova && in_array( $name, $phone_hooks, true ) ? [ $phone, $other ] : [ $other ] ) ) {
+			return false;
+		}
+	}
+	return true;
 }
+$phone_variants = [ 'legacy' => [ 'woocommerce_checkout_process' ], 'current' => [ 'woocommerce_after_checkout_validation' ],
+	'both' => [ 'woocommerce_checkout_process', 'woocommerce_after_checkout_validation' ] ];
 foreach(['no','yes'] as $enabled){
 	$email_otp_option=$enabled;
-	check("Core email proof option $enabled does not require collecting the signed-in customer's phone again",['pinova'=>false,'unrelated'=>true]===phone_validator_state());
+	foreach ( $phone_variants as $variant => $phone_hooks ) {
+		check( "Core email proof option $enabled removes only the $variant Pinova phone validation for the signed-in wizard", phone_validator_state( $phone_hooks, false ) );
+	}
 }
 foreach(['ordinary'=>[7,false,false,[]],'invalid nonce'=>[7,false,false,['artnovo_wizard_cart'=>'26:2','woocommerce-process-checkout-nonce'=>'wrong']],'guest'=>[0,true,false,[]],'taxed'=>[7,true,true,[]]] as $case=>[$current_user,$wizard_page,$taxes_enabled,$_POST]){
 	check("$case checkout retains native contact fields",$native_fields===apply_filters('woocommerce_checkout_fields',$native_fields));
 	check("$case checkout retains native posted contact data",$posted===apply_filters('woocommerce_checkout_posted_data',$posted));
-	check("$case checkout retains its native phone validation",['pinova'=>true,'unrelated'=>true]===phone_validator_state());
+	check( "$case checkout retains native phone validation on both hooks", phone_validator_state( $phone_variants['both'], true ) );
 }
 $taxes_enabled=false;$current_user=7;$wizard_page=false;$_GET=[];$_POST=['artnovo_wizard_cart'=>'26:2','woocommerce-process-checkout-nonce'=>'valid-checkout'];$account_email='owner@example.test';
 check('native checkout AJAX with the current marker and nonce gets the same contact policy','owner@example.test'===(apply_filters('woocommerce_checkout_posted_data',$posted)['billing_email']??null));
+check( 'authenticated native checkout AJAX removes both Pinova phone validation hooks', phone_validator_state( $phone_variants['both'], false ) );
 WC()->cart->items=[['product_id'=>99,'quantity'=>1,'data'=>wc_get_product(99)]];
 check('an ordinary product or wallet top-up never inherits contact-free checkout',$native_fields===apply_filters('woocommerce_checkout_fields',$native_fields)&&$posted===apply_filters('woocommerce_checkout_posted_data',$posted));
 echo "{$assertions} selection assertions, {$failures} failures\n";
