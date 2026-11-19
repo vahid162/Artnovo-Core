@@ -246,15 +246,17 @@ assert.ok(recoveryStart >= 0 && recoveryEnd > recoveryStart, 'بازیابی و�
 const historyFixture = ({ type = 'navigate', prepare = true, href = 'https://example.test/?artnovo_plan=25#artnovo-order', action = 'https://example.test/' } = {}) => {
 	const replaced = [];
 	const events = new Map();
+	const bankConnection = [];
 	const location = { href, origin: 'https://example.test', replace: (url) => replaced.push(url) };
 	const context = vm.createContext({
 		selectionForm: prepare ? { action } : null, historyRecovering: false,
 		location, URL, Date: { now: () => 1730000000000 },
+		showBankConnection: (active) => bankConnection.push(active),
 		window: { performance: { getEntriesByType: () => [{ type }] }, addEventListener: (name, listener) => events.set(name, listener) }
 	});
 	// Production's early return exits its enclosing IIFE, so execute the captured block inside the same shape.
 	new vm.Script('(() => {' + source.slice(recoveryStart, recoveryEnd) + '\nglobalThis.readyForPrepare = true; })();').runInContext(context, { timeout: 1000 });
-	return { context, replaced, events, location };
+	return { context, replaced, events, location, bankConnection };
 };
 for (const type of ['navigate', 'reload']) {
 	const normal = historyFixture({ type });
@@ -274,6 +276,7 @@ cached.events.get('pageshow')({ persisted: false });
 assert.deepEqual(cached.replaced, [], 'pageshow عادی رفت‌وبرگشت اضافه نمی‌سازد');
 cached.events.get('pageshow')({ persisted: true });
 cached.events.get('pageshow')({ persisted: true });
+assert.deepEqual(cached.bankConnection, [false, false], 'بازگشت به فرم، وضعیت اتصال قبلی را پاک می‌کند');
 assert.equal(cached.replaced.length, 1, 'بازگشت BFCache فقط یک GET تازه می‌گیرد و فرم قدیمی را POST نمی‌کند');
 assert.equal(new URL(cached.replaced[0]).searchParams.get('artnovo_checkout'), '1');
 for (const options of [

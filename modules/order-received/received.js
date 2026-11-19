@@ -3,7 +3,16 @@
 	if (!root) return;
 
 	if (root.dataset?.artnovoNativeOrderPay !== undefined) {
-		const table = root.querySelector('form#order_review > table.shop_table');
+		const form = root.querySelector('form#order_review');
+		const status = root.querySelector('[data-artnovo-bank-connecting]');
+		if (form && status) {
+			form.addEventListener('submit', () => {
+				status.textContent = form.elements.namedItem('payment_method')?.value === 'artnovo_gpante'
+					? 'در حال اتصال به درگاه پرداخت…' : '';
+			});
+			window.addEventListener('pageshow', () => { status.textContent = ''; });
+		}
+		const table = form?.querySelector(':scope > table.shop_table');
 		if (table && !table.querySelector('input:not([type="hidden"]), select, textarea, button, [contenteditable="true"]')) {
 			const details = document.createElement('details');
 			details.className = 'artnovo-order-pay-breakdown';

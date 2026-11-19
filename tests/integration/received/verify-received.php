@@ -73,6 +73,17 @@ $check( 'an unavailable bank contract does not present failed or unpaid orders a
 	'unavailable' === \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], [] )['state'] );
 $check( 'signed final bank failure becomes a distinct failed result',
 	'failed' === \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], [ 'phase' => 'failed_final', 'can_retry' => true ] )['state'] );
+$cancelled_payment = [ 'phase' => 'failed_final', 'reason' => 'cancelled_by_user', 'can_retry' => true ];
+$cancelled_status = \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], $cancelled_payment );
+$check( 'verified cancellation names Zibal and directs the customer to retry the exact order',
+	'failed' === $cancelled_status['state'] && 'پرداخت در زیبال لغو شد' === $cancelled_status['title']
+	&& str_contains( $cancelled_status['message'], 'پرداخت همین سفارش را دوباره انجام دهید' )
+	&& \Artnovo\AccountUI\received_bank_retry( $tracking_bank, $cancelled_payment ) );
+$cancelled_payment['can_retry'] = false;
+$blocked_status = \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], $cancelled_payment );
+$check( 'verified cancellation with an ineligible retry exposes no payment instruction',
+	$cancelled_status['title'] === $blocked_status['title'] && ! str_contains( $blocked_status['message'], 'دوباره' )
+	&& ! \Artnovo\AccountUI\received_bank_retry( $tracking_bank, $cancelled_payment ) );
 $check( 'bank review shows the separate reconciliation state',
 	'review' === \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], [ 'phase' => 'review' ] )['state'] );
 $bank_completion = artnovo_received_qa_order( $id++, 'processing', 'pending', method: 'artnovo_gpante' );

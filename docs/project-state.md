@@ -1,5 +1,23 @@
 # Current project state
 
+## Delivery candidate: Zibal cancellation and independent checkout / Core 1.11.3 (2026-11-19)
+
+Core reads Pay Bridge's verified cancellation reason on the tracking and
+purchase pages. WooCommerce's native order-pay route handles eligible retries
+of the original order. A separate new-purchase action prepares the same plan
+and quantity for an independent order. Classic and Blocks checkout keep repeat
+submissions tied to the same selection and protect earlier bank orders.
+
+PHP 8.5, JavaScript, packaging, and 268 isolated received-page assertions passed.
+Firefox with WooCommerce and Pay Bridge 0.1.4 passed native same-plan Classic
+and Blocks checkout, repeated submissions, old-tab tracking, and read-only
+Blocks checkout after the new bank attempt opened. With a signed synthetic
+cancellation, the tracking tab and account details showed the cancellation and
+the native retry opened one additional attempt for the original order. The
+Classic and order-pay forms announced the bank connection before handoff.
+
+Pay Bridge owns the payment journal and WP VPN Bridge owns service issuance.
+
 ## Delivery candidate: confirmed payment before issuance / Core 1.11.2 (2026-11-19)
 
 Private tracking, purchases and order details distinguish an open bank attempt

@@ -89,13 +89,15 @@ with their native handlers. Core does not maintain a
 second wallet balance or issue services; receipt eligibility belongs to Bridge.
 
 Service shopping keeps one current plan without a customer-facing cart. Selecting
-another eligible plan silently replaces the previous unpaid selection, including
-its quantity; sign-in and browser return must not resurrect a stale selection.
-This never deletes an existing order, a submitted wallet attempt or payment evidence.
+another eligible plan replaces the previous unpaid selection, including its
+quantity. The explicit new-purchase action keeps the last plan and quantity and
+starts a distinct order when submitted. A confirmed Zibal cancellation can offer
+WooCommerce's native retry for the existing order when Pay Bridge allows it.
+Existing orders and payment evidence stay available for tracking.
 
 ## Install and update
 
-After release approval, install the verified `artnovo-core-1.11.2.zip` package from
+After release approval, install the verified `artnovo-core-1.11.3.zip` package from
 the published release. The command below builds a local candidate; a successful
 build alone does not authorize installation. The package contains an
 `artnovo-core/` plugin directory; GitHub's automatic source archives contain the

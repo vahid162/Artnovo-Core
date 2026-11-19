@@ -86,6 +86,14 @@ function received_bank_payment( \WC_Order $order ): ?array {
 	return in_array( $payment['phase'] ?? '', [ 'none', 'open', 'review', 'failed_final', 'paid' ], true ) ? $payment : [];
 }
 
+function received_bank_cancelled( array $payment ): bool {
+	return 'failed_final' === ( $payment['phase'] ?? '' ) && 'cancelled_by_user' === ( $payment['reason'] ?? '' );
+}
+
+function received_bank_retry( \WC_Order $order, array $payment ): bool {
+	return 'failed_final' === ( $payment['phase'] ?? '' ) && true === ( $payment['can_retry'] ?? false ) && $order->needs_payment();
+}
+
 add_action( 'wc_ajax_artnovo_received_payment_status', static function (): void {
 	header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0' );
 	header( 'Referrer-Policy: no-referrer' );
@@ -173,7 +181,7 @@ add_action( 'woocommerce_pay_order_before_payment', static function () use ( &$r
 add_action( 'woocommerce_after_template_part', static function ( string $name ) use ( &$received_payment_skin ): void {
 	if ( 'checkout/form-pay.php' === $name && $received_payment_skin ) {
 		$received_payment_skin = false;
-		echo '</div></section>';
+		echo '<div role="status" data-artnovo-bank-connecting></div></div></section>';
 	}
 }, 10 );
 
@@ -252,6 +260,12 @@ function received_state( \WC_Order $order, ?array $delivery = null, ?array $bank
 		return [ 'state' => 'pending', 'title' => 'در حال بررسی پرداخت بانکی', 'message' => 'لطفاً دوباره پرداخت نکنید. نتیجهٔ پرداخت در همین صفحه نمایش داده می‌شود.', 'step' => 2 ];
 	}
 	if ( 'failed_final' === $bank_phase && ! $order->is_paid() ) {
+		if ( received_bank_cancelled( $bank_payment ) ) {
+			return [ 'state' => 'failed', 'title' => 'پرداخت در زیبال لغو شد',
+				'message' => received_bank_retry( $order, $bank_payment )
+					? 'برای دریافت اکانت، پرداخت همین سفارش را دوباره انجام دهید.'
+					: 'پرداخت این سفارش انجام نشده است. برای پیگیری با پشتیبانی تماس بگیرید.', 'step' => 2 ];
+		}
 		return [ 'state' => 'failed', 'title' => 'پرداخت بانکی کامل نشد', 'message' => 'این تلاش بانکی پایان یافته است. وضعیت و اقدام بعدی همین سفارش را در این صفحه ببینید.', 'step' => 2 ];
 	}
 	$delivery ??= received_services( $order );
@@ -318,6 +332,10 @@ function received_account_actions( \WC_Order $order, ?array $bank_payment, strin
 			$phase = $bank_payment['phase'] ?? '';
 			if ( $separate_pay || ( 'failed_final' === $phase && true !== ( $bank_payment['can_retry'] ?? false ) ) ) {
 				unset( $actions['pay'] );
+			}
+			if ( isset( $actions['pay'] ) && 'failed' === $state && received_bank_cancelled( $bank_payment ) ) {
+				$actions['pay']['name'] = 'پرداخت مجدد همین سفارش';
+				unset( $actions['pay']['aria-label'] );
 			}
 			if ( in_array( $phase, [ '', 'open', 'review' ], true ) || in_array( $state, [ 'unavailable', 'review' ], true ) ) {
 				unset( $actions['pay'], $actions['cancel'] );
@@ -566,8 +584,10 @@ function render_received_page(): void {
 	$refresh = add_query_arg( 'artnovo_status', wp_generate_uuid4(), received_order_url( $order ) ) . '#artnovo-received-status';
 	$support = add_query_arg( 'order', $order->get_id(), account_url( 'support' ) );
 	$bank_phase = $bank_payment['phase'] ?? '';
-	$bank_retry = 'failed_final' === $bank_phase && true === ( $bank_payment['can_retry'] ?? false );
+	$bank_retry = received_bank_retry( $order, $bank_payment ?? [] );
+	$bank_cancelled = received_bank_cancelled( $bank_payment ?? [] );
 	$poll_bank = ( 'open' === $bank_phase && 'pending' === $state['state'] )
+		|| ( 'review' === $bank_phase && 'review' === $state['state'] )
 		|| ( 'paid' === $bank_phase && in_array( $state['state'], [ 'paid_waiting_fulfillment', 'issuing', 'partial' ], true ) );
 	$primary = match ( $state['state'] ) {
 		'pending' => ( null === $bank_payment || 'none' === $bank_phase ) && $order->needs_payment() && ! in_array( $order->get_payment_method(), [ 'bacs', 'wpvpn_wallet' ], true )
@@ -575,7 +595,7 @@ function render_received_page(): void {
 		'receipt', 'paid_waiting_fulfillment', 'issuing', 'partial' => [ $refresh, 'به‌روزرسانی وضعیت' ],
 		'ready' => [ '#artnovo-received-services', 'دریافت لینک اتصال' ],
 		'failed' => ( null === $bank_payment || $bank_retry ) && $order->needs_payment() && 'wpvpn_wallet' !== $order->get_payment_method()
-			? [ $order->get_checkout_payment_url(), 'ادامهٔ پرداخت همین خرید' ] : [ $support, 'پیگیری پرداخت با پشتیبانی' ],
+			? [ $order->get_checkout_payment_url(), $bank_cancelled ? 'پرداخت مجدد همین سفارش' : 'ادامهٔ پرداخت همین خرید' ] : [ $support, 'پیگیری پرداخت با پشتیبانی' ],
 		default => [ $support, 'پشتیبانی این خرید' ],
 	};
 	?>
@@ -634,6 +654,11 @@ function render_received_page(): void {
 					<?php if ( ! $quick_transfer ) : ?><a href="<?php echo esc_url( account_url( 'help' ) ); ?>">راهنمای اتصال</a><?php endif; ?>
 					<?php if ( $primary[0] !== $support ) : ?><a href="<?php echo esc_url( $support ); ?>">پشتیبانی این خرید</a><?php endif; ?>
 				</nav>
+				<?php if ( ! $order->is_paid() && in_array( $bank_phase, [ 'open', 'review', 'failed_final' ], true )
+					&& in_array( $state['state'], [ 'pending', 'review', 'failed' ], true )
+					&& function_exists( '\\Artnovo\\PlanCheckout\\wizard_new_purchase_form' ) ) : ?>
+					<?php \Artnovo\PlanCheckout\wizard_new_purchase_form( $order ); ?>
+				<?php endif; ?>
 				<details class="artnovo-received-details woocommerce"><summary>جزئیات خرید و فاکتور</summary>
 					<dl><dt>شمارهٔ پیگیری</dt><dd><bdi><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></bdi></dd>
 						<dt>روش پرداخت</dt><dd><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_payment_method_title() ) ); ?></dd>

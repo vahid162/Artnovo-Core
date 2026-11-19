@@ -200,6 +200,12 @@ function subscription_payment_presentation( \WC_Order $order, array $snapshot ):
 	if ( $order->is_paid() ) {
 		return null;
 	}
+	$bank_payment = received_bank_payment( $order );
+	if ( received_bank_cancelled( $bank_payment ?? [] ) ) {
+		$retry = received_bank_retry( $order, $bank_payment );
+		return [ 'state' => 'pending', 'label' => 'پرداخت در زیبال لغو شد', 'action_url' => $retry ? $order->get_checkout_payment_url() : $track,
+			'action_label' => $retry ? 'پرداخت مجدد همین سفارش' : 'پیگیری سفارش' ];
+	}
 	if ( $order->has_status( 'failed' ) ) {
 		return [ 'state' => 'pending', 'label' => 'پرداخت کامل نشده است', 'action_url' => $track, 'action_label' => 'بررسی وضعیت پرداخت' ];
 	}
