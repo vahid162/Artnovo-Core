@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.11.2 — 2026-11-19
+
+- Show confirmed bank payment while the existing subscription purchase waits for
+  issuance to start. Keep private status checks running through a deferred recovery.
+- Use the bank status in account purchases and show the support route when the
+  status is unavailable. WooCommerce supplies the account actions and retry form.
+
 ## 1.11.1 — 2026-11-18
 
 - Refresh the private bank-return page as payment and delivery progress. Hold

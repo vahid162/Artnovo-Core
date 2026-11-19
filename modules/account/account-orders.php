@@ -23,18 +23,19 @@ foreach ( $has_orders ? $customer_orders->orders : [] as $entry ) {
 		'state' => 'completed' === $native_status ? 'ready' : ( $past ? 'closed' : 'pending' ),
 		'label' => wc_get_order_status_name( $native_status ),
 	];
+	$bank_payment = received_bank_payment( $order );
 	if ( Core\is_service_order( $order ) && Core\bridge_available() ) {
 		$snapshot = $order->get_meta( '_wpvpn_snapshot', true );
-		$payment = ! $order->is_paid() && is_array( $snapshot ) ? subscription_payment_presentation( $order, $snapshot ) : null;
+		$payment = null === $bank_payment && ! $order->is_paid() && is_array( $snapshot ) ? subscription_payment_presentation( $order, $snapshot ) : null;
 		if ( $payment ) {
 			$view = $payment;
 		} else {
-			$delivery = received_state( $order );
+			$delivery = received_state( $order, bank_payment: $bank_payment );
 			$view = [ 'state' => $delivery['state'], 'label' => $delivery['title'] ];
 		}
 		$past = in_array( $view['state'], [ 'ready', 'closed' ], true );
 	}
-	$groups[ $past ? 'past' : 'followup' ][] = [ $order, $view ];
+	$groups[ $past ? 'past' : 'followup' ][] = [ $order, $view, $bank_payment ];
 }
 
 $action_link = static function ( array $action, string $key, string $reference, bool $highlight = false ) use ( $wp_button_class ): void {
@@ -70,7 +71,7 @@ $show_column = static function ( string $name, \WC_Order $order, string $html ) 
 		<section class="artnovo-orders-group" aria-label="<?php echo esc_attr( $heading ); ?>">
 			<h2><?php echo esc_html( $heading ); ?></h2>
 			<ul class="artnovo-orders-list" role="list">
-				<?php foreach ( $groups[ $group ] as [ $order, $view ] ) : ?>
+				<?php foreach ( $groups[ $group ] as [ $order, $view, $bank_payment ] ) : ?>
 					<?php
 					$number = Core\display_digits( (string) $order->get_order_number() );
 					$reference = 'سفارش ' . $number;
@@ -109,10 +110,10 @@ $show_column = static function ( string $name, \WC_Order $order, string $html ) 
 						<?php if ( isset( $columns['order-actions'] ) ) : ?>
 							<div class="artnovo-orders-actions">
 								<?php if ( has_action( 'woocommerce_my_account_my_orders_column_order-actions' ) ) : ?>
-									<?php do_action( 'woocommerce_my_account_my_orders_column_order-actions', $order ); ?>
+									<?php received_account_actions( $order, $bank_payment, $view['state'], static fn() => do_action( 'woocommerce_my_account_my_orders_column_order-actions', $order ) ); ?>
 								<?php else : ?>
 									<?php
-									$actions = wc_get_account_orders_actions( $order );
+									$actions = received_account_actions( $order, $bank_payment, $view['state'], static fn() => wc_get_account_orders_actions( $order ) );
 									if ( isset( $actions['view'] ) ) {
 										$primary = $actions['view'];
 										$canonical = $url === $primary['url'] && __( 'View', 'woocommerce' ) === $primary['name'];

@@ -10,7 +10,8 @@ if ( ! ( ( $order ?? null ) instanceof \WC_Order ) || get_current_user_id() < 1
 	return;
 }
 
-$purchase_state = received_state( $order );
+$bank_payment = received_bank_payment( $order );
+$purchase_state = received_state( $order, bank_payment: $bank_payment );
 $order_id = $order->get_id();
 $method = $order->get_payment_method();
 $method_title = $order->get_payment_method_title() ?: ( 'bacs' === $method ? 'کارت‌به‌کارت' : '' );
@@ -25,9 +26,9 @@ $support = add_query_arg( 'order', $order_id, account_url( 'support' ) );
 $payment = match ( $state ) {
 	'transfer' => 'در انتظار واریز و ارسال رسید',
 	'receipt' => 'رسید ثبت شد، منتظر تأیید',
-	'pending' => 'در انتظار تأیید پرداخت',
+	'pending' => 'open' === ( $bank_payment['phase'] ?? '' ) ? $purchase_state['title'] : 'در انتظار تأیید پرداخت',
 	'failed' => 'پرداخت کامل نشده است',
-	'issuing', 'ready', 'partial' => 'پرداخت تأیید شد',
+	'paid_waiting_fulfillment', 'issuing', 'ready', 'partial' => 'پرداخت تأیید شد',
 	'closed' => $expired ? 'پرداخت تأیید شد' : (
 		(float) $order->get_total_refunded() > 0 ? 'بازپرداخت ثبت شده است' : wc_get_order_status_name( $order->get_status() )
 	),
@@ -37,6 +38,7 @@ $payment = match ( $state ) {
 	'transfer' => [ 'پس از تأیید پرداخت', $tracking, 'واریز و ارسال رسید' ],
 	'receipt', 'pending' => [ 'پس از تأیید پرداخت', $tracking, 'بررسی وضعیت پرداخت' ],
 	'failed' => [ 'تحویل انجام نشده است', $tracking, 'پیگیری پرداخت ناموفق' ],
+	'paid_waiting_fulfillment' => [ 'آماده‌سازی اکانت در انتظار شروع است', $tracking . '#artnovo-received-status', 'بررسی وضعیت اکانت' ],
 	'issuing', 'partial' => [ $purchase_state['title'], $tracking . '#artnovo-received-status', 'بررسی وضعیت اکانت' ],
 	'ready' => [ 'آمادهٔ اتصال', account_url(), 'مشاهدهٔ اکانت' ],
 	'closed' => $expired
@@ -113,12 +115,14 @@ $message = 'pending' === $state && 'bacs' === $method && ! $order->is_paid()
 		<summary>فاکتور و جزئیات سفارش</summary>
 		<?php
 		// Keep the native invoice, order notes and extension hooks, without checkout-completion hooks.
-		$native_order_template = wc_locate_template( 'myaccount/view-order.php' );
-		if ( is_readable( $native_order_template ) && __FILE__ !== realpath( $native_order_template ) ) {
-			include $native_order_template;
-		} else {
-			do_action( 'woocommerce_view_order', $order_id );
-		}
+		received_account_actions( $order, $bank_payment, $state, static function () use ( $order, $order_id ): void {
+			$native_order_template = wc_locate_template( 'myaccount/view-order.php' );
+			if ( is_readable( $native_order_template ) && __FILE__ !== realpath( $native_order_template ) ) {
+				include $native_order_template;
+			} else {
+				do_action( 'woocommerce_view_order', $order_id );
+			}
+		} );
 		?>
 	</details>
 </div>

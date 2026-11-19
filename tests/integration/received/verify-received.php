@@ -68,7 +68,9 @@ foreach ( $cases as $name => $config ) {
 
 $tracking_bank = artnovo_received_qa_order( $id++, 'failed', method: 'artnovo_gpante' );
 $check( 'bank result without a resolved financial journal stays pending even if Woo says failed',
-	'pending' === \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], [] )['state'] );
+	'pending' === \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], [ 'phase' => 'open' ] )['state'] );
+$check( 'an unavailable bank contract does not present failed or unpaid orders as payable',
+	'unavailable' === \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], [] )['state'] );
 $check( 'signed final bank failure becomes a distinct failed result',
 	'failed' === \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], [ 'phase' => 'failed_final', 'can_retry' => true ] )['state'] );
 $check( 'bank review shows the separate reconciliation state',
@@ -78,6 +80,24 @@ $check( 'Woo status can arrive before Bridge settlement without a false confirme
 	'pending' === \Artnovo\AccountUI\received_state( $bank_completion, [ 'links' => [] ], [ 'phase' => 'open' ] )['state'] );
 $check( 'settled bank payment and ordinary issuance are distinct states',
 	'issuing' === \Artnovo\AccountUI\received_state( $bank_completion, [ 'links' => [] ], [ 'phase' => 'paid' ] )['state'] );
+$bank_waiting = artnovo_received_qa_order( $id++, 'processing', 'awaiting_payment', method: 'artnovo_gpante' );
+$waiting_state = \Artnovo\AccountUI\received_state( $bank_waiting, [ 'links' => [] ], [ 'phase' => 'paid' ] );
+$check( 'settled bank payment before Bridge promotion is at the confirmed delivery step',
+	'paid_waiting_fulfillment' === $waiting_state['state'] && 3 === $waiting_state['step'] );
+$check( 'Woo paid status and an awaiting operation alone do not establish bank confirmation',
+	'unavailable' === \Artnovo\AccountUI\received_state( $bank_waiting, [ 'links' => [] ], [] )['state'] );
+$check( 'a link already authorized by Bridge is still presented without the optional customer status',
+	'ready' === \Artnovo\AccountUI\received_state( $bank_completion, [ 'links' => [ 'https://fixture.invalid/link' ] ], [] )['state'] );
+$native_actions = [ 'pay' => [], 'cancel' => [], 'view' => [] ];
+$actions_for = static fn( WC_Order $order ): array => apply_filters( 'woocommerce_my_account_my_orders_actions', $native_actions, $order );
+$check( 'unavailable bank status retains only nonfinancial native actions for that order',
+	[ [ 'view' => [] ], $native_actions ] === \Artnovo\AccountUI\received_account_actions( $tracking_bank, [], 'unavailable',
+		static fn(): array => [ $actions_for( $tracking_bank ), $actions_for( $orders['pending'] ) ] ) );
+$check( 'the scoped account action filter is restored after rendering',
+	$native_actions === $actions_for( $tracking_bank ) );
+$check( 'known no-attempt bank purchase retains the native account actions',
+	$native_actions === \Artnovo\AccountUI\received_account_actions( $tracking_bank, [ 'phase' => 'none' ], 'pending',
+		static fn(): array => $actions_for( $tracking_bank ) ) );
 
 $own = $orders['pending'];
 $set_route( $own, 'wc_order_wrong_key' );

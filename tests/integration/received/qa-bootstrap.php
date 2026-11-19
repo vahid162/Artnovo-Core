@@ -50,6 +50,9 @@ class Artnovo_Received_QA_Order_Store extends WC_Order_Data_Store_CPT {
 		$item = new WC_Order_Item_Product();
 		$item->set_id( $order->get_id() + 100 );
 		$item->set_props( [ 'name' => 'اشتراک آزمایشی', 'product_id' => 25, 'quantity' => $case['quantity'], 'total' => '100000' ] );
+		if ( 'artnovo_gpante' === $case['snapshot']['payment_method'] ) {
+			$item->update_meta_data( '_wpvpn_snapshot', $case['snapshot'] );
+		}
 		$order->add_item( $item );
 		$order->update_meta_data( '_wpvpn_snapshot', $case['snapshot'] );
 		$order->set_object_read( true );

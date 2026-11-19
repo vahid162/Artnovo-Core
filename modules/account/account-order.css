@@ -81,7 +81,7 @@
 	background: #233b4d;
 }
 
-.artnovo-account-order:is([data-state="ready"], [data-state="partial"], [data-state="issuing"]) .artnovo-account-order-payment {
+.artnovo-account-order:is([data-state="ready"], [data-state="partial"], [data-state="issuing"], [data-state="paid_waiting_fulfillment"]) .artnovo-account-order-payment {
 	color: var(--account-emerald);
 	background: #173b3c;
 }
