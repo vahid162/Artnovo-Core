@@ -16,6 +16,11 @@ add_filter( 'pre_wp_mail', static function (): never {
 add_filter( 'pre_http_request', static function (): never {
 	WP_CLI::error( 'An HTTP request was blocked during account rendering.' );
 } );
+// The account menu can query gateways; keep WooCommerce's shipping cache in memory on fresh installations.
+add_filter( 'pre_transient_shipping-transient-version', static fn() => 'artnovo-account-fixture' );
+add_filter( 'pre_transient_wc_shipping_method_count', static fn() => [
+	'version' => 'artnovo-account-fixture', 'legacy' => 0, 'enabled' => 0, 'disabled' => 0,
+] );
 remove_action( 'shutdown', '_wp_cron' );
 if ( WC()->session instanceof WC_Session_Handler ) {
 	remove_action( 'shutdown', [ WC()->session, 'save_data' ], 20 );
@@ -149,6 +154,12 @@ foreach ( [ 2147000010 => true, 2147000011 => false ] as $order_id => $owned ) {
 		++$failures;
 	}
 	WP_CLI::log( ( $passed ? 'PASS ' : 'FAIL ' ) . ( $owned ? 'decorate own native subscription' : 'skip metadata for other customer order' ) );
+	$_GET['order'] = (string) $order_id;
+	ob_start();
+	Artnovo\AccountUI\render_account_support();
+	$support = ob_get_clean();
+	$assert( $owned === str_contains( $support, 'href="' . esc_url( $base . $order_id . '/' ) . '"' )
+		&& $owned === str_contains( $support, Artnovo\Core\display_digits( (string) $order_id ) ), 'support shows the order reference and link only to its owner' );
 }
 $mixed = new WP_HTML_Tag_Processor( Artnovo\AccountUI\decorate_subscriptions( implode( '', $sources ) ) );
 $metadata = [];
@@ -308,7 +319,9 @@ try {
 			$active = array_keys( array_filter( $items, static fn( array $item ): bool => $item['current'] ) );
 			$layout = Artnovo\AccountUI\account_endpoint_layout( $endpoint );
 			$title = $layout['title'] ?? $items[ $current ]['label'];
-			$assert( [ $current ] === $active && str_contains( $markup, '<h1>' . esc_html( $title ) . '</h1>' ), 'native endpoint owns the current label over a conflicting Core query ' . $endpoint );
+			$wallet_gallery = 'woo-wallet' === $endpoint && function_exists( '\\Artnovo\\WalletUI\\account_view' ) && Artnovo\WalletUI\account_view();
+			$expected_heading = $wallet_gallery ? ! preg_match( '/<h1\b/', $markup ) : str_contains( $markup, '<h1>' . esc_html( $title ) . '</h1>' );
+			$assert( [ $current ] === $active && $expected_heading, 'native endpoint owns the current label over a conflicting Core query ' . $endpoint );
 			$tags = new WP_HTML_Tag_Processor( $markup );
 			$current_urls = [];
 			while ( $tags->next_tag( 'A' ) ) {
@@ -316,7 +329,7 @@ try {
 					$current_urls[] = $tags->get_attribute( 'href' );
 				}
 			}
-			$assert( array_fill( 0, $layout ? 2 : 1, $items[ $current ]['url'] ) === $current_urls,
+			$assert( array_fill( 0, $layout || $wallet_gallery ? 2 : 1, $items[ $current ]['url'] ) === $current_urls,
 				'rendered current links preserve the native or Core destination across layouts ' . $endpoint );
 		} finally {
 			remove_action( 'woocommerce_account_content', $observe_content, 1 );
@@ -400,6 +413,33 @@ try {
 		$user->user_email = $email;
 	}
 	$assert( $has_native_edit_link( $render( '\\Artnovo\\AccountUI\\render_account' ) ), 'profile with an existing email retains native name and password editing' );
+
+	$route( 'downloads' );
+	$download_displayed = null;
+	$downloads_hook = static function ( array $downloads ) use ( &$download_displayed ): void { $download_displayed = $downloads; };
+	$download_list = [];
+	$downloads = static function () use ( &$download_list ): array { return $download_list; };
+	add_filter( 'woocommerce_customer_get_downloadable_products', $downloads );
+	add_action( 'woocommerce_available_downloads', $downloads_hook );
+	try {
+		$markup = $render( '\\Artnovo\\AccountUI\\render_account' );
+		$assert( str_contains( $markup, 'هنوز فایلی برای دانلود ندارید' ) && str_contains( $markup, 'رفتن به اکانت‌های من' )
+			&& null === $download_displayed, 'downloads empty state points to subscriptions without suppressing the native endpoint' );
+		$download_list = [ [
+			'download_url' => 'https://example.invalid/authorized-download',
+			'download_name' => 'فایل آزمایشی',
+			'product_name' => 'محصول آزمایشی',
+			'product_url' => '',
+			'downloads_remaining' => '',
+			'access_expires' => null,
+		] ];
+		$markup = $render( '\\Artnovo\\AccountUI\\render_account' );
+		$assert( $download_list === $download_displayed && str_contains( $markup, 'https://example.invalid/authorized-download' )
+			&& ! str_contains( $markup, 'هنوز فایلی برای دانلود ندارید' ), 'authorized downloads continue through the native table and URL' );
+	} finally {
+		remove_filter( 'woocommerce_customer_get_downloadable_products', $downloads );
+		remove_action( 'woocommerce_available_downloads', $downloads_hook );
+	}
 } finally {
 	remove_filter( 'woocommerce_account_menu_items', $menu_filter, PHP_INT_MAX );
 	remove_filter( 'woocommerce_get_query_vars', $query_vars_filter, PHP_INT_MAX );
@@ -530,6 +570,9 @@ try {
 			$wallet_links = array_filter( $native_urls, static fn( string $url ): bool => str_starts_with( $url, $wallet_url ) );
 			$assert( $tags->next_tag( [ 'class_name' => 'woo-wallet-my-wallet-container' ] ) && (bool) $wallet_links,
 				'real native wallet retains its container and account endpoint destinations' );
+			if ( function_exists( '\\Artnovo\\WalletUI\\account_view' ) && Artnovo\WalletUI\account_view() ) {
+				$assert( 1 === preg_match_all( '/<h1\b/', $markup ) && str_contains( $native, '>کیف پول</h1>' ), 'real native wallet supplies one heading inside the shared account frame' );
+			}
 			$wallet = function_exists( 'woo_wallet' ) ? woo_wallet() : null;
 			$balance = is_callable( [ $wallet->wallet ?? null, 'get_wallet_balance' ] ) ? $wallet->wallet->get_wallet_balance( $id, 'edit' ) : null;
 			$assert( is_numeric( $balance ) && 0.0 === (float) $balance, 'real wallet reads a zero balance for the synthetic customer without crediting it' );

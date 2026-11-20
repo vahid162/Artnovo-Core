@@ -125,7 +125,7 @@ if ( in_array( $case, [ 'legacy-mail', 'restored-mail', 'retired-loaded-mail' ],
 $entry = dirname( __DIR__ ) . '/artnovo-core.php';
 check( is_file( $entry ), 'Core entrypoint must exist' );
 require $entry;
-check( '1.11.5' === Artnovo\Core\VERSION, 'release version' );
+check( '1.12.0' === Artnovo\Core\VERSION, 'release version' );
 check( count( $hooks['plugins_loaded'][30] ?? [] ) === 1, 'one dependency-ready loader at priority 30' );
 check( count( $hooks['wp_mail_from'][10] ?? [] ) === 1, 'exactly one early sender filter' );
 check( 'orders@artnovo.ir' === mail_sender( 'wordpress@artnovo.ir' ), 'default sender retained' );
@@ -137,7 +137,9 @@ check( function_exists( 'Artnovo\\PlanCheckout\\is_plan' ) === $expected, 'check
 check( function_exists( 'Artnovo\\HomeOrderUI\\Wizard\\is_page' ) === $expected, 'wizard loading is guarded' );
 check( function_exists( 'Artnovo\\AccountUI\\received_state' ) === $expected, 'received loading is guarded' );
 if ( $expected ) {
-	check( 1 === count( $hooks['wp_enqueue_scripts'][30] ?? [] ), 'one shared customer-notice adapter is registered' );
+	$notice_assets = array_filter( $hooks['wp_enqueue_scripts'][30] ?? [], static fn( $callback ) =>
+		( new ReflectionFunction( $callback ) )->getFileName() === dirname( __DIR__ ) . '/modules/notices/notices.php' );
+	check( 1 === count( $notice_assets ), 'one shared customer-notice adapter is registered' );
 	check( function_exists( 'Artnovo\\AccountUI\\account_email_login_ready' ), 'account email-code helpers remain available' );
 	if ( 'missing-bridge' === $case ) {
 		check( ! product_purchasable( true, new WC_Product( true ) ), 'missing Bridge blocks service purchases while Core runs' );

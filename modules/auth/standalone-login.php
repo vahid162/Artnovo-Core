@@ -9,6 +9,13 @@ function native_login_ready(): bool {
 		&& is_readable( PINOVA_DIR . '/templates/login-partial.php' );
 }
 
+function native_recovery_page(): bool {
+	return ! is_user_logged_in() && native_login_ready()
+		&& function_exists( 'is_account_page' ) && is_account_page() && is_wc_endpoint_url( 'lost-password' )
+		&& in_array( $_SERVER['REQUEST_METHOD'] ?? 'GET', [ 'GET', 'HEAD' ], true )
+		&& ! array_intersect( array_keys( $_GET ), [ 'key', 'id', 'login', 'reset-link-sent', 'show-reset-form', 'reset-token' ] );
+}
+
 function account_login_is_customer_return( string $destination ): bool {
 	$path = rawurldecode( wp_parse_url( $destination, PHP_URL_PATH ) ?: '/' );
 	$account = trailingslashit( wp_parse_url( wc_get_page_permalink( 'myaccount' ), PHP_URL_PATH ) ?: '/' );
@@ -73,6 +80,7 @@ function native_login_page(): bool {
 
 function account_email_login_page(): bool {
 	return ! is_user_logged_in() && '1' === ( $_GET['artnovo_email_login'] ?? null )
+		&& ! native_recovery_page()
 		&& ( standalone_login_page() || custom_account_page() );
 }
 
@@ -98,7 +106,9 @@ add_action( 'template_redirect', static function (): void {
 	$destination = account_login_destination( $state );
 	$back = is_string( $_GET['back_url'] ?? null ) ? wp_unslash( $_GET['back_url'] ) : '';
 	if ( 'GET' === ( $_SERVER['REQUEST_METHOD'] ?? '' ) && $back !== $destination ) {
-		$page = standalone_login_page() ? home_url( '/login/' ) : wc_get_page_permalink( 'myaccount' );
+		$page = native_recovery_page()
+			? wc_get_account_endpoint_url( 'lost-password' )
+			: ( standalone_login_page() ? home_url( '/login/' ) : wc_get_page_permalink( 'myaccount' ) );
 		wp_safe_redirect( add_query_arg( 'back_url', $destination, $page ) );
 		exit;
 	}
@@ -118,8 +128,15 @@ add_action( 'wp_enqueue_scripts', static function (): void {
 	}
 } );
 
-function native_login_markup( string $html ): string {
+function native_login_markup( string $html, bool $recovery = false ): string {
 	$tags = new \WP_HTML_Tag_Processor( $html );
+	$send_recovery = <<<'JS'
+if (!pageLoaderIsActive) {
+	const identifier = pinovaValidateField(forms.authenticate.inputs.identifier);
+	forms.authenticate.inputs.identifier = identifier;
+	if (!identifier.errorMsg) authenticate({forget: '1'}, 'forgotPassword');
+}
+JS;
 	$step = '';
 	$label = false;
 	$button = false;
@@ -139,6 +156,13 @@ function native_login_markup( string $html ): string {
 				}
 				$policy = 1 === $policy_link++;
 			}
+			if ( $recovery && 'forgotPassword' === $step && 'BUTTON' === $tags->get_tag() && $tags->has_class( 'artnovo-native-primary' ) ) {
+				$button = true;
+			}
+			if ( $recovery && 'forgotPassword' === $step && 'INPUT' === $tags->get_tag()
+				&& 'forms.forgotPassword.inputs.code.value' === $tags->get_attribute( 'pinova-model' ) ) {
+				$tags->set_attribute( 'aria-label', 'کد تأیید' );
+			}
 			if ( 'authenticate' !== $step ) {
 				continue;
 			}
@@ -151,18 +175,26 @@ function native_login_markup( string $html ): string {
 				$tags->set_attribute( 'autocomplete', 'username' );
 				$tags->set_attribute( 'dir', 'ltr' );
 				$tags->set_attribute( 'placeholder', '' );
+				if ( $recovery ) {
+					$tags->set_attribute( 'pinova-on:keyup.enter', $send_recovery );
+				}
 			} elseif ( 'BUTTON' === $tags->get_tag() && $tags->has_class( 'artnovo-native-primary' ) ) {
 				$button = true;
+				if ( $recovery ) {
+					$tags->set_attribute( 'pinova-on:click', $send_recovery );
+				}
+			} elseif ( $recovery && 'forms.authenticate.inputs.identifier.errorMsg' === $tags->get_attribute( 'pinova-text' ) ) {
+				$tags->set_attribute( 'role', 'status' );
 			}
 		} elseif ( '#text' === $tags->get_token_type() && '' !== trim( $tags->get_modifiable_text() ) ) {
 			if ( $policy ) {
 				$tags->set_modifiable_text( 'حریم خصوصی' );
 				$policy = false;
 			} elseif ( $label ) {
-				$tags->set_modifiable_text( 'شماره موبایل، ایمیل یا نام کاربری را وارد کنید ' );
+				$tags->set_modifiable_text( $recovery ? 'شمارهٔ موبایل یا ایمیل ' : 'شماره موبایل، ایمیل یا نام کاربری را وارد کنید ' );
 				$label = false;
 			} elseif ( $button ) {
-				$tags->set_modifiable_text( 'ادامه' );
+				$tags->set_modifiable_text( $recovery ? ( 'forgotPassword' === $step ? 'تأیید کد و ادامه' : 'دریافت کد تأیید' ) : 'ادامه' );
 				$button = false;
 			}
 		}
@@ -172,20 +204,29 @@ function native_login_markup( string $html ): string {
 
 function render_standalone_login(): void {
 	$state = account_auth_state();
-	$email_url = add_query_arg( [ 'artnovo_email_login' => '1', 'back_url' => account_login_destination( $state ) ], wc_get_page_permalink( 'myaccount' ) );
+	$destination = account_login_destination( $state );
+	$recovery = native_recovery_page();
+	$email_url = add_query_arg( [ 'artnovo_email_login' => '1', 'back_url' => $destination ], wc_get_page_permalink( 'myaccount' ) );
+	$recovery_url = add_query_arg( 'back_url', $destination, wc_get_account_endpoint_url( 'lost-password' ) );
 	$form_wrapper_classes = 'artnovo-native-step';
 	$submit_button_classes = 'artnovo-native-primary';
 	ob_start();
 	include PINOVA_DIR . '/templates/login-partial.php';
 	$native = ob_get_clean();
 	?>
-	<section class="artnovo-standalone-login" aria-labelledby="artnovo-account-login" dir="rtl">
-		<div class="artnovo-login-symbol" aria-hidden="true">آ</div>
-		<h1 id="artnovo-account-login">ورود به حساب آرت‌نوو</h1>
-		<p class="artnovo-login-hint">اشتراک‌ها و اطلاعات اتصال شما در این حساب نگهداری می‌شود.</p>
-		<?php echo native_login_markup( $native ); ?>
-		<a class="artnovo-login-alternative" href="<?php echo esc_url( $email_url ); ?>">ورود و ثبت‌نام با کد ایمیلی</a>
-		<a class="artnovo-login-return" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">بازگشت به انتخاب اشتراک</a>
+	<section class="artnovo-standalone-login<?php if ( $recovery ) : ?> artnovo-standalone-recovery<?php endif; ?>" aria-labelledby="artnovo-account-login" dir="rtl">
+		<?php if ( ! $recovery ) : ?><div class="artnovo-login-symbol" aria-hidden="true">آ</div><?php endif; ?>
+		<h1 id="artnovo-account-login"><?php echo $recovery ? 'بازیابی گذرواژه' : 'ورود به حساب آرت‌نوو'; ?></h1>
+		<p class="artnovo-login-hint"><?php echo $recovery ? 'با شمارهٔ موبایل یا ایمیل حساب، کد تأیید دریافت کنید.' : 'اشتراک‌ها و اطلاعات اتصال شما در این حساب نگهداری می‌شود.'; ?></p>
+		<?php echo native_login_markup( $native, $recovery ); ?>
+		<?php if ( $recovery ) : ?>
+			<a class="artnovo-login-return artnovo-recovery-edit" href="<?php echo esc_url( $recovery_url ); ?>">ویرایش موبایل یا ایمیل</a>
+			<a class="artnovo-login-return" href="<?php echo esc_url( add_query_arg( 'back_url', $destination, wc_get_page_permalink( 'myaccount' ) ) ); ?>">بازگشت به ورود</a>
+		<?php else : ?>
+			<?php if ( ! empty( WC()->query->get_query_vars()['lost-password'] ) ) : ?><a class="artnovo-login-return artnovo-recovery-link" href="<?php echo esc_url( $recovery_url ); ?>">گذرواژه را فراموش کرده‌اید؟</a><?php endif; ?>
+			<a class="artnovo-login-alternative" href="<?php echo esc_url( $email_url ); ?>">ورود و ثبت‌نام با کد ایمیلی</a>
+			<a class="artnovo-login-return" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">بازگشت به انتخاب اشتراک</a>
+		<?php endif; ?>
 	</section>
 	<?php
 }

@@ -3,7 +3,7 @@
  * Plugin Name: Artnovo Core
  * Plugin URI: https://github.com/vahid162/Artnovo-Core
  * Description: ArtNovo purchase flow, email sign-in, customer panel and subscription delivery interface.
- * Version: 1.11.5
+ * Version: 1.12.0
  * Requires at least: 7.0
  * Requires PHP: 8.5
  * Requires Plugins: woocommerce, elementor, pinova
@@ -16,7 +16,7 @@ namespace Artnovo\Core;
 
 defined( 'ABSPATH' ) || exit;
 
-const VERSION = '1.11.5';
+const VERSION = '1.12.0';
 const FILE = __FILE__;
 const LEGACY_PLUGINS = [
 	'artnovo-account-ui/artnovo-account-ui.php',
@@ -103,4 +103,6 @@ function boot(): void {
 	require_once __DIR__ . '/modules/home/artnovo-home-order-ui.php';
 	require_once __DIR__ . '/modules/checkout/artnovo-plan-checkout.php';
 	require_once __DIR__ . '/modules/notices/notices.php';
+	require_once __DIR__ . '/modules/wallet/wallet.php';
+	require_once __DIR__ . '/modules/public-pages/public-pages.php';
 }

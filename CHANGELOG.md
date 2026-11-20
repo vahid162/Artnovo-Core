@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.12.0 — 2026-11-20
+
+- Coordinate the remaining customer and public screens with the ArtNovo design,
+  including wallet funding, account help, and the storefront and fallback pages.
+- Preserve WooCommerce, TeraWallet, and Pinova financial and account handlers.
+
 ## 1.11.5 — 2026-11-19
 
 - Start an independent online service purchase from the regular plan card,

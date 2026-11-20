@@ -109,7 +109,7 @@ function WC(): object {
 	static $woo;
 	return $woo ??= (object) [ 'session' => null, 'query' => new class {
 		public function get_current_endpoint(): string { return $GLOBALS['endpoint']; }
-		public function get_query_vars(): array { return [ 'orders' => 'orders', 'view-order' => 'view-order', 'vpn-subscriptions' => 'vpn-subscriptions', 'woo-wallet' => 'woo-wallet', 'order-pay' => 'order-pay', 'order-received' => 'order-received', 'customer-logout' => 'customer-logout' ]; }
+		public function get_query_vars(): array { return [ 'orders' => 'orders', 'view-order' => 'view-order', 'vpn-subscriptions' => 'vpn-subscriptions', 'woo-wallet' => 'woo-wallet', 'order-pay' => 'order-pay', 'order-received' => 'order-received', 'customer-logout' => 'customer-logout', 'lost-password' => 'lost-password' ]; }
 	} ];
 }
 require dirname( __DIR__ ) . '/modules/account/artnovo-account-ui.php';
@@ -205,6 +205,28 @@ catch ( LoginRedirect $redirect ) { check( 'email retry keeps its explicit route
 $_GET = [];
 $endpoint = 'woo-wallet';
 check( 'third-party account endpoints retain their native template', ! Artnovo\AccountUI\native_login_page() && ! Artnovo\AccountUI\custom_account_page() );
+$endpoint = 'lost-password';
+check( 'guest recovery endpoint uses the custom account template and Pinova', Artnovo\AccountUI\native_recovery_page() && Artnovo\AccountUI\native_login_page() );
+$invalid_recovery_back = 'https://external.test/untrusted';
+$_GET = [ 'back_url' => $invalid_recovery_back ];
+try { foreach ( $hooks['template_redirect'][3] ?? [] as $callback ) { $callback(); } check( 'recovery safely keeps its own endpoint on invalid back_url', false ); }
+catch ( LoginRedirect $redirect ) { check( 'recovery safely keeps its own endpoint on invalid back_url', add_query_arg( 'back_url', Artnovo\AccountUI\account_url(), wc_get_account_endpoint_url( 'lost-password' ) ) === $redirect->getMessage() ); }
+$_GET = [ 'back_url' => Artnovo\AccountUI\account_url() ];
+$removed = [];
+foreach ( $hooks['template_redirect'][3] ?? [] as $callback ) { $callback(); }
+check( 'direct recovery is not redirected back to generic sign in', count( $removed ) === 1 );
+foreach ( [ 'key', 'id', 'login', 'reset-link-sent', 'show-reset-form', 'reset-token' ] as $key ) {
+	$_GET = [ $key => 'fixture' ];
+	check( 'existing Woo password flow keeps its routing for ' . $key, ! Artnovo\AccountUI\native_recovery_page() && ! Artnovo\AccountUI\custom_account_page() );
+}
+$_GET = [ 'artnovo_email_login' => '1' ];
+check( 'email sign-in does not replace the explicit recovery screen', ! Artnovo\AccountUI\account_email_login_page() && Artnovo\AccountUI\native_recovery_page() );
+$_GET = [];
+$_SERVER['REQUEST_METHOD'] = 'POST';
+check( 'native reset form submissions retain their routing', ! Artnovo\AccountUI\native_recovery_page() );
+$_SERVER['REQUEST_METHOD'] = 'GET';
+$logged_in = true;
+check( 'signed-in customers retain the native lost-password route', ! Artnovo\AccountUI\native_recovery_page() && ! Artnovo\AccountUI\custom_account_page() );
 $endpoint = ''; $logged_in = true;
 check( 'signed-in accounts never load the standalone login skin', ! Artnovo\AccountUI\native_login_page() );
 ob_start(); Artnovo\AccountUI\render_account_login( true ); $complete = ob_get_clean();
@@ -218,6 +240,7 @@ if ( $wordpress ) {
 		require $wordpress . '/wp-includes/html-api/class-wp-html-' . $class . '.php';
 	}
 	function wp_kses_uri_attributes(): array { return [ 'href', 'src' ]; }
+	$logged_in = false;
 	ob_start(); Artnovo\AccountUI\render_standalone_login(); $native = ob_get_clean();
 	$tags = new WP_HTML_Tag_Processor( $native );
 	check( 'native input keeps its engine binding and required semantics', $tags->next_tag( [ 'tag_name' => 'INPUT' ] ) && 'forms.authenticate.inputs.identifier.value' === $tags->get_attribute( 'pinova-model' ) && true === $tags->get_attribute( 'required' ) && 'ltr' === $tags->get_attribute( 'dir' ) && 'artnovo-native-identifier' === $tags->get_attribute( 'id' ) );
@@ -225,12 +248,23 @@ if ( $wordpress ) {
 	check( 'native engine assets and remaining proof flows remain in the partial', str_contains( $native, 'assets/js/pages/login-form.min.js' ) && str_contains( $native, 'assets/js/global.min.js' ) && str_contains( $native, 'forms.loginByPassword.inputs.password.value' ) && str_contains( $native, 'forms.loginByOtp.inputs.code.value' ) && str_contains( $native, 'forms.signIn.inputs.code.value' ) );
 	check( 'minimal native wrapper has one title without the old Core email form', 1 === substr_count( $native, 'ورود به حساب آرت‌نوو' ) && ! str_contains( $native, 'artnovo_account_action' ) );
 	check( 'native form exposes the preserved Core email signup as a secondary route', str_contains( $native, 'ورود و ثبت‌نام با کد ایمیلی' ) && str_contains( $native, 'artnovo_email_login=1' ) && str_contains( $native, 'back_url=' ) );
+	check( 'sign-in links to recovery without changing its native submit', str_contains( $native, '/my-account/lost-password/' ) && str_contains( $native, 'pinova-on:keyup.enter="submit()"' ) );
 	$tags = new WP_HTML_Tag_Processor( $native ); $policy_links = [];
 	while ( $tags->next_tag( [ 'tag_name' => 'A' ] ) ) { $policy_links[] = $tags->get_attribute( 'href' ); }
 	check( 'native registration policy links use the official terms and privacy pages', in_array( wc_get_page_permalink( 'terms' ), $policy_links, true ) && in_array( get_privacy_policy_url(), $policy_links, true ) && str_contains( $native, 'حریم خصوصی' ) );
 	$policy_url = '';
 	$empty_policy = Artnovo\AccountUI\native_login_markup( '<div id="signIn"><a href="#">شرایط</a><a href="#">قوانین</a></div>' );
 	check( 'missing policy URL never becomes an empty or placeholder destination', ! str_contains( $empty_policy, 'href=""' ) && ! str_contains( $empty_policy, 'href="#"' ) );
+	$endpoint = 'lost-password';
+	ob_start(); Artnovo\AccountUI\render_standalone_login(); $recovery = ob_get_clean();
+	$tags = new WP_HTML_Tag_Processor( $recovery );
+	check( 'recovery accepts a mobile or email through the existing Pinova model and recovery action',
+		$tags->next_tag( 'INPUT' ) && 'forms.authenticate.inputs.identifier.value' === $tags->get_attribute( 'pinova-model' )
+			&& str_contains( $tags->get_attribute( 'pinova-on:keyup.enter' ), "authenticate({forget: '1'}, 'forgotPassword')" )
+			&& str_contains( $recovery, 'شمارهٔ موبایل یا ایمیل' ) && str_contains( $recovery, 'دریافت کد تأیید' ) );
+	check( 'recovery keeps Pinova code, resend, and password-reset bindings',
+		str_contains( $recovery, 'forms.forgotPassword.inputs.code.value' ) && str_contains( $recovery, 'forms.changePassword.inputs.password_1.value' )
+			&& str_contains( $recovery, 'force_otp' ) && str_contains( $recovery, 'بازگشت به ورود' ) );
 }
 echo "{$assertions} account login assertions, {$failures} failures\n";
 exit( $failures ? 1 : 0 );

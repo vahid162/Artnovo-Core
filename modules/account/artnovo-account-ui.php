@@ -28,7 +28,7 @@ function account_url( string $view = 'subscriptions' ): string {
 }
 
 function custom_account_page(): bool {
-	if ( standalone_login_page() ) {
+	if ( standalone_login_page() || native_recovery_page() ) {
 		return true;
 	}
 	if ( ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
@@ -111,7 +111,7 @@ add_action( 'wp_enqueue_scripts', static function (): void {
 	}
 	wp_enqueue_style( 'artnovo-account-ui', plugins_url( 'artnovo-account.css', __FILE__ ), [], (string) filemtime( __DIR__ . '/artnovo-account.css' ) );
 	$layout = $account && is_user_logged_in() && is_account_page() ? account_endpoint_layout( (string) WC()->query->get_current_endpoint() ) : null;
-	if ( $layout ) {
+	if ( $layout && is_readable( __DIR__ . '/' . $layout['file'] . '.css' ) ) {
 		$file = $layout['file'];
 		wp_enqueue_style( 'artnovo-' . $file, plugins_url( $file . '.css', __FILE__ ), [ 'artnovo-account-ui' ], (string) filemtime( __DIR__ . '/' . $file . '.css' ) );
 		if ( 'account-profile' === $file ) {
