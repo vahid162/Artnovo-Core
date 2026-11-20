@@ -16,7 +16,10 @@ test commands from the validation workflow under PHP 8.5.12, Python 3.10.12 and
 the existing Node 24.11.1 binary. The migration fixture initially refused this
 host's Git-contained `/tmp`; `php -d sys_temp_dir=/var/tmp tests/migration.php`
 passed using its required private non-Git temporary directory. No check or guard
-was weakened. The runtime package build remains part of PR validation.
+was weakened. Both [branch validation](https://github.com/vahid162/Artnovo-Core/actions/runs/44748850690)
+and [PR validation](https://github.com/vahid162/Artnovo-Core/actions/runs/44748950367)
+passed at `eb91196a940c7db48c1878b5dfa1120777a9a1d0`, including the runtime package
+build. The existing rule documents are unchanged by this validation record.
 
 Independent reviewer `/root/boundary_policy_review` found no blocking issue.
 A fresh Codex desktop agent, `/root/boundary_fresh_agent_eval`, was explicitly
@@ -31,8 +34,8 @@ This was a read-only decision exercise, not proof of automatic instruction
 discovery, future-agent compliance, WordPress behavior or a real transaction.
 
 This is a documentation development handoff; native site edits, runtime changes,
-publication and installation are out of scope. PR validation and any separately
-authorized merge remain before adoption on main.
+publication and installation are out of scope. [PR 40](https://github.com/vahid162/Artnovo-Core/pull/40)
+awaits a separately authorized merge before adoption on main.
 
 ## Completed پانتکس brand delivery / Core 1.12.1 (2026-11-20)
 
