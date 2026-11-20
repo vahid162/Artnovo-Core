@@ -1,5 +1,13 @@
 # Current project state
 
+## Delivery candidate for the پانتکس brand / Core 1.12.1 (2026-11-20)
+
+The owner confirmed «پانتکس» as the display name for the site at
+`artnovo.ir`. Core updates its customer text and the versioned 404 document.
+The [native operation contract](site-design/artnovo/planned-1.12.1.json)
+covers the WordPress title and Elementor copy. Existing permalink, contact
+address, template and integration identities are retained.
+
 ## Completed delivery of remaining customer and public designs / Core 1.12.0 (2026-11-20)
 
 The owner approved the 21 mobile and desktop designs for wallet, account,

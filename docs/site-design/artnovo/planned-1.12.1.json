@@ -1,0 +1,133 @@
+{
+  "status": "planned for application after official Core 1.12.1 publication and installation",
+  "site": "https://artnovo.ir",
+  "brand": "پانتکس",
+  "previous_runtime": "Core 1.12.0",
+  "operation": "Update only the named WordPress fields and Elementor element props through the native APIs.",
+  "wordpress": {
+    "option": {
+      "key": "blogname",
+      "previous": "artnovo.ir",
+      "desired": "پانتکس"
+    },
+    "post_titles": [
+      {
+        "id": 48,
+        "type": "page",
+        "previous": "خرید اشتراک اتصال آرت‌نوو",
+        "desired": "خرید اشتراک اتصال پانتکس"
+      },
+      {
+        "id": 61,
+        "type": "page",
+        "previous": "خرید اشتراک اتصال آرت‌نوو",
+        "desired": "خرید اشتراک اتصال پانتکس"
+      },
+      {
+        "id": 35,
+        "type": "elementor_library",
+        "previous": "صفحهٔ محصول پلن‌های اتصال آرت‌نوو",
+        "desired": "صفحهٔ محصول پلن‌های اتصال پانتکس"
+      },
+      {
+        "id": 75,
+        "type": "elementor_library",
+        "previous": "هدر اصلی آرت‌نوو",
+        "desired": "هدر اصلی پانتکس"
+      },
+      {
+        "id": 86,
+        "type": "elementor_library",
+        "previous": "فوتر اصلی آرت‌نوو",
+        "desired": "فوتر اصلی پانتکس"
+      }
+    ],
+    "navigation_term": {
+      "id": 22,
+      "taxonomy": "nav_menu",
+      "previous": "منوی هدر آرت‌نوو",
+      "desired": "منوی هدر پانتکس"
+    }
+  },
+  "elementor": [
+    {
+      "post_id": 75,
+      "element_id": "3538828b",
+      "widget_type": "nav-menu",
+      "setting": "menu_name",
+      "previous": "ناوبری اصلی آرت‌نوو",
+      "desired": "ناوبری اصلی پانتکس"
+    },
+    {
+      "post_id": 86,
+      "element_id": "47951550",
+      "widget_type": "e-paragraph",
+      "setting": "paragraph",
+      "previous": "آرت‌نوو",
+      "desired": "پانتکس"
+    },
+    {
+      "post_id": 86,
+      "element_id": "41cc58ef",
+      "widget_type": "e-paragraph",
+      "setting": "paragraph",
+      "previous": "© آرت‌نوو",
+      "desired": "© پانتکس"
+    },
+    {
+      "post_id": 68,
+      "element_id": "265e0333",
+      "widget_type": "e-paragraph",
+      "setting": "paragraph",
+      "previous": "خدمات کاهش پینگ و سرور گیم مناسب بازی را از آرت‌نوو دریافت کنید.",
+      "desired": "خدمات کاهش پینگ و سرور گیم مناسب بازی را از پانتکس دریافت کنید."
+    },
+    {
+      "post_id": 132,
+      "element_id": "5effae95",
+      "widget_type": "e-paragraph",
+      "setting": "paragraph",
+      "previous": "محصولات آرت‌نوو اشتراک دیجیتال هستند و ارسال فیزیکی ندارند. پیش از پرداخت، حجم، مدت، تعداد و مبلغ نهایی سفارش را بررسی کنید. مشخصات پلن انتخابی و مبلغ نمایش‌داده‌شده در مرحلهٔ ثبت سفارش، مبنای خرید شماست.",
+      "desired": "محصولات پانتکس اشتراک دیجیتال هستند و ارسال فیزیکی ندارند. پیش از پرداخت، حجم، مدت، تعداد و مبلغ نهایی سفارش را بررسی کنید. مشخصات پلن انتخابی و مبلغ نمایش‌داده‌شده در مرحلهٔ ثبت سفارش، مبنای خرید شماست."
+    },
+    {
+      "post_id": 134,
+      "element_id": "3a703e0",
+      "widget_type": "e-paragraph",
+      "setting": "paragraph",
+      "previous": "اطلاعات مرتبط با خدمات آرت‌نوو می‌تواند شامل ایمیل، نام کاربری، شمارهٔ همراه در صورت ثبت یا استفاده، شناسهٔ مشتری، مشخصات پلن، مبلغ و وضعیت سفارش، سوابق پرداخت و اطلاعات اشتراک باشد. در پرداخت کارت‌به‌کارت، تصویر رسید نیز دریافت می‌شود.",
+      "desired": "اطلاعات مرتبط با خدمات پانتکس می‌تواند شامل ایمیل، نام کاربری، شمارهٔ همراه در صورت ثبت یا استفاده، شناسهٔ مشتری، مشخصات پلن، مبلغ و وضعیت سفارش، سوابق پرداخت و اطلاعات اشتراک باشد. در پرداخت کارت‌به‌کارت، تصویر رسید نیز دریافت می‌شود."
+    },
+    {
+      "post_id": 48,
+      "element_id": "ac60797",
+      "widget_type": "e-paragraph",
+      "setting": "paragraph",
+      "previous": "آرت‌نوو  /  اشتراک اتصال",
+      "desired": "پانتکس  /  اشتراک اتصال"
+    },
+    {
+      "post_id": 61,
+      "element_id": "51708c62",
+      "widget_type": "e-paragraph",
+      "setting": "paragraph",
+      "previous": "آرت‌نوو  /  اشتراک اتصال",
+      "desired": "پانتکس  /  اشتراک اتصال"
+    }
+  ],
+  "preserve": [
+    "The artnovo.ir domain, all URLs, post and menu slugs, published document IDs and types, and site assignments.",
+    "The existing Pantex logo attachment 73 and its alt text لوگوی پانتکس.",
+    "Header and footer conditions, navigation links and selection, element IDs, layout, classes, styles and dynamic bindings.",
+    "Legal wording beyond the brand name, the refund page, and the archived previous homepage template.",
+    "All order, customer, receipt and payment data, and code and options of independent plugins."
+  ],
+  "precondition": "Reread each native field and exact Elementor widget ID, type and supported value. Accept an already-applied value only after checking the surrounding source. Reconcile other drift and any existing staged document before making a write.",
+  "rollback": "Save scoped before-values and the applicable Elementor undo revision. Restore only the corresponding leaf or WordPress display field if it still holds this operation's desired value, and preserve intervening changes. Use Elementor supported manage-elements and publish-document for element restoration.",
+  "acceptance": [
+    "WordPress blogname, listed post titles, and navigation term name match the exact desired values, with destination URLs and assignments preserved.",
+    "Published Elementor readback shows each exact desired field, with no unexpected changes to captured document structure or neighboring settings.",
+    "Guest routes render پانتکس in the page title, header navigation's accessible label, footer, homepage, terms and privacy. Legacy purchase links still reach the same routes.",
+    "The public error document serves HTTP 404 with the released Pantex content. Domain links remain valid and the header/footer still use attachment 73."
+  ]
+}

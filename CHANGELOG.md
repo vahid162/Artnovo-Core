@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.12.1 — 2026-11-20
+
+- Display the پانتکس brand in Core customer views, accessible labels, and the
+  packaged error page while preserving existing links and technical identifiers.
+
 ## 1.12.0 — 2026-11-20
 
 - Coordinate the remaining customer and public screens with the ArtNovo design,
