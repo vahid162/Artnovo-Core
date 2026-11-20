@@ -9,7 +9,7 @@ get_header();
 ?>
 <main id="content" class="artnovo-public-page" dir="rtl">
 	<?php if ( 'search' === $artnovo_public_view ) : ?>
-		<header class="artnovo-public-heading"><h1>جست‌وجو در آرت‌نوو</h1></header>
+		<header class="artnovo-public-heading"><h1>جست‌وجو در پانتکس</h1></header>
 		<form class="artnovo-public-search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>" role="search">
 			<label class="screen-reader-text" for="artnovo-public-query">عبارت جست‌وجو</label>
 			<input id="artnovo-public-query" type="search" name="s" value="<?php echo esc_attr( get_search_query( false ) ); ?>" placeholder="نام پلن یا راهنما">
@@ -18,7 +18,7 @@ get_header();
 		<?php search_results(); ?>
 	<?php elseif ( 'blog' === $artnovo_public_view ) : ?>
 		<header class="artnovo-public-heading">
-			<h1>راهنماهای آرت‌نوو</h1>
+			<h1>راهنماهای پانتکس</h1>
 			<p>از دریافت لینک اشتراک تا اولین اتصال.</p>
 		</header>
 		<?php if ( ! is_paged() ) : ?>
@@ -34,7 +34,7 @@ get_header();
 		<?php endif; ?>
 		<?php if ( have_posts() ) : ?>
 			<section class="artnovo-public-results">
-				<h2>نوشته‌های آرت‌نوو</h2>
+				<h2>نوشته‌های پانتکس</h2>
 				<?php
 				post_cards( $GLOBALS['wp_query']->posts );
 				the_posts_pagination( [ 'prev_text' => 'قبلی', 'next_text' => 'بعدی' ] );

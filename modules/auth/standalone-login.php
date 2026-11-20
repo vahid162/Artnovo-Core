@@ -216,7 +216,7 @@ function render_standalone_login(): void {
 	?>
 	<section class="artnovo-standalone-login<?php if ( $recovery ) : ?> artnovo-standalone-recovery<?php endif; ?>" aria-labelledby="artnovo-account-login" dir="rtl">
 		<?php if ( ! $recovery ) : ?><div class="artnovo-login-symbol" aria-hidden="true">آ</div><?php endif; ?>
-		<h1 id="artnovo-account-login"><?php echo $recovery ? 'بازیابی گذرواژه' : 'ورود به حساب آرت‌نوو'; ?></h1>
+		<h1 id="artnovo-account-login"><?php echo $recovery ? 'بازیابی گذرواژه' : 'ورود به حساب پانتکس'; ?></h1>
 		<p class="artnovo-login-hint"><?php echo $recovery ? 'با شمارهٔ موبایل یا ایمیل حساب، کد تأیید دریافت کنید.' : 'اشتراک‌ها و اطلاعات اتصال شما در این حساب نگهداری می‌شود.'; ?></p>
 		<?php echo native_login_markup( $native, $recovery ); ?>
 		<?php if ( $recovery ) : ?>

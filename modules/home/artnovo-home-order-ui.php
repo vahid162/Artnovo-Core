@@ -197,7 +197,7 @@ require_once __DIR__ . '/artnovo-home-wizard.php';
 add_action( 'elementor/dynamic_tags/register', static function ( $manager ): void {
 	$manager->register( new class extends \Elementor\Core\DynamicTags\Data_Tag {
 		public function get_name() { return 'artnovo-order-preview'; }
-		public function get_title() { return 'انتخاب پلن در صفحهٔ اول آرت‌نوو'; }
+		public function get_title() { return 'انتخاب پلن در صفحهٔ اول پانتکس'; }
 		public function get_group() { return 'post'; }
 		public function get_categories() { return [ \Elementor\Modules\DynamicTags\Module::URL_CATEGORY ]; }
 		public function get_value( array $options = [] ) {

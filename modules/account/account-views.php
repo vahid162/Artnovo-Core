@@ -39,7 +39,7 @@ function render_account_navigation( array $navigation, bool $compact ): void {
 		unset( $navigation['primary']['buy'] );
 	}
 	?>
-	<nav class="artnovo-account-nav" aria-label="بخش‌های حساب آرت‌نوو">
+	<nav class="artnovo-account-nav" aria-label="بخش‌های حساب پانتکس">
 		<?php render_account_links( $navigation['primary'] ); ?>
 		<details class="artnovo-account-more" <?php if ( array_filter( $navigation['secondary'], static fn( array $item ): bool => $item['current'] ) ) : ?>open<?php endif; ?>>
 			<summary>بخش‌های دیگر حساب</summary>
@@ -49,7 +49,7 @@ function render_account_navigation( array $navigation, bool $compact ): void {
 	<?php if ( $compact ) : ?>
 		<details class="artnovo-account-mobile-nav">
 			<summary>منوی حساب</summary>
-			<nav class="artnovo-account-nav" aria-label="بخش‌های حساب آرت‌نوو">
+			<nav class="artnovo-account-nav" aria-label="بخش‌های حساب پانتکس">
 				<?php render_account_links( array_merge( $navigation['primary'], $navigation['secondary'] ) ); ?>
 			</nav>
 		</details>
@@ -135,7 +135,7 @@ function render_account(): void {
 				}
 			?>
 				<header class="artnovo-account-header">
-					<div><p class="artnovo-account-muted">حساب آرت‌نوو</p><h1><?php echo esc_html( \Artnovo\Core\display_digits( $title ) ); ?></h1><p class="artnovo-account-muted">اکانت‌ها، خریدها و راهنمای استفاده در یک حساب.</p></div>
+					<div><p class="artnovo-account-muted">حساب پانتکس</p><h1><?php echo esc_html( \Artnovo\Core\display_digits( $title ) ); ?></h1><p class="artnovo-account-muted">اکانت‌ها، خریدها و راهنمای استفاده در یک حساب.</p></div>
 					<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">خرید اکانت جدید</a>
 				</header>
 			<?php endif; ?>
@@ -188,7 +188,7 @@ function render_account_login( bool $complete = false ): void {
 	?>
 	<div class="<?php echo $complete ? 'artnovo-account-auth-layout' : 'artnovo-standalone-login artnovo-email-login'; ?>">
 		<section class="<?php echo $complete ? 'artnovo-account-card' : 'artnovo-email-panel'; ?>">
-			<?php if ( $complete ) : ?><p class="artnovo-account-muted">خوش آمدید به آرت‌نوو</p><?php endif; ?>
+			<?php if ( $complete ) : ?><p class="artnovo-account-muted">خوش آمدید به پانتکس</p><?php endif; ?>
 			<?php if ( $complete ) : ?><h2 id="artnovo-account-login">تأیید ایمیل همین حساب</h2><?php else : ?><h1 id="artnovo-account-login">ورود و ثبت‌نام با ایمیل</h1><?php endif; ?>
 			<p><?php echo $complete ? 'برای دریافت اعلان آماده‌شدن اشتراک، ایمیل خود را با کد تأیید به همین حساب اضافه کنید.' : 'ایمیل خریدتان را وارد کنید تا کد ورود برایتان ارسال شود. با ایمیل تازه، حساب مشتری ساخته می‌شود.'; ?></p>
 			<form class="artnovo-account-auth" method="post" action="<?php echo esc_url( $complete ? wc_get_page_permalink( 'myaccount' ) : add_query_arg( 'artnovo_email_login', '1', wc_get_page_permalink( 'myaccount' ) ) ); ?>" data-artnovo-expires="<?php echo esc_attr( (string) $state['expires'] ); ?>">
@@ -216,7 +216,7 @@ function render_account_login( bool $complete = false ): void {
 			<p class="artnovo-account-muted"><a href="mailto:orders@artnovo.ir?subject=Account%20login%20help">برای ورود به حساب کمک می‌خواهم</a></p>
 		</section>
 		<?php if ( $complete ) : ?><aside class="artnovo-account-feature">
-			<span class="artnovo-account-badge">حساب آرت‌نوو</span>
+			<span class="artnovo-account-badge">حساب پانتکس</span>
 			<h2>لینک اتصال و اشتراک‌ها همیشه در دسترس</h2>
 			<ul><li>دریافت و کپی لینک خصوصی اتصال</li><li>مشاهدهٔ اعتبار و وضعیت آماده‌سازی</li><li>ارسال رسید و پیگیری خرید</li></ul>
 			<p class="artnovo-account-muted">برای دیدن خریدهای قبلی، با همان حسابی وارد شوید که سفارش را با آن ثبت کرده‌اید.</p>
@@ -315,7 +315,7 @@ function render_account_support(): void {
 	$id = isset( $_GET['order'] ) && is_string( $_GET['order'] ) ? absint( $_GET['order'] ) : 0;
 	$order = $id ? wc_get_order( $id ) : false;
 	$owned = $order instanceof \WC_Order && get_current_user_id() === $order->get_customer_id();
-	$subject = $owned ? 'پشتیبانی خرید ' . $order->get_order_number() : 'پشتیبانی آرت‌نوو';
+	$subject = $owned ? 'پشتیبانی خرید ' . $order->get_order_number() : 'پشتیبانی پانتکس';
 	$email = 'orders@artnovo.ir';
 	?>
 	<section class="artnovo-account-card artnovo-account-gallery-card">

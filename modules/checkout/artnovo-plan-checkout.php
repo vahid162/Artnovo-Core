@@ -47,7 +47,7 @@ add_filter( 'rest_dispatch_request', static function ( $result, \WP_REST_Request
 add_action( 'elementor/dynamic_tags/register', static function ( $manager ): void {
 	$manager->register( new class extends \Elementor\Core\DynamicTags\Data_Tag {
 		public function get_name() { return 'artnovo-plan-checkout'; }
-		public function get_title() { return 'ادامهٔ خرید پلن آرت‌نوو'; }
+		public function get_title() { return 'ادامهٔ خرید پلن پانتکس'; }
 		public function get_group() { return 'post'; }
 		public function get_categories() { return array( \Elementor\Modules\DynamicTags\Module::URL_CATEGORY ); }
 		public function get_value( array $options = array() ) {
