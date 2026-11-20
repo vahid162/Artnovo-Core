@@ -60,6 +60,12 @@
 .artnovo-standalone-login .pinova-container [pinova-text$="errorMsg"] { color: #ffb5b5; line-height: 1.9; }
 .artnovo-standalone-login .artnovo-login-return { display: block; margin-top: 24px; color: #9adaf0; font-size: 13px; text-align: center; text-decoration: none; }
 .artnovo-standalone-login .artnovo-login-alternative { display: block; margin-top: 20px; color: #46d7a6; font-size: 14px; text-align: center; text-decoration: none; }
+.artnovo-standalone-login .artnovo-recovery-link { margin-top: 12px; }
+.artnovo-standalone-login:has(#signIn, #loginByPassword, #loginByOtp, #forgotPassword, #changePassword) .artnovo-recovery-link { display: none; }
+.artnovo-standalone-recovery h1, .artnovo-standalone-recovery .artnovo-login-hint { text-align: center; }
+.artnovo-standalone-recovery .pinova-container [pinova-data="pinovaLoginForm()"] > .relative { display: none; }
+.artnovo-standalone-recovery .artnovo-login-return { display: flex; justify-content: center; align-items: center; min-height: 44px; margin-block-start: 8px; }
+.artnovo-standalone-recovery:not(:has(#forgotPassword, #changePassword)) .artnovo-recovery-edit { display: none; }
 .artnovo-email-login .artnovo-email-panel { padding: 0; background: transparent; }
 .artnovo-email-login .artnovo-email-panel > p { color: #bdd1d0; font-size: 14px; line-height: 1.9; }
 .artnovo-email-login .artnovo-account-auth label { display: block; margin: 16px 0 10px; font-size: 14px; }

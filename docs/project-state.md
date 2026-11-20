@@ -1,5 +1,22 @@
 # Current project state
 
+## Approved delivery: remaining customer and public designs / Core 1.12.0 (2026-11-20)
+
+The owner approved all 21 mobile and desktop designs. The candidate begins at
+the released 1.11.5 source, including the independent online purchase and
+native retry behavior. Core supplies presentation for wallet, account, recovery
+and public routes. WooCommerce, TeraWallet, Pinova, Bridge and payment gateways
+remain independent owners of authorization, processing and persistence.
+The wallet checkout and result layouts apply to routes rendered by WooCommerce.
+The current Gateland wallet flow goes directly to its provider and returns to
+the wallet form with the gateway's WooCommerce notice. Core styles that notice
+through its existing toast presentation.
+
+The site's existing nginx error mapping serves `/404.html` for HTTP 404
+responses. The approved page is packaged with Core. Deployment uses that exact
+versioned file at the existing error-document location, preserving the HTTP
+status and backing up the previous document alongside Core.
+
 ## Delivery candidate: independent purchase from the catalogue / Core 1.11.5 (2026-11-19)
 
 In isolated Firefox and WooCommerce 11.3, Core 1.11.4 reused the previous

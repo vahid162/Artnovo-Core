@@ -61,6 +61,7 @@ function account_endpoint_layout( string $endpoint ): ?array {
 		'orders' => [ 'file' => 'account-orders', 'native' => 'myaccount/orders.php', 'title' => 'خریدها و پرداخت‌ها' ],
 		'view-order' => [ 'file' => 'account-order', 'native' => 'myaccount/view-order.php', 'title' => 'جزئیات خرید و رسید' ],
 		'edit-account' => [ 'file' => 'account-profile', 'native' => 'myaccount/form-edit-account.php', 'title' => 'ویرایش اطلاعات حساب' ],
+		'downloads' => [ 'file' => 'account-downloads', 'native' => 'myaccount/downloads.php', 'title' => 'فایل‌های قابل دریافت' ],
 		default => null,
 	};
 }
@@ -82,6 +83,9 @@ function render_account_endpoint( string $endpoint, ?array $layout ): void {
 				return $template;
 			}
 		}
+		if ( 'downloads' === $endpoint && ( ! WC()->customer || WC()->customer->get_downloadable_products() ) ) {
+			return $template;
+		}
 		$defer_notices = false;
 		return $file;
 	};
@@ -97,7 +101,7 @@ function render_account_endpoint( string $endpoint, ?array $layout ): void {
 	if ( $defer_notices ) {
 		wc_print_notices();
 	}
-	echo '<section class="artnovo-account-native woocommerce' . ( $layout ? '' : ' artnovo-account-card' ) . '">'
+	echo '<section class="artnovo-account-native woocommerce' . ( $layout ? '' : ' artnovo-account-card' ) . ( 'downloads' === $endpoint ? ' artnovo-account-downloads' : '' ) . '">'
 		. localize_subscription_display( $content, in_array( $endpoint, [ 'orders', 'view-order' ], true ) ) . '</section>';
 }
 
@@ -106,9 +110,20 @@ function render_account(): void {
 	$current = $logged_in ? account_view() : '';
 	$endpoint = $logged_in ? (string) WC()->query->get_current_endpoint() : '';
 	$layout = account_endpoint_layout( $endpoint );
-	$compact = 'subscriptions' === $current || null !== $layout;
+	$wallet_view = $logged_in && function_exists( '\\Artnovo\\WalletUI\\account_view' ) && \Artnovo\WalletUI\account_view();
+	$secondary_title = match ( $current ) {
+		'help' => 'راهنمای اتصال',
+		'support' => 'پشتیبانی',
+		'profile' => 'اطلاعات حساب',
+		default => '',
+	};
+	if ( '' !== $endpoint && ! in_array( $endpoint, [ 'dashboard', 'vpn-subscriptions' ], true ) ) {
+		$secondary_title = '';
+	}
+	$gallery = $wallet_view || 'downloads' === $endpoint || '' !== $secondary_title;
+	$compact = 'subscriptions' === $current || null !== $layout || $gallery;
 	?>
-	<main id="content" class="artnovo-account<?php if ( $compact ) : ?> artnovo-account--compact<?php endif; ?><?php if ( 'subscriptions' === $current ) : ?> artnovo-account--subscriptions<?php endif; ?>" dir="rtl" data-artnovo-price-thousand-separator="<?php echo esc_attr( wc_get_price_thousand_separator() ); ?>" data-artnovo-price-decimal-separator="<?php echo esc_attr( wc_get_price_decimal_separator() ); ?>">
+	<main id="content" class="artnovo-account<?php if ( $compact ) : ?> artnovo-account--compact<?php endif; ?><?php if ( $gallery ) : ?> artnovo-account--gallery<?php endif; ?><?php if ( 'subscriptions' === $current ) : ?> artnovo-account--subscriptions<?php endif; ?>" dir="rtl" data-artnovo-price-thousand-separator="<?php echo esc_attr( wc_get_price_thousand_separator() ); ?>" data-artnovo-price-decimal-separator="<?php echo esc_attr( wc_get_price_decimal_separator() ); ?>">
 		<?php if ( ! $logged_in ) : ?>
 			<?php render_account_login(); ?>
 		<?php else :
@@ -128,10 +143,10 @@ function render_account(): void {
 				<?php render_account_navigation( $navigation, $compact ); ?>
 				<div class="artnovo-account-main">
 					<?php
-					if ( $layout ) {
+					if ( ! $wallet_view && ( $layout || '' !== $secondary_title ) ) {
 						?>
 						<header class="artnovo-account-header">
-							<h1><?php echo esc_html( $layout['title'] ); ?></h1>
+							<h1><?php echo esc_html( $layout['title'] ?? $secondary_title ); ?></h1>
 							<?php if ( 'view-order' === $endpoint ) : ?>
 								<a class="artnovo-account-back" href="<?php echo esc_url( wc_get_account_endpoint_url( 'orders' ) ); ?>">بازگشت به خریدها</a>
 							<?php elseif ( 'edit-account' === $endpoint ) : ?>
@@ -260,32 +275,38 @@ function render_account_profile(): void {
 	$email_state = '' === $user->user_email ? account_auth_state( true ) : [];
 	$email_open = ( $email_state['expires'] ?? 0 ) > time() || ! empty( $email_state['message'] ) || ! empty( $email_state['error'] );
 	?>
-	<section class="artnovo-account-card">
-		<h2>اطلاعات حساب</h2>
-		<p>برای دیدن اکانت‌ها و خریدهای قبلی، همیشه با همان حساب وارد شوید.</p>
-		<?php if ( '' !== $user->user_email ) : ?>
-			<p>ایمیل ثبت‌شده در این حساب</p>
-			<p dir="ltr" class="artnovo-account-email"><?php echo esc_html( $user->user_email ); ?></p>
-		<?php else : ?>
-			<p>ثبت ایمیل برای خرید و دریافت اکانت الزامی نیست.</p>
+	<section class="artnovo-account-card artnovo-account-gallery-card">
+		<header class="artnovo-account-gallery-row">
+			<h2>مشخصات ثبت‌شده</h2>
+			<a class="artnovo-account-gallery-link" href="<?php echo esc_url( wc_get_account_endpoint_url( 'edit-account' ) ); ?>">ویرایش اطلاعات حساب</a>
+		</header>
+		<dl class="artnovo-account-gallery-facts">
+			<div><dt>نام نمایشی</dt><dd><?php echo esc_html( $user->display_name ); ?></dd></div>
+			<div><dt>ایمیل</dt><dd><?php if ( '' !== $user->user_email ) : ?><bdi dir="ltr"><?php echo esc_html( $user->user_email ); ?></bdi><?php else : ?>ثبت نشده<?php endif; ?></dd></div>
+		</dl>
+		<?php if ( '' === $user->user_email ) : ?>
+			<p class="artnovo-account-muted">ثبت ایمیل برای خرید و دریافت اکانت الزامی نیست. با تأیید ایمیل می‌توانید پیام‌های مربوط به خرید را دریافت کنید.</p>
 			<details class="artnovo-account-email-completion" <?php if ( $email_open ) : ?>open<?php endif; ?>><summary>افزودن ایمیل برای اطلاع‌رسانی خریدها</summary><?php render_account_login( true ); ?></details>
 		<?php endif; ?>
-		<div class="artnovo-account-actions"><a href="<?php echo esc_url( wc_get_account_endpoint_url( 'edit-account' ) ); ?>">ویرایش اطلاعات حساب</a><a href="<?php echo esc_url( account_url( 'support' ) ); ?>">کمک برای ورود یا اطلاعات حساب</a><a href="<?php echo esc_url( wp_logout_url( wc_get_page_permalink( 'myaccount' ) ) ); ?>">خروج از حساب</a></div>
 	</section>
 	<?php
 }
 
 function render_account_help(): void {
 	?>
-	<section class="artnovo-account-card">
-		<h2>راهنمای اتصال</h2>
-		<p>لینک اشتراک را از کارت همان اشتراک در «اکانت‌های من» دریافت کنید.</p>
-		<ol><li>در کارت اشتراکِ آماده، «کپی لینک اتصال» را بزنید.</li><li>در برنامهٔ اتصال خود، گزینهٔ افزودن اشتراک یا واردکردن از کلیپ‌بورد را باز کنید.</li><li>لینک را وارد و فهرست سرورها را به‌روزرسانی کنید.</li><li>یکی از سرورها را انتخاب و اتصال را برقرار کنید.</li></ol>
-		<details><summary>با کد QR چطور وصل شوم؟</summary><p>در کارت اشتراک، «نمایش QR» را بزنید و آن را با برنامهٔ اتصال دستگاه دیگر اسکن کنید.</p></details>
-		<details><summary>لینک اتصال را نمی‌بینم</summary><p>وضعیت کارت را بررسی کنید. در خرید کارت‌به‌کارت، لینک پس از تأیید پرداخت و آماده‌سازی اشتراک نمایش داده می‌شود. رسید را از «جزئیات خرید و رسید» بفرستید.</p></details>
+	<section class="artnovo-account-card artnovo-account-gallery-card">
+		<h2>اتصال در سه قدم</h2>
+		<ol class="artnovo-account-gallery-steps" role="list">
+			<li><span aria-hidden="true">۱</span><div><strong>لینک اشتراک را کپی کنید</strong><p>در «اکانت‌های من»، روی «کپی لینک اتصال» بزنید.</p></div></li>
+			<li><span aria-hidden="true">۲</span><div><strong>اشتراک را به برنامه اضافه کنید</strong><p>در برنامهٔ اتصال، افزودن اشتراک از کلیپ‌بورد را انتخاب کنید.</p></div></li>
+			<li><span aria-hidden="true">۳</span><div><strong>یک سرور را انتخاب کنید</strong><p>فهرست را به‌روزرسانی کنید و متصل شوید.</p></div></li>
+		</ol>
+		<a class="artnovo-account-button artnovo-account-gallery-cta" href="<?php echo esc_url( account_url() ); ?>">رفتن به اکانت‌های من</a>
+	</section>
+	<section class="artnovo-account-card artnovo-account-gallery-card">
+		<details><summary>چطور با کد QR وصل شوم؟</summary><p>«نمایش QR» را در کارت اشتراک بزنید و با دستگاه دیگر اسکن کنید. لینک اشتراک و QR خصوصی‌اند.</p></details>
+		<details><summary>لینک اتصال را نمی‌بینم</summary><p>وضعیت خرید را بررسی کنید. اگر پرداخت تأیید شده و لینک هنوز در دسترس نیست، با پشتیبانی تماس بگیرید.</p></details>
 		<details><summary>اتصال برقرار نمی‌شود</summary><p>فهرست سرورها را به‌روزرسانی کنید، تاریخ اعتبار را بررسی کنید و در صورت ادامهٔ مشکل با شماره پیگیری خرید به پشتیبانی پیام بدهید.</p></details>
-		<p class="artnovo-account-muted">لینک و کد QR خصوصی‌اند. آن‌ها را فقط روی دستگاه‌های خود استفاده کنید.</p>
-		<a href="<?php echo esc_url( account_url() ); ?>">بازگشت به اکانت‌های من</a>
 	</section>
 	<?php
 }
@@ -297,16 +318,24 @@ function render_account_support(): void {
 	$subject = $owned ? 'پشتیبانی خرید ' . $order->get_order_number() : 'پشتیبانی آرت‌نوو';
 	$email = 'orders@artnovo.ir';
 	?>
-	<section class="artnovo-account-card">
-		<h2>پشتیبانی</h2>
-		<p>مشکل اتصال، پرداخت یا دریافت اشتراک را همراه با شماره پیگیری خرید بفرستید.</p>
+	<section class="artnovo-account-card artnovo-account-gallery-card">
+		<div class="artnovo-account-gallery-support">
+			<span class="artnovo-account-gallery-symbol" aria-hidden="true">✉</span>
+			<div><h2>برای کدام خرید کمک می‌خواهید؟</h2><p>شمارهٔ سفارش و توضیح مشکل را در ایمیل بنویسید.</p></div>
+			<a class="artnovo-account-button artnovo-account-gallery-cta" href="<?php echo esc_url( 'mailto:' . $email . '?subject=' . rawurlencode( $subject ) ); ?>">ارسال ایمیل به پشتیبانی</a>
+		</div>
 		<?php if ( $owned ) : ?>
-			<p>شماره پیگیری خرید <strong><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></strong></p>
-			<p><a href="<?php echo esc_url( $order->get_view_order_url() ); ?>">جزئیات خرید و رسید</a></p>
+			<div class="artnovo-account-gallery-row">
+				<p>شماره پیگیری خرید <bdi><?php echo esc_html( \Artnovo\Core\display_digits( $order->get_order_number() ) ); ?></bdi></p>
+				<a class="artnovo-account-gallery-link" href="<?php echo esc_url( $order->get_view_order_url() ); ?>">جزئیات خرید و رسید</a>
+			</div>
 		<?php endif; ?>
-		<a class="artnovo-account-button" href="<?php echo esc_url( 'mailto:' . $email . '?subject=' . rawurlencode( $subject ) ); ?>">ارسال پیام به پشتیبانی</a>
-		<p dir="ltr" class="artnovo-account-email"><?php echo esc_html( $email ); ?></p>
-		<p class="artnovo-account-muted">برای پیگیری، شماره خرید و شرح خطا کافی است. لینک خصوصی اتصال را در پیام نفرستید.</p>
+		<p class="artnovo-account-muted">آدرس پشتیبانی <bdi dir="ltr"><?php echo esc_html( $email ); ?></bdi></p>
+		<p class="artnovo-account-muted">لینک خصوصی اتصال را در ایمیل نفرستید.</p>
+	</section>
+	<section class="artnovo-account-card artnovo-account-gallery-card artnovo-account-gallery-row">
+		<div><h2>مشکل در اتصال دارید؟</h2><p class="artnovo-account-muted">مراحل افزودن لینک و استفاده از QR را ببینید.</p></div>
+		<a class="artnovo-account-gallery-link" href="<?php echo esc_url( account_url( 'help' ) ); ?>">راهنمای اتصال</a>
 	</section>
 	<?php
 }

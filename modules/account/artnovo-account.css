@@ -1144,3 +1144,142 @@ body.artnovo-account-page {
 .artnovo-account .artnovo-account-native .woo-wallet-my-wallet-container > .woo-wallet-header {
 	display: none;
 }
+
+.artnovo-account--gallery {
+	max-width: 60rem;
+}
+
+.artnovo-account--gallery .artnovo-account-header h1 {
+	font-size: clamp(1.375rem, 3vw, 1.8125rem);
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-card {
+	display: grid;
+	gap: .75rem;
+	margin: 0;
+}
+
+.artnovo-account--gallery :is(.artnovo-account-gallery-card h2, .artnovo-account-gallery-card p, .artnovo-account-gallery-facts) {
+	margin: 0;
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: .5rem .75rem;
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-facts > div {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: .25rem .75rem;
+	padding-block: .625rem;
+	border-block-start: 1px solid #bdd1d026;
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-facts dt {
+	color: var(--account-muted);
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-facts dd {
+	min-width: 0;
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-link {
+	display: inline-flex;
+	align-items: center;
+	min-height: 2.75rem;
+	font-size: .8125rem;
+	color: var(--account-focus);
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-cta {
+	justify-self: start;
+	text-align: center;
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-steps {
+	display: grid;
+	gap: .75rem;
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-steps li {
+	display: flex;
+	gap: .625rem;
+	align-items: flex-start;
+}
+
+.artnovo-account--gallery :is(.artnovo-account-gallery-steps li > span, .artnovo-account-gallery-symbol) {
+	display: inline-grid;
+	place-items: center;
+	flex: none;
+	inline-size: 2rem;
+	block-size: 2rem;
+	border-radius: 50%;
+	background: #173b3c;
+	color: var(--account-emerald);
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-symbol {
+	inline-size: 2.75rem;
+	block-size: 2.75rem;
+	border-radius: .75rem;
+	font-size: 1.25rem;
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-steps p {
+	color: var(--account-muted);
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-support {
+	display: grid;
+	align-items: center;
+	gap: .75rem;
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-empty {
+	justify-items: center;
+	max-width: 29rem;
+	margin-inline: auto;
+	text-align: center;
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-empty a {
+	justify-self: center;
+}
+
+.artnovo-account--gallery .artnovo-account-gallery-empty h2 {
+	font-size: 1.25rem;
+}
+
+@media (min-width: 721px) {
+	.artnovo-account--gallery .artnovo-account-layout {
+		grid-template-columns: minmax(8.75rem, 9.75rem) minmax(0, 1fr);
+	}
+
+	.artnovo-account--gallery .artnovo-account-layout > .artnovo-account-nav {
+		display: grid;
+		gap: .1875rem;
+		padding: .375rem;
+		border: 1px solid #bdd1d026;
+		border-radius: .75rem;
+		background: var(--account-surface);
+	}
+
+	.artnovo-account--gallery .artnovo-account-more-links {
+		inset-inline-start: 0;
+		inset-inline-end: auto;
+	}
+
+	.artnovo-account--gallery .artnovo-account-gallery-support {
+		grid-template-columns: auto minmax(0, 1fr) auto;
+	}
+}

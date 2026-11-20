@@ -1,0 +1,292 @@
+body.artnovo-public-view {
+	--artnovo-public-bg: #0c1723;
+	--artnovo-public-panel: #152735;
+	--artnovo-public-line: #2c4451;
+	--artnovo-public-text: #f0f9f7;
+	--artnovo-public-muted: #bdd1d0;
+	--artnovo-public-mint: #46d7a6;
+	--artnovo-public-ink: #06261b;
+	--artnovo-public-focus: #9adaf0;
+	--artnovo-public-selected: #173b3c;
+	background: var(--artnovo-public-bg);
+	color: var(--artnovo-public-text);
+}
+
+.artnovo-public-page,
+.artnovo-public-catalog.woocommerce #main {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 69rem;
+	min-width: 0;
+	margin: 1.5rem auto 2.75rem;
+	padding-inline: clamp(.875rem, 3vw, 1.5rem);
+	color: var(--artnovo-public-text);
+	font-family: Vazir, Tahoma, sans-serif;
+	overflow-wrap: anywhere;
+}
+
+.artnovo-public-page,
+.artnovo-public-results {
+	display: grid;
+	gap: .875rem;
+}
+
+.artnovo-public-catalog.woocommerce #main {
+	direction: rtl;
+}
+
+.artnovo-public-catalog .woocommerce-breadcrumb {
+	color: var(--artnovo-public-muted);
+}
+
+.artnovo-public-catalog .woocommerce-breadcrumb a {
+	color: var(--artnovo-public-focus);
+}
+
+.artnovo-public-page :is(h1, h2, h3, p),
+.artnovo-public-heading :is(h1, p) {
+	margin: 0;
+}
+
+.artnovo-public-page :is(h1, h2, h3),
+.artnovo-public-heading h1 {
+	color: var(--artnovo-public-text);
+}
+
+.artnovo-public-heading h1,
+.artnovo-public-empty h1 {
+	font-size: clamp(1.375rem, 3.4vw, 1.875rem);
+	line-height: 1.5;
+}
+
+.artnovo-public-heading p,
+.artnovo-public-card p {
+	color: var(--artnovo-public-muted);
+	line-height: 1.8;
+}
+
+.artnovo-public-page :is(h2, h3) {
+	font-size: 1rem;
+	line-height: 1.65;
+}
+
+.artnovo-public-grid,
+.artnovo-public-catalog.woocommerce #main ul.products {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	align-items: stretch;
+	gap: .75rem;
+}
+
+.artnovo-public-card,
+.artnovo-public-catalog.woocommerce #main ul.products li.product {
+	box-sizing: border-box;
+	display: grid;
+	align-content: start;
+	gap: .5rem;
+	min-width: 0;
+	padding: clamp(.875rem, 2vw, 1.375rem);
+	border: 1px solid var(--artnovo-public-line);
+	border-radius: 1rem;
+	background: var(--artnovo-public-panel);
+	color: var(--artnovo-public-text);
+}
+
+.artnovo-public-card a,
+.artnovo-public-catalog .artnovo-public-details {
+	color: var(--artnovo-public-focus);
+}
+
+.artnovo-public-empty {
+	justify-items: center;
+	gap: .875rem;
+	width: 100%;
+	max-width: 29rem;
+	margin-inline: auto;
+	padding-block: clamp(1.5rem, 5vw, 2.5rem);
+	text-align: center;
+}
+
+.artnovo-public-empty .artnovo-public-button {
+	width: 100%;
+	max-width: 19rem;
+}
+
+.artnovo-public-code {
+	color: var(--artnovo-public-mint);
+	font-size: clamp(1.75rem, 7vw, 2.875rem);
+	font-weight: 700;
+	line-height: 1.15;
+}
+
+.artnovo-public-filter {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .5rem;
+	margin-block: .875rem 1rem;
+}
+
+.artnovo-public-page .artnovo-public-button,
+.artnovo-public-page .artnovo-public-details,
+.artnovo-public-catalog :is(.artnovo-public-filter a, .artnovo-public-details) {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	max-width: 100%;
+	padding: .5rem .75rem;
+	border: 1px solid transparent;
+	border-radius: .625rem;
+	font: inherit;
+	text-align: center;
+	text-decoration: none;
+}
+
+.artnovo-public-page .artnovo-public-button {
+	background: var(--artnovo-public-mint);
+	color: var(--artnovo-public-ink);
+	font-weight: 700;
+}
+
+.artnovo-public-page .artnovo-public-button:hover {
+	background: #69e1b7;
+	color: var(--artnovo-public-ink);
+}
+
+.artnovo-public-page .artnovo-public-details,
+.artnovo-public-catalog .artnovo-public-details {
+	justify-self: start;
+	padding-inline: 0;
+}
+
+.artnovo-public-catalog .artnovo-public-filter a {
+	border-color: var(--artnovo-public-line);
+	background: var(--artnovo-public-bg);
+	color: var(--artnovo-public-text);
+}
+
+.artnovo-public-catalog .artnovo-public-filter a:is(:hover, [aria-current="page"]) {
+	background: var(--artnovo-public-selected);
+	color: var(--artnovo-public-muted);
+}
+
+.artnovo-public-page :is(a, button, input, summary):focus-visible,
+.artnovo-public-catalog .artnovo-public-filter a:focus-visible {
+	outline: 2px solid var(--artnovo-public-focus);
+	outline-offset: 3px;
+}
+
+.artnovo-public-catalog.woocommerce #main ul.products li.product {
+	float: none;
+	width: auto;
+	margin: 0;
+}
+
+.artnovo-public-catalog.woocommerce #main ul.products li.product > a.woocommerce-loop-product__link {
+	display: grid;
+	gap: .5rem;
+}
+
+.artnovo-public-catalog.woocommerce #main ul.products li.product .woocommerce-loop-product__title {
+	margin: 0;
+}
+
+.artnovo-public-catalog.woocommerce #main ul.products li.product .price,
+.artnovo-public-product .artnovo-public-price {
+	justify-self: end;
+	margin: 0;
+	color: var(--artnovo-public-mint);
+	font-size: 1.125rem;
+	font-weight: 700;
+}
+
+.artnovo-public-page .artnovo-public-price bdi {
+	display: inline-flex;
+	gap: .375rem;
+	align-items: baseline;
+	direction: ltr;
+}
+
+.artnovo-public-page .artnovo-public-price .woocommerce-Price-currencySymbol {
+	order: -1;
+	direction: rtl;
+	font-size: .8125rem;
+}
+
+.artnovo-public-catalog .artnovo-public-period {
+	margin: 0;
+	color: var(--artnovo-public-muted);
+}
+
+.artnovo-public-search {
+	display: grid;
+	grid-template-columns: minmax(0,1fr) auto;
+	gap: .5rem;
+	max-width: 44rem;
+}
+
+.artnovo-public-search input {
+	box-sizing: border-box;
+	min-width: 0;
+	min-height: 44px;
+	padding: .5rem .75rem;
+	border: 1px solid var(--artnovo-public-line);
+	border-radius: .625rem;
+	background: var(--artnovo-public-panel);
+	color: var(--artnovo-public-text);
+	font: inherit;
+	font-size: 1rem;
+}
+
+.artnovo-public-search input::placeholder {
+	color: var(--artnovo-public-muted);
+}
+
+.artnovo-public-story {
+	grid-template-rows: auto 1fr auto;
+}
+
+.artnovo-public-story summary {
+	box-sizing: border-box;
+	min-height: 44px;
+	padding-block: .5rem;
+	color: var(--artnovo-public-focus);
+	cursor: pointer;
+}
+
+.artnovo-public-page .pagination .nav-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .375rem;
+}
+
+.artnovo-public-page .pagination .page-numbers {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 44px;
+	min-height: 44px;
+	padding-inline: .5rem;
+	border-radius: .625rem;
+	color: var(--artnovo-public-focus);
+}
+
+.artnovo-public-page .pagination .page-numbers:is(.current, :hover) {
+	background: var(--artnovo-public-selected);
+}
+
+@media (max-width: 56rem) {
+	.artnovo-public-grid,
+	.artnovo-public-catalog.woocommerce #main ul.products {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 38rem) {
+	.artnovo-public-grid,
+	.artnovo-public-catalog.woocommerce #main ul.products {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

@@ -25,7 +25,7 @@ def build(root: Path) -> dict:
     for path in files:
         if path.is_symlink() or not path.is_file():
             raise ValueError(f"Missing or unsafe runtime file: {path.relative_to(root)}")
-        if path.suffix not in {".php", ".js", ".css", ".txt", ".md"}:
+        if path.suffix not in {".php", ".js", ".css", ".txt", ".md"} and path.relative_to(root).as_posix() != "modules/public-pages/edge-404.html":
             raise ValueError(f"Unexpected runtime file: {path.relative_to(root)}")
     output = root / "dist"
     output.mkdir(exist_ok=True)
