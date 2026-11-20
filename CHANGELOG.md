@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Clarify native-first implementation and component ownership in the constitution,
+  agent instructions and review rules, preserving independent optional integrations.
+
 ## 1.12.1 — 2026-11-20
 
 - Display the پانتکس brand in Core customer views, accessible labels, and the

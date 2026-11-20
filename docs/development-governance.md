@@ -133,6 +133,13 @@ do not silently weaken the required checks. Risk never grants merge authority.
 
 ## Verification and recovery
 
+- Before accepting a change, review its owner and native/code path against
+  [Constitution principle IV and the ownership table](../.specify/memory/constitution.md#iv-use-the-smallest-complete-change).
+  Confirm a concrete native limitation for any Core implementation, preserved
+  upstream data/authorization and optional-integration fallbacks. Do not accept
+  missing tooling as that limitation or move external rules into Core. Record the
+  result in the existing task/PR evidence; structural document checks alone do not
+  prove this judgment or compliance by future agents.
 - Run `tools/check.py`, the standalone checks in [AGENTS](../AGENTS.md), PHP
   syntax checks and package verification for this development setup. Inspect
   commands before execution; a name such as `test` or `dry-run` is not a guarantee.
