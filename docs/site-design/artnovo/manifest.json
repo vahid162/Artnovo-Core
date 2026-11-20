@@ -1,9 +1,9 @@
 {
   "format": "artnovo.site-design-manifest.v1",
   "site": "https://artnovo.ir",
-  "core_release": "v1.5.1",
-  "core_commit": "496583cc1fa6c62304d43a51ed51fe33b13a2dcc",
-  "core_zip_sha256": "ef8ede79b1421ff4c76718c78e98f24c9ba24f6506dc5da4d098d2871639bc9b",
+  "core_release": "v1.12.1",
+  "core_commit": "a6cc0bca1fe4bb85f838e16638d935703e2a27bb",
+  "core_zip_sha256": "1be93b28e9d3b1264201a0579719f9fe4be7a72734d571768ea3218d6f1162b4",
   "documents": [
     {
       "id": 68,
@@ -80,23 +80,23 @@
   "references": {
     "home": {
       "file": "home.json",
-      "sha256": "5f73cf98c3400f30efb2c132fe13abce3cb360bc916a210f7985ebc5752b09f8"
+      "sha256": "4d5c0bdefc9950f8e572348b461ae022dd2906ebb0653e28b49129a1dae8c081"
     },
     "header": {
       "file": "header.json",
-      "sha256": "b615f5de369c8216b44b2c6959a113209cdba5ca6beebd32b8196da47e436f14"
+      "sha256": "4a7b29be9f29efc3d0a1c6f3f5fa4119e64be5aefb0169076e1f4478d3c3db78"
     },
     "footer": {
       "file": "footer.json",
-      "sha256": "fa73e6fb46788a7a049bb3ef2dce3190455f100f9d33b0fd14cbd1bfffe4d23d"
+      "sha256": "26f0e285d1506040b15634d469decfefc0e07e422325690c79cce410d4fb99ab"
     },
     "terms": {
       "file": "terms.json",
-      "sha256": "9f5788eb7fac6666d5ab70b016927d4209065cbb538d9b8d5345a33f4f04c7bc"
+      "sha256": "3187be02c9336b4f8241e2646571a55e7c9013599928f6a78b82d23dfa00adca"
     },
     "privacy": {
       "file": "privacy.json",
-      "sha256": "758b3509ca58d5c7bd3cdf7e7ab5127c487f73dd8b13ad4abd50bfe217de271c"
+      "sha256": "cd1da3288607fbd47e8a715d9dd1ec22d45a1669d0e7a979041b8b9f8153c3d7"
     },
     "refunds": {
       "file": "refunds.json",

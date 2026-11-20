@@ -1,5 +1,5 @@
 {
-  "status": "planned for application after official Core 1.12.1 publication and installation",
+  "status": "applied and verified after official Core 1.12.1 publication and installation",
   "site": "https://artnovo.ir",
   "brand": "پانتکس",
   "previous_runtime": "Core 1.12.0",
@@ -129,5 +129,16 @@
     "Published Elementor readback shows each exact desired field, with no unexpected changes to captured document structure or neighboring settings.",
     "Guest routes render پانتکس in the page title, header navigation's accessible label, footer, homepage, terms and privacy. Legacy purchase links still reach the same routes.",
     "The public error document serves HTTP 404 with the released Pantex content. Domain links remain valid and the header/footer still use attachment 73."
-  ]
+  ],
+  "observed": {
+    "core_tag": "v1.12.1",
+    "source_commit": "a6cc0bca1fe4bb85f838e16638d935703e2a27bb",
+    "wordpress_fields_verified": 7,
+    "elementor_published_documents": 7,
+    "elementor_verified_fields": 8,
+    "elementor_verified_nodes": 234,
+    "public_routes_verified": 19,
+    "old_visible_brands_found": 0,
+    "edge_http_status": 404
+  }
 }

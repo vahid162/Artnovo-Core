@@ -1,12 +1,25 @@
 # Current project state
 
-## Delivery candidate for the پانتکس brand / Core 1.12.1 (2026-11-20)
+## Completed پانتکس brand delivery / Core 1.12.1 (2026-11-20)
 
-The owner confirmed «پانتکس» as the display name for the site at
-`artnovo.ir`. Core updates its customer text and the versioned 404 document.
-The [native operation contract](site-design/artnovo/planned-1.12.1.json)
-covers the WordPress title and Elementor copy. Existing permalink, contact
-address, template and integration identities are retained.
+The owner confirmed «پانتکس» as the display name at `artnovo.ir`. The
+[Core changes](https://github.com/vahid162/Artnovo-Core/pull/39) and main
+validation passed. The [release workflow](https://github.com/vahid162/Artnovo-Core/actions/runs/44733088543)
+published [Core 1.12.1](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.12.1)
+from `a6cc0bca1fe4bb85f838e16638d935703e2a27bb`. All 51 installed
+files matched the official ZIP with SHA-256
+`1be93b28e9d3b1264201a0579719f9fe4be7a72734d571768ea3218d6f1162b4`.
+
+The existing [native operation contract](site-design/artnovo/planned-1.12.1.json)
+was applied after installation. Independent readback confirmed the WordPress
+display name, five post titles, and header menu name. Eight Elementor values in
+seven published documents matched the contract across 234 reviewed elements.
+The existing domain, historical paths, contact addresses, logo and integration
+identities were preserved. The previous plugin and 404 document are backed up.
+
+HTTPS verification through the public domain found the new brand in the title
+and text of all 19 routes checked and no old display brand. The error page
+returned HTTP 404 and guest requests withheld private order information.
 
 ## Completed delivery of remaining customer and public designs / Core 1.12.0 (2026-11-20)
 
