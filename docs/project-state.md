@@ -1,21 +1,36 @@
 # Current project state
 
-## Approved delivery: remaining customer and public designs / Core 1.12.0 (2026-11-20)
+## Completed delivery of remaining customer and public designs / Core 1.12.0 (2026-11-20)
 
-The owner approved all 21 mobile and desktop designs. The candidate begins at
-the released 1.11.5 source, including the independent online purchase and
-native retry behavior. Core supplies presentation for wallet, account, recovery
-and public routes. WooCommerce, TeraWallet, Pinova, Bridge and payment gateways
-remain independent owners of authorization, processing and persistence.
-The wallet checkout and result layouts apply to routes rendered by WooCommerce.
-The current Gateland wallet flow goes directly to its provider and returns to
-the wallet form with the gateway's WooCommerce notice. Core styles that notice
-through its existing toast presentation.
+The owner approved the 21 mobile and desktop designs for wallet, account,
+recovery and public routes. Core supplies the presentation. WooCommerce,
+TeraWallet, Pinova, Bridge and payment gateways own authorization, processing
+and persistence. WooCommerce supplies the wallet checkout and result screens.
+Gateland was inactive on the production site at verification. In the isolated
+test, its optional direct redirect returned through its native WooCommerce
+notice, presented by the existing Core toast.
 
-The site's existing nginx error mapping serves `/404.html` for HTTP 404
-responses. The approved page is packaged with Core. Deployment uses that exact
-versioned file at the existing error-document location, preserving the HTTP
-status and backing up the previous document alongside Core.
+[PR 38](https://github.com/vahid162/Artnovo-Core/pull/38) and the
+[main validation](https://github.com/vahid162/Artnovo-Core/actions/runs/44730567384)
+passed. The [publication workflow](https://github.com/vahid162/Artnovo-Core/actions/runs/44730682087)
+published [Core 1.12.0](https://github.com/vahid162/Artnovo-Core/releases/tag/v1.12.0)
+from squash commit `05020793fd8ccc0ad9deac02ce6d4a1ce09b69a5`.
+The runtime ZIP SHA-256 is
+`08766e314d5bd07a05a2d41945fb2943758e4cbfcacd6c151b75664378fd7987`.
+
+The isolated browser passed 40 public, 20 account and 27 wallet
+route-and-width checks. Native integration covered checkout, receipt
+handling, account recovery and order and wallet ownership using synthetic
+fixtures. No payment, transfer or message was sent to a real provider.
+
+Core 1.12.0 was installed on artnovo.ir. The 51 plugin files matched the
+official package. The existing nginx error mapping serves the bundled
+`modules/public-pages/edge-404.html` from the existing `/404.html` path.
+The origin returned the exact new document and HTTP 404. Eleven public
+GET checks passed. The server also withheld private account, order, payment
+and receipt data from guests. The activation list, independent plugin files
+and WordPress configuration hashes matched the baseline. The prior Core and
+error document are retained together in the private deployment backup.
 
 ## Delivery candidate: independent purchase from the catalogue / Core 1.11.5 (2026-11-19)
 
