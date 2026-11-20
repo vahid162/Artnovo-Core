@@ -1,5 +1,39 @@
 # Current project state
 
+## Native-first ownership rules / documentation candidate (2026-11-20)
+
+The owner approved an explicit native-first capability boundary. Constitution
+principle IV and its ownership table are the canonical rule; AGENTS routes agents
+to it before executable changes, and development governance requires review of the
+selected owner, native limitation and preserved upstream authorization/fallbacks.
+Constitution version 1.1.0 is independent of Core 1.12.1. The amendment does not
+rewrite existing templates or the email-code flow, alter merge/release authority,
+or require a plugin release or site installation.
+
+Validation passed on the candidate based on `036e7cde004fa2874c55a826e3e760ab375bf86e`:
+`tools/check.py`, all six `tests/governance.py` checks, and 68 source/syntax/isolated
+test commands from the validation workflow under PHP 8.5.12, Python 3.10.12 and
+the existing Node 24.11.1 binary. The migration fixture initially refused this
+host's Git-contained `/tmp`; `php -d sys_temp_dir=/var/tmp tests/migration.php`
+passed using its required private non-Git temporary directory. No check or guard
+was weakened. The runtime package build remains part of PR validation.
+
+Independent reviewer `/root/boundary_policy_review` found no blocking issue.
+A fresh Codex desktop agent, `/root/boundary_fresh_agent_eval`, was explicitly
+directed to start at AGENTS and returned the expected decisions in seven scenarios:
+native banners without tool access; plan preservation; native price/stock/BACS
+configuration; external bank verification/retry; Core status presentation; missing
+Wallet; and preserving existing email/template behavior without an authorized
+migration. Its constitutional source SHA-256 was
+`9f94930a8e505484d4a0341512463e24e04a48150e790a9d634e43d7166770ac`;
+the configured model identifier was not exposed and no model override was used.
+This was a read-only decision exercise, not proof of automatic instruction
+discovery, future-agent compliance, WordPress behavior or a real transaction.
+
+This is a documentation development handoff; native site edits, runtime changes,
+publication and installation are out of scope. PR validation and any separately
+authorized merge remain before adoption on main.
+
 ## Completed پانتکس brand delivery / Core 1.12.1 (2026-11-20)
 
 The owner confirmed «پانتکس» as the display name at `artnovo.ir`. The

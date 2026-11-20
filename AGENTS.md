@@ -71,6 +71,13 @@ behavior tests for spelling-only changes or rerun unchanged checks without a rea
 
 ## Keep changes bounded
 
+Before each executable change, follow [Constitution principle IV](.specify/memory/constitution.md#iv-use-the-smallest-complete-change)
+and its ownership table. Briefly record the capability owner and chosen native or
+code path in the existing task/PR record. A Core code change needs a Core-owned
+requirement and a concrete reason native configuration/components are insufficient;
+missing access or tooling is not that reason. If the fix belongs to another
+component outside the mission, report it without substituting its behavior in Core.
+
 Use native WordPress/WooCommerce APIs and existing module boundaries. Preserve owner
 checks, OTP limits, nonces, private cache headers, receipt validation and payment
 fences. Never weaken a valid test to obtain a passing result. Do not copy Bridge
