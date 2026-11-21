@@ -594,5 +594,19 @@
       "navigation": "PASS buy CTA, select duration, hide banner on step 2, return to step 1",
       "limitations": "Short viewports and high native zoom retain natural content height, so matching gaps may require more vertical space."
     }
+  },
+  "duration_title_refinement": {
+    "state": "proposed",
+    "date": "2026-11-21",
+    "owner": "Elementor",
+    "post_id": 68,
+    "element_id": "26517140",
+    "widget_type": "e-heading",
+    "setting": "title",
+    "before": "۱ از ۳ · مدت اشتراک را انتخاب کن",
+    "desired": "مدت اشتراک را انتخاب کن",
+    "scope": "Remove only the stage prefix and its separator from the existing H2. Preserve all other element data, page settings, styles, navigation and purchase behavior.",
+    "verification": "Compare the staged and published native element tree with the baseline after replacing only the title. Check document settings and public heading.",
+    "rollback": "Restore only the previous title through Elementor if the current title still matches this change."
   }
 }
