@@ -284,5 +284,123 @@
       ],
       "limitations": "At the shortest tested heights and high native zoom the banner grows to contain its content and the CTA is reachable with vertical scrolling. The fixed offsets are based on the current header and progress strip geometry."
     }
+  },
+  "first_view_balance": {
+    "state": "proposed",
+    "date": "2026-11-21",
+    "owner": "Elementor homepage document 68, existing page custom_css",
+    "element_id": "5ff1b740",
+    "intent": "From scroll top, leave the same blank space below the hero as the space between the progress strip and the top of the hero.",
+    "before_sha256": "99a1641cbef8f40bea1ea8ab2e8993aee6bd45d9379f2d78dd3aed8d00940402",
+    "desired_sha256": "095de8df58653dd3f6e7fe576038ff9edebfb8ba3af00945f9092b3d0feb3351",
+    "scopes": [
+      {
+        "mode": "default",
+        "start_offset_px": 244,
+        "visible_end_gap_px": 58,
+        "hero_margin_block_end_px": 10
+      },
+      {
+        "mode": "max-width:767px",
+        "start_offset_px": 200,
+        "visible_end_gap_px": 34,
+        "hero_margin_block_end_px": 2
+      }
+    ],
+    "method": "Subtract the visible end gap from both the vh and dvh min-block-size calculations. The small hero-only trailing margin brings the next section to the fold, preserving its existing Elementor settings.",
+    "acceptance": "At the normal top-of-page view the two gaps match within 1px when content fits. Banner width and all other Elementor settings are preserved. Short views retain access to content by natural height and scrolling.",
+    "proposal_browser": [
+      {
+        "viewport": [
+          320,
+          568
+        ],
+        "top_gap": 34,
+        "bottom_gap": 32.328125,
+        "hero_height": 336.125,
+        "minimum_height": "334px"
+      },
+      {
+        "viewport": [
+          390,
+          844
+        ],
+        "top_gap": 34,
+        "bottom_gap": 34.453125,
+        "hero_height": 610,
+        "minimum_height": "610px"
+      },
+      {
+        "viewport": [
+          508,
+          713
+        ],
+        "top_gap": 34,
+        "bottom_gap": 34.453125,
+        "hero_height": 479,
+        "minimum_height": "479px"
+      },
+      {
+        "viewport": [
+          767,
+          713
+        ],
+        "top_gap": 34,
+        "bottom_gap": 34.453125,
+        "hero_height": 479,
+        "minimum_height": "479px"
+      },
+      {
+        "viewport": [
+          768,
+          713
+        ],
+        "top_gap": 58,
+        "bottom_gap": 58.453125,
+        "hero_height": 411,
+        "minimum_height": "411px"
+      },
+      {
+        "viewport": [
+          844,
+          390
+        ],
+        "top_gap": 58,
+        "bottom_gap": -114.265625,
+        "hero_height": 260.71875,
+        "minimum_height": "88px"
+      },
+      {
+        "viewport": [
+          1280,
+          540
+        ],
+        "top_gap": 58,
+        "bottom_gap": 10.25,
+        "hero_height": 286.203125,
+        "minimum_height": "238px"
+      },
+      {
+        "viewport": [
+          1440,
+          900
+        ],
+        "top_gap": 58,
+        "bottom_gap": 58.453125,
+        "hero_height": 598,
+        "minimum_height": "598px"
+      },
+      {
+        "viewport": [
+          1920,
+          1080
+        ],
+        "top_gap": 58,
+        "bottom_gap": 58.453125,
+        "hero_height": 778,
+        "minimum_height": "778px"
+      }
+    ],
+    "rollback": "When the published checksum still matches, restore the previous exact CSS for just the hero. Publish through Elementor and regenerate only document 68 CSS if needed."
   }
 }
