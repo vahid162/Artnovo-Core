@@ -5,7 +5,7 @@ require __DIR__ . '/qa-bootstrap.php';
 
 // Preview bank details are synthetic; the real gateway renderer is retained.
 add_filter( 'woocommerce_bacs_accounts', static fn() => [ [
-	'account_name' => 'حساب آزمایشی رابط', 'account_number' => '0000000000000000',
+	'account_name' => 'به نام حساب آزمایشی رابط', 'account_number' => '0000000000000000',
 	'bank_name' => 'بانک آزمایشی', 'sort_code' => '', 'iban' => 'IR000000000000000000000000', 'bic' => '',
 ] ] );
 
@@ -371,6 +371,27 @@ foreach ( array_keys( $cases ) as $name ) {
 		$check( 'display conversion does not offer a different value for copying', str_contains( $converted, '۱ ریال' )
 			&& ! str_contains( $converted, 'data-artnovo-copy=' ) );
 		$no_bank = static fn() => [];
+		$check( 'pending transfer shows the wait notice, current Woo holder and receipt upload heading',
+			str_contains( $markup, '<p class="artnovo-transfer-wait">حداکثر انتظار ۱۰ دقیقه</p>' )
+			&& str_contains( $markup, 'شماره کارت به نام: حساب آزمایشی رابط</h3>' )
+			&& str_contains( $markup, 'id="artnovo-received-receipt-heading">تصویر رسید پرداختی خود را ارسال کنید</h2>' ) );
+		$several_accounts = static fn( array $accounts ): array => array_merge( $accounts, [
+			[ 'account_name' => 'دارندهٔ دوم & شریک', 'account_number' => '۰۰۰۰ ۰۰۰۰ ۰۰۰۰ ۰۰۰۱', 'bank_name' => 'بانک دوم', 'sort_code' => '', 'iban' => '', 'bic' => '' ],
+			[ 'account_name' => 'دارندهٔ شبا', 'account_number' => '', 'bank_name' => 'بانک سوم', 'sort_code' => '', 'iban' => 'IR000000000000000000000001', 'bic' => '' ],
+		] );
+		add_filter( 'woocommerce_bacs_accounts', $several_accounts, PHP_INT_MAX );
+		try {
+			ob_start();
+			\Artnovo\AccountUI\render_received_page();
+			$several_destinations = ob_get_clean();
+		} finally {
+			remove_filter( 'woocommerce_bacs_accounts', $several_accounts, PHP_INT_MAX );
+		}
+		$check( 'each card displays its own current Woo holder, with the IBAN-only heading and fields preserved',
+			2 === substr_count( $several_destinations, 'شماره کارت به نام:' )
+			&& str_contains( $several_destinations, 'شماره کارت به نام: دارندهٔ دوم &amp; شریک</h3>' )
+			&& str_contains( $several_destinations, 'دارندهٔ شبا:</h3>' )
+			&& str_contains( $several_destinations, '<strong>IR000000000000000000000001</strong>' ) );
 		add_filter( 'woocommerce_bacs_accounts', $no_bank, PHP_INT_MAX );
 		try {
 			ob_start();
@@ -382,6 +403,7 @@ foreach ( array_keys( $cases ) as $name ) {
 		$check( 'missing bank details give support and keep receipt access without prompting a transfer',
 			str_contains( $without_destination, 'اطلاعات واریز در دسترس نیست' )
 			&& ! str_contains( $without_destination, 'واریز کنید، رسید را بفرستید' )
+			&& ! str_contains( $without_destination, 'حداکثر انتظار ۱۰ دقیقه' )
 			&& ! str_contains( $without_destination, 'artnovo-transfer-amount-value' )
 			&& str_contains( $without_destination, 'data-artnovo-receipt-preview' ) );
 	}

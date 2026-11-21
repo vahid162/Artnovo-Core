@@ -5,6 +5,11 @@
 - Clarify native-first implementation and component ownership in the constitution,
   agent instructions and review rules, preserving independent optional integrations.
 
+## 1.12.3 — 2026-11-21
+
+- Clarify the pending card-transfer and receipt upload screens, and show the
+  current WooCommerce card holder in the transfer panel.
+
 ## 1.12.2 — 2026-11-21
 
 - Update the checkout heading and the signed-in confirmation text in the plan wizard.

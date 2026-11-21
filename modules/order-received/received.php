@@ -464,6 +464,28 @@ function render_received_transfer_amount( \WC_Order $order, bool $has_destinatio
 	<?php
 }
 
+function received_card_holder_headings( string $bank_details ): string {
+	// WooCommerce renders each account name with a colon followed by that account's fields.
+	return preg_replace_callback(
+		'~(<h3 class="wc-bacs-bank-details-account-name">)([^<]*):</h3>(\s*<ul class="wc-bacs-bank-details [^"]*">.*?</ul>)~s',
+		static function ( array $account ): string {
+			if ( ! preg_match( '~<li class="account_number">[^<]*<strong>([^<]*)</strong>~', $account[3], $number ) ) {
+				return $account[0];
+			}
+			$digits = preg_replace( '/[\s\p{Z}-]+/u', '', html_entity_decode( $number[1], ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
+			if ( ! preg_match( '/\A[0-9۰-۹٠-٩]{16}\z/u', $digits ?? '' ) ) {
+				return $account[0];
+			}
+			$name = trim( html_entity_decode( $account[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
+			$name = preg_replace( '/\A(?:شماره کارت )?به[\s\p{Z}‌]+نام[\s\p{Z}‌:]+/u', '', $name );
+			return null !== $name && '' !== $name
+				? $account[1] . 'شماره کارت به نام: ' . esc_html( $name ) . '</h3>' . $account[3]
+				: $account[0];
+		},
+		$bank_details
+	) ?? $bank_details;
+}
+
 function render_received_quick_transfer( \WC_Order $order, string $support ): void {
 	$gateways = WC()->payment_gateways()->payment_gateways();
 	ob_start();
@@ -486,6 +508,9 @@ function render_received_quick_transfer( \WC_Order $order, string $support ): vo
 	<div class="artnovo-transfer-intro" id="artnovo-received-status" data-state="pending">
 		<h1><?php echo $has_destination ? 'واریز کنید، رسید را بفرستید' : 'پیگیری پرداخت کارت‌به‌کارت'; ?></h1>
 		<p>پس از تأیید پرداخت، اکانت در حساب شما قرار می‌گیرد.</p>
+		<?php if ( $has_destination ) : ?>
+			<p class="artnovo-transfer-wait">حداکثر انتظار ۱۰ دقیقه</p>
+		<?php endif; ?>
 	</div>
 	<?php render_received_summary( $order, true ); ?>
 	<?php wc_print_notices(); ?>
@@ -494,7 +519,7 @@ function render_received_quick_transfer( \WC_Order $order, string $support ): vo
 			<h2 id="artnovo-transfer-bank-heading">اطلاعات واریز</h2>
 			<?php render_received_transfer_amount( $order, $has_destination ); ?>
 			<?php if ( $has_destination ) : ?>
-				<div class="artnovo-transfer-destination"><?php echo $bank_details; ?></div>
+				<div class="artnovo-transfer-destination"><?php echo received_card_holder_headings( $bank_details ); ?></div>
 			<?php else : ?>
 				<p class="artnovo-transfer-label">اطلاعات واریز در دسترس نیست. اگر هنوز واریز نکرده‌اید، برای دریافت اطلاعات با پشتیبانی تماس بگیرید.</p>
 				<a class="artnovo-account-button artnovo-account-button-secondary" href="<?php echo esc_url( $support ); ?>">پشتیبانی این خرید</a>
