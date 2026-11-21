@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "state": "proposed",
+  "state": "published_and_verified",
   "date": "2026-11-21",
   "site": "https://artnovo.ir/",
   "document": {
@@ -85,5 +85,136 @@
   },
   "scope": "Existing or future eligible products in the configured duration groups inherit the template. A new duration group needs its own existing wizard integration and can reuse the component. Do not change the WooCommerce descriptions, product pricing, taxonomy assignments, query IDs, CTA or purchase controls.",
   "preflight": "Exact live Elementor subtree read; native dry runs accepted the list composition and V3 excerpt options; component authoring available.",
-  "rollback": "Use native Elementor operations to remove just the three identified component instances and restore the prior excerpt setting if unchanged since publication. Archive the component only after verifying that there are no other consumers. Retain the initial document revision and avoid whole-document restore after unrelated changes."
+  "rollback": "Use native Elementor operations to remove just the three identified component instances and restore the prior excerpt setting if unchanged since publication. Archive the component only after verifying that there are no other consumers. Retain the initial document revision and avoid whole-document restore after unrelated changes.",
+  "observed": {
+    "component_id": 262,
+    "component_root_id": "277d37d8",
+    "component_editor": "https://artnovo.ir/wp-admin/post.php?post=262&action=elementor",
+    "component_instances": [
+      {
+        "parent": "44f6df74",
+        "id": "72d147c"
+      },
+      {
+        "parent": "7afbfc9c",
+        "id": "c38d88a"
+      },
+      {
+        "parent": "28b76764",
+        "id": "757eb256"
+      }
+    ],
+    "source": "MCP readback matched the reviewed staged Elementor tree. Native document API confirmed all three published V3 dynamic tags, plus unchanged page settings and CSS checksums. Only the three target descriptions and three appended component instances changed.",
+    "initial_document_undo_revision": 264,
+    "fallback_native_memory_cases": {
+      "short_description_prioritized": true,
+      "main_description_excerpt_when_short_empty": true,
+      "both_empty_returns_empty": true
+    },
+    "browser_description_and_list_checks": [
+      {
+        "width": 320,
+        "month": 1,
+        "cards": 4,
+        "distinctDescriptions": 4,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      },
+      {
+        "width": 320,
+        "month": 2,
+        "cards": 6,
+        "distinctDescriptions": 6,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      },
+      {
+        "width": 508,
+        "month": 1,
+        "cards": 4,
+        "distinctDescriptions": 4,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      },
+      {
+        "width": 508,
+        "month": 2,
+        "cards": 6,
+        "distinctDescriptions": 6,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      },
+      {
+        "width": 1280,
+        "month": 1,
+        "cards": 4,
+        "distinctDescriptions": 4,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      },
+      {
+        "width": 1280,
+        "month": 2,
+        "cards": 6,
+        "distinctDescriptions": 6,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      }
+    ],
+    "native_zoom_keyboard_and_reflow": [
+      {
+        "zoom": 1,
+        "width": 1280,
+        "height": 813,
+        "overflow": 0,
+        "listFits": true,
+        "count": 4,
+        "text": "مناسب و سازگار با همهٔ هوش مصنوعی‌ها"
+      },
+      {
+        "zoom": 2,
+        "width": 640,
+        "height": 406,
+        "overflow": 0,
+        "listFits": true,
+        "count": 4,
+        "text": "مناسب و سازگار با همهٔ هوش مصنوعی‌ها"
+      },
+      {
+        "zoom": 4,
+        "width": 320,
+        "height": 203,
+        "overflow": 0,
+        "listFits": true,
+        "count": 4,
+        "text": "مناسب و سازگار با همهٔ هوش مصنوعی‌ها"
+      },
+      {
+        "restoration": {
+          "status": "restored",
+          "factor": 1,
+          "settings": {
+            "defaultZoomFactor": 1,
+            "mode": "automatic",
+            "scope": "per-origin"
+          }
+        },
+        "errors": []
+      }
+    ],
+    "no_three_month_product": true,
+    "limitations": "The three-month template was verified by native readback. No public three-month product was available to exercise a real card. New eligible products in existing groups inherit the templates. Adding an entirely new duration is a separate wizard/catalog layout change."
+  }
 }
