@@ -199,8 +199,36 @@ assert.equal(state.totals[0].textContent, '۸۰۰٬۰۰۰ تومان');
 assert.equal(state.adjustments.childNodes.length, 1, 'همگام‌سازی مجدد جزئیات قدیمی را انباشته نمی‌کند');
 assert.equal(state.adjustments.querySelector('.woocommerce-remove-coupon').tabIndex, 0);
 
+const nativeWalletCheckbox = el('input', { type: 'checkbox', name: 'partial_pay_through_wallet' });
+const walletCoupon = coupon();
+const walletOptIn = table('۱۳۰٬۰۰۰', [
+	row('wallet-pay-partial', 'پرداخت از کیف پول', nativeWalletCheckbox),
+	row('cart-discount', 'تخفیف بهار', walletCoupon)
+]);
+state.nativeCheckout.replaceChildren(walletOptIn);
+assert.equal(sync(state), true);
+assert.equal(state.order.dataset.artnovoNativeReview, '1');
+assert.equal(state.order.dataset.artnovoSummaryReady, undefined);
+assert.equal(walletOptIn.hasAttribute('aria-hidden'), false);
+assert.equal(walletOptIn.querySelector('.wallet-pay-partial input'), nativeWalletCheckbox);
+assert.equal(nativeWalletCheckbox.hasAttribute('tabindex'), false, 'کنترل اصلی کیف پول در مسیر صفحه‌کلید باقی می‌ماند');
+assert.equal(walletCoupon.tabIndex, 0, 'پیوند کوپن در جدول بومی قابل دسترس است');
+assert.equal(walletOptIn.querySelector('.product-quantity').textContent, '× ۲');
+assert.equal(walletOptIn.querySelector('.order-total td').textContent, '۱۳۰٬۰۰۰ تومان');
+assert.equal(state.adjustments.childNodes.length, 0, 'کنترل کیف پول و ردیف‌های بومی در خلاصهٔ دوم کپی نمی‌شوند');
+
+const walletNotice = '۷۰٬۰۰۰ تومان از کیف پول و ۱۳۰٬۰۰۰ تومان از روش دیگر پرداخت می‌شود';
+const walletAutomatic = table('۱۳۰٬۰۰۰', [el('tr', { class: 'wallet-pay-partial' }, el('th', { colspan: '2' }, walletNotice))]);
+state.nativeCheckout.replaceChildren(walletAutomatic);
+assert.equal(sync(state), true);
+assert.equal(state.order.dataset.artnovoNativeReview, '1');
+assert.equal(walletAutomatic.hasAttribute('aria-hidden'), false);
+assert.equal(walletAutomatic.querySelector('.wallet-pay-partial').textContent, walletNotice, 'اعلان برداشت خودکار بدون ساختن کنترل جدید نمایش داده می‌شود');
+
 state.nativeCheckout.replaceChildren(table('۱٬۰۰۰٬۰۰۰'));
 assert.equal(sync(state), true);
+assert.equal(state.order.dataset.artnovoNativeReview, undefined);
+assert.equal(state.order.dataset.artnovoSummaryReady, '1');
 assert.equal(state.totals[0].textContent, '۱٬۰۰۰٬۰۰۰ تومان');
 assert.equal(state.adjustments.childNodes.length, 0, 'حذف کوپن، مالیات و هزینه از fragment در خلاصه هم منعکس می‌شود');
 

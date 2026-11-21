@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep TeraWallet’s original partial-payment control and deduction notice visible
+  in the plan wizard when WooCommerce provides them.
 - Clarify native-first implementation and component ownership in the constitution,
   agent instructions and review rules, preserving independent optional integrations.
 
