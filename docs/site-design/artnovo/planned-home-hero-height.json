@@ -596,7 +596,7 @@
     }
   },
   "duration_title_refinement": {
-    "state": "proposed",
+    "state": "published_and_verified",
     "date": "2026-11-21",
     "owner": "Elementor",
     "post_id": 68,
@@ -607,6 +607,13 @@
     "desired": "مدت اشتراک را انتخاب کن",
     "scope": "Remove only the stage prefix and its separator from the existing H2. Preserve all other element data, page settings, styles, navigation and purchase behavior.",
     "verification": "Compare the staged and published native element tree with the baseline after replacing only the title. Check document settings and public heading.",
-    "rollback": "Restore only the previous title through Elementor if the current title still matches this change."
+    "rollback": "Restore only the previous title through Elementor if the current title still matches this change.",
+    "observed": {
+      "native_full_document_match_except_title": true,
+      "unchanged_page_settings_and_css": true,
+      "public_title": "مدت اشتراک را انتخاب کن",
+      "public_progress_controls": 3,
+      "native_undo_revision": 271
+    }
   }
 }
