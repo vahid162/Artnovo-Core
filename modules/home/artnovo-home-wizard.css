@@ -840,6 +840,10 @@
 	display: none;
 }
 
+[data-artnovo-wizard] .artnovo-order[data-artnovo-native-review] :is(.artnovo-order-total, .artnovo-order-adjustments) {
+	display: none;
+}
+
 [data-artnovo-wizard] .artnovo-order-native .woocommerce :is(.col2-set, #customer_details, #order_review, .col2-set > .col-1, .col2-set > .col-2) {
 	float: none;
 	width: 100%;

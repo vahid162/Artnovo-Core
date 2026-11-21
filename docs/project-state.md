@@ -1,5 +1,21 @@
 # Current project state
 
+## Wallet contribution in the plan checkout / development candidate (2026-11-21)
+
+When the native checkout includes TeraWallet’s partial-payment row, the Core
+wizard shows the original WooCommerce review table. This keeps the native
+wallet control or automatic deduction notice available with the correct
+amounts. The wizard keeps plan and quantity navigation and resumes its compact
+summary when WooCommerce refreshes without that row.
+
+Standalone validation, package checks, and the focused checkout regression
+passed. An isolated Chromium fixture at 390 and 1280 pixels used TeraWallet
+1.7.5’s template, jQuery fragment replacement, and an intercepted wallet
+request to verify keyboard access, the automatic disclosure, and the fallback
+to the compact summary. Independent source review found no blocker. This is
+development evidence. The installed wizard and an actual payment are outside
+its coverage.
+
 ## Native-first ownership rules / documentation candidate (2026-11-20)
 
 The owner approved an explicit native-first capability boundary. Constitution

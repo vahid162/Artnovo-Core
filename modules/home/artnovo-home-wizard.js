@@ -336,6 +336,7 @@
 			for (const request of nativeRequests) request.abort();
 			nativeRequests.clear();
 			delete order.dataset.artnovoSummaryReady;
+			delete order.dataset.artnovoNativeReview;
 			adjustments?.replaceChildren();
 		}
 		updateAmounts(findPlan(state.plan, state.category));
@@ -555,6 +556,15 @@
 		const table = nativeCheckout?.querySelector('.woocommerce-checkout-review-order-table');
 		const amount = table?.querySelector('.order-total td');
 		if (!amount) return false;
+		if (table.querySelector('.wallet-pay-partial')) {
+			// Keep TeraWallet's original control and automatic deduction notice in the form.
+			table.removeAttribute('aria-hidden');
+			delete order.dataset.artnovoSummaryReady;
+			order.dataset.artnovoNativeReview = '1';
+			adjustments?.replaceChildren();
+			return true;
+		}
+		delete order.dataset.artnovoNativeReview;
 		// WooCommerce remains the source of totals, discounts, taxes and fees.
 		table.setAttribute('aria-hidden', 'true');
 		order.dataset.artnovoSummaryReady = '1';
