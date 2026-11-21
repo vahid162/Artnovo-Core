@@ -133,7 +133,7 @@ function checkout_coupon_form(): void {
 }
 
 function checkout_account_hint(): void {
-	echo '<div class="artnovo-order-heading-group artnovo-order-login-confirmation" data-artnovo-notice-permanent><h3 class="artnovo-order-account">✓ ورود انجام شد</h3><p class="artnovo-order-hint">اطلاعات اکانت پس از تأیید پرداخت در حساب کاربری شما نمایش داده می‌شود.</p></div>';
+	echo '<div class="artnovo-order-heading-group artnovo-order-login-confirmation" data-artnovo-notice-permanent><h3 class="artnovo-order-account">شما قبلا وارد شده اید</h3><p class="artnovo-order-hint">اطلاعات اکانت پس از تأیید پرداخت در حساب کاربری شما نمایش داده می‌شود.</p></div>';
 }
 
 function checkout_payment_heading(): void {
@@ -238,7 +238,7 @@ function render_order( ?\WC_Product $plan ): string {
 		data-artnovo-price-decimal-separator="<?php echo esc_attr( $woocommerce ? wc_get_price_decimal_separator() : '.' ); ?>"
 		data-artnovo-currency="<?php echo esc_attr( $currency ); ?>">
 		<div class="artnovo-order-intro">
-			<h2 id="artnovo-order-heading">خرید و دریافت اکانت</h2>
+			<h2 id="artnovo-order-heading">پرداخت و دریافت اکانت</h2>
 		</div>
 		<?php if ( $checkout && $login ) : ?>
 			<form method="post" action="<?php echo esc_url( get_permalink( PAGE_ID ) ); ?>" data-artnovo-prepare hidden>
