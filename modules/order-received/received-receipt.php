@@ -45,7 +45,7 @@ function render_received_receipt( \WC_Order $order, bool $quick_transfer = false
 	}
 	?>
 	<section id="artnovo-received-receipt" class="artnovo-account-card artnovo-received-receipt" aria-labelledby="artnovo-received-receipt-heading">
-		<h2 id="artnovo-received-receipt-heading"><?php echo $quick_transfer ? 'تصویر رسید را انتخاب کنید' : 'رسید پرداخت'; ?></h2>
+		<h2 id="artnovo-received-receipt-heading"><?php echo $quick_transfer ? 'تصویر رسید پرداختی خود را ارسال کنید' : 'رسید پرداخت'; ?></h2>
 		<?php if ( $exists ) : ?>
 			<?php if ( ! $review ) : ?>
 				<p class="artnovo-account-notice">رسید این خرید ثبت شده است. وضعیت تأیید پرداخت را بالای همین صفحه ببینید.</p>
