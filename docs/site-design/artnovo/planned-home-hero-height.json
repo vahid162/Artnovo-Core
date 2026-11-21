@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "state": "proposed",
+  "state": "published_and_verified",
   "site": "https://artnovo.ir/",
   "date": "2026-11-21",
   "owner": "Elementor",
@@ -63,5 +63,102 @@
     "No horizontal overflow at representative viewport widths."
   ],
   "proof_before_write": "Draft proposal over the public page measured successful hero sizing, unchanged inline width, correct section gaps and no horizontal overflow at 320, 390, 509, 767, 768, 1024, 1160, 1440 and 1920 CSS px.",
-  "rollback": "Recheck current supported source. Reverse only the two exact CSS edits and the two targeted element fields if they still match this change. Retain the fresh view and native undo IDs; use document-level revision restoration only if no intervening work would be lost."
+  "rollback": "Recheck current supported source. Reverse only the two exact CSS edits and the two targeted element fields if they still match this change. Retain the fresh view and native undo IDs; use document-level revision restoration only if no intervening work would be lost.",
+  "observed": {
+    "document_status": "publish",
+    "staged": false,
+    "template": "elementor_header_footer",
+    "hide_title": "yes",
+    "initial_undo_revision": 256,
+    "css_sha256": "ae85d5620b3751a9d3dc6a8fb8a4a1c5137d8cb523d13c71b710728116da6f8c",
+    "duration_style": "min-width: 0px; padding: 0px; margin-block-start: 30px; display: flex; flex-direction: column; gap: 0px;\n@media(--mobile) { margin-block-start: 18px; }",
+    "heading": "۱ از ۳ · مدت اشتراک را انتخاب کن",
+    "source_comparison": "The complete available Elementor subtree equals the reviewed draft. Settings comparison admitted custom_css only. Reapplying the existing hide_title value to the draft preserved the original page setting.",
+    "asset_verification": "The generated page stylesheet initially retained the previous hero height. Regenerated Elementor's CSS for document 68 through its Post CSS API and then confirmed the published browser result.",
+    "viewport_css_px": [
+      [
+        320,
+        713
+      ],
+      [
+        390,
+        713
+      ],
+      [
+        509,
+        713
+      ],
+      [
+        767,
+        713
+      ],
+      [
+        768,
+        713
+      ],
+      [
+        1024,
+        713
+      ],
+      [
+        1160,
+        713
+      ],
+      [
+        1440,
+        713
+      ],
+      [
+        1920,
+        713
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        1280,
+        540
+      ]
+    ],
+    "geometry": "Hero width follows the original page gutters and height reaches the viewport. Section gap is 32 or 48 px by breakpoint. No horizontal overflow.",
+    "checkout_navigation": "Guest buy CTA, duration selection to step 2, and return via step 1 passed.",
+    "native_chrome_zoom": {
+      "factors": [
+        1,
+        2,
+        4
+      ],
+      "outer_px": [
+        1280,
+        900
+      ],
+      "viewports": [
+        [
+          1280,
+          813
+        ],
+        [
+          640,
+          406
+        ],
+        [
+          320,
+          203
+        ]
+      ],
+      "hero_heights": [
+        813,
+        406.5,
+        336.14453125
+      ],
+      "no_horizontal_overflow": true,
+      "cta_and_title_fit": true,
+      "restored_factor": 1
+    }
+  }
 }
