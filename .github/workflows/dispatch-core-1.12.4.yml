@@ -1,0 +1,30 @@
+name: Dispatch the approved Core 1.12.4 release
+
+on:
+  push:
+    branches: [qa/core-1.12.4-dispatch]
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  dispatch:
+    if: github.repository == 'vahid162/Artnovo-Core' && github.ref == 'refs/heads/qa/core-1.12.4-dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      EXPECTED_COMMIT: f1e6604a39ee51e80bcd75c9102b3c4e1f54e5c3
+    steps:
+      - name: Dispatch the existing publication workflow for the approved main commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [[ "$actual" != "$EXPECTED_COMMIT" ]]; then
+            echo "::error::The approved main source is no longer the current commit."
+            exit 1
+          fi
+          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" \
+            --ref main --raw-field publish=true --raw-field expected_commit="$EXPECTED_COMMIT"
