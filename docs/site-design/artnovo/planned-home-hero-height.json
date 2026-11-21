@@ -286,7 +286,7 @@
     }
   },
   "first_view_balance": {
-    "state": "proposed",
+    "state": "published_and_verified",
     "date": "2026-11-21",
     "owner": "Elementor homepage document 68, existing page custom_css",
     "element_id": "5ff1b740",
@@ -401,6 +401,198 @@
         "minimum_height": "778px"
       }
     ],
-    "rollback": "When the published checksum still matches, restore the previous exact CSS for just the hero. Publish through Elementor and regenerate only document 68 CSS if needed."
+    "rollback": "When the published checksum still matches, restore the previous exact CSS for just the hero. Publish through Elementor and regenerate only document 68 CSS if needed.",
+    "observed": {
+      "css": {
+        "css_sha256": "095de8df58653dd3f6e7fe576038ff9edebfb8ba3af00945f9092b3d0feb3351",
+        "scoped_regeneration": true,
+        "status": "publish"
+      },
+      "undo_revision": 269,
+      "source": "The full native Elementor element tree matched before and after. Only the existing page custom_css setting changed. Published settings retained the template and title visibility.",
+      "responsive": [
+        {
+          "viewport": [
+            320,
+            568
+          ],
+          "top_gap": 34,
+          "bottom_gap": 32.328125,
+          "hero_height": 336.125,
+          "section_top": 569.671875,
+          "content_height_limited": true
+        },
+        {
+          "viewport": [
+            390,
+            844
+          ],
+          "top_gap": 34,
+          "bottom_gap": 34.453125,
+          "hero_height": 610,
+          "section_top": 843.546875,
+          "content_height_limited": false
+        },
+        {
+          "viewport": [
+            508,
+            713
+          ],
+          "top_gap": 34,
+          "bottom_gap": 34.453125,
+          "hero_height": 479,
+          "section_top": 712.546875,
+          "content_height_limited": false
+        },
+        {
+          "viewport": [
+            767,
+            713
+          ],
+          "top_gap": 34,
+          "bottom_gap": 34.453125,
+          "hero_height": 479,
+          "section_top": 712.546875,
+          "content_height_limited": false
+        },
+        {
+          "viewport": [
+            768,
+            713
+          ],
+          "top_gap": 58,
+          "bottom_gap": 58.453125,
+          "hero_height": 411,
+          "section_top": 712.546875,
+          "content_height_limited": false
+        },
+        {
+          "viewport": [
+            844,
+            390
+          ],
+          "top_gap": 58,
+          "bottom_gap": -114.265625,
+          "hero_height": 260.71875,
+          "section_top": 562.265625,
+          "content_height_limited": true
+        },
+        {
+          "viewport": [
+            1280,
+            540
+          ],
+          "top_gap": 58,
+          "bottom_gap": 10.25,
+          "hero_height": 286.203125,
+          "section_top": 587.75,
+          "content_height_limited": true
+        },
+        {
+          "viewport": [
+            1440,
+            900
+          ],
+          "top_gap": 58,
+          "bottom_gap": 58.453125,
+          "hero_height": 598,
+          "section_top": 899.546875,
+          "content_height_limited": false
+        },
+        {
+          "viewport": [
+            1920,
+            1080
+          ],
+          "top_gap": 58,
+          "bottom_gap": 58.453125,
+          "hero_height": 778,
+          "section_top": 1079.546875,
+          "content_height_limited": false
+        }
+      ],
+      "zoom": [
+        {
+          "factor": 1,
+          "actual": 1,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            1280,
+            813
+          ],
+          "heroTop": 243.546875,
+          "heroBottom": 754.546875,
+          "heroHeight": 511,
+          "topGap": 58,
+          "bottomGap": 58.453125,
+          "gap": 58,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "factor": 2,
+          "actual": 2,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            640,
+            406
+          ],
+          "heroTop": 199.546875,
+          "heroBottom": 535.1875,
+          "heroHeight": 335.640625,
+          "topGap": 34,
+          "bottomGap": -129.1875,
+          "gap": 34,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "factor": 4,
+          "actual": 4,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            320,
+            203
+          ],
+          "heroTop": 199.546875,
+          "heroBottom": 535.69140625,
+          "heroHeight": 336.14453125,
+          "topGap": 34,
+          "bottomGap": -332.69140625,
+          "gap": 34,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "restoration": {
+            "status": "restored",
+            "factor": 1,
+            "settings": {
+              "defaultZoomFactor": 1,
+              "mode": "automatic",
+              "scope": "per-origin"
+            }
+          },
+          "errors": []
+        }
+      ],
+      "navigation": "PASS buy CTA, select duration, hide banner on step 2, return to step 1",
+      "limitations": "Short viewports and high native zoom retain natural content height, so matching gaps may require more vertical space."
+    }
   }
 }
