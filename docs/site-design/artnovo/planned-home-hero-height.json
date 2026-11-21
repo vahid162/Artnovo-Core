@@ -162,7 +162,7 @@
     }
   },
   "height_refinement": {
-    "state": "proposed",
+    "state": "published_and_verified",
     "date": "2026-11-21",
     "owner": "Elementor homepage document 68, existing custom_css for the hero only",
     "user_intent": "On page entry at the top, the header, progress strip, their existing spacing, and the hero together reach the bottom of the visible viewport. Keep all other homepage elements and existing horizontal sizing.",
@@ -183,6 +183,106 @@
     ],
     "baseline_measurement": "At scroll top, the 61 px header and 80.546875 px progress strip plus existing margins and gaps put the hero top at 199.546875 px on mobile and 243.546875 px at or above 768 px. Use rounded-up offsets so the hero bottom does not extend past the viewport when the content fits.",
     "preview": "Fourteen viewport measurements verified unchanged banner width, header and progress geometry, duration section width, H2 and section gaps. At 485 × 713, the top is 199.55 px and the banner height is 513 px, with the CTA at 606.11 px. In short viewports, intrinsic content height takes priority over fitting within the available viewport.",
-    "rollback": "Use Elementor to reverse only the hero sizing changes against fresh readback. Preserve the title setting and staged tree. Regenerate document 68 CSS through Elementor if emitted CSS is stale."
+    "rollback": "Use Elementor to reverse only the hero sizing changes against fresh readback. Preserve the title setting and staged tree. Regenerate document 68 CSS through Elementor if emitted CSS is stale.",
+    "observed": {
+      "document_status": "publish",
+      "staged": false,
+      "undo_revision": 260,
+      "css_sha256": "99a1641cbef8f40bea1ea8ab2e8993aee6bd45d9379f2d78dd3aed8d00940402",
+      "scope": "Exact before/after Elementor tree match. The document settings delta contained only custom_css. Existing template, hide_title, responsive widths, section gaps and duration heading were preserved.",
+      "asset_regeneration": "Regenerated only the stylesheet for document 68 with Elementor's Post CSS API after the initial generated file retained the previous rules.",
+      "viewport_checks": [
+        "320×568 bottom=567.55 CTA=533.61",
+        "360×800 bottom=799.55 CTA=649.61",
+        "390×844 bottom=843.55 CTA=671.61",
+        "485×713 bottom=712.55 CTA=606.11",
+        "509×713 bottom=712.55 CTA=591.86",
+        "640×360 bottom=535.17 CTA=503.17",
+        "767×713 bottom=712.55 CTA=593.83",
+        "768×713 bottom=712.55 CTA=572.97",
+        "844×390 bottom=504.27 CTA=470.52",
+        "1024×768 bottom=767.55 CTA=591.84",
+        "1025×768 bottom=767.55 CTA=591.88",
+        "1280×540 bottom=539.55 CTA=483.45",
+        "1440×900 bottom=899.55 CTA=665.08",
+        "1920×1080 bottom=1079.55 CTA=755.08",
+        "PASS buy CTA, select duration, hide banner on step 2, return to step 1"
+      ],
+      "zoom_checks": [
+        {
+          "factor": 1,
+          "actual": 1,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            1280,
+            813
+          ],
+          "heroTop": 243.546875,
+          "heroBottom": 812.546875,
+          "heroHeight": 569,
+          "gap": 48,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "factor": 2,
+          "actual": 2,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            640,
+            406
+          ],
+          "heroTop": 199.546875,
+          "heroBottom": 535.1875,
+          "heroHeight": 335.640625,
+          "gap": 32,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "factor": 4,
+          "actual": 4,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            320,
+            203
+          ],
+          "heroTop": 199.546875,
+          "heroBottom": 535.69140625,
+          "heroHeight": 336.14453125,
+          "gap": 32,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "restoration": {
+            "status": "restored",
+            "factor": 1,
+            "settings": {
+              "defaultZoomFactor": 1,
+              "mode": "automatic",
+              "scope": "per-origin"
+            }
+          },
+          "errors": []
+        }
+      ],
+      "limitations": "At the shortest tested heights and high native zoom the banner grows to contain its content and the CTA is reachable with vertical scrolling. The fixed offsets are based on the current header and progress strip geometry."
+    }
   }
 }
