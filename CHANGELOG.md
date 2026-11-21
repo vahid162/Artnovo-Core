@@ -5,6 +5,10 @@
 - Clarify native-first implementation and component ownership in the constitution,
   agent instructions and review rules, preserving independent optional integrations.
 
+## 1.12.2 — 2026-11-21
+
+- Update the checkout heading and the signed-in confirmation text in the plan wizard.
+
 ## 1.12.1 — 2026-11-20
 
 - Display the پانتکس brand in Core customer views, accessible labels, and the

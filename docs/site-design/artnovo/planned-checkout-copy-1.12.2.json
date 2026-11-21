@@ -1,0 +1,35 @@
+{
+  "site": "https://artnovo.ir",
+  "route": "/?artnovo_plan=25#artnovo-order",
+  "core": {
+    "candidate_version": "1.12.2",
+    "source": "modules/home/artnovo-home-wizard.php",
+    "copy": [
+      {
+        "selector": "h3.artnovo-order-account",
+        "context": "Signed-in checkout",
+        "previous": "✓ ورود انجام شد",
+        "desired": "شما قبلا وارد شده اید"
+      },
+      {
+        "selector": "h2#artnovo-order-heading",
+        "context": "Plan checkout heading",
+        "previous": "خرید و دریافت اکانت",
+        "desired": "پرداخت و دریافت اکانت"
+      }
+    ],
+    "rollback": "Reinstall the verified previous Core release if required."
+  },
+  "woocommerce": {
+    "gateway_id": "artnovo_gpante",
+    "option": "woocommerce_artnovo_gpante_settings",
+    "field": "title",
+    "previous": "پرداخت آنلاین با زیبال",
+    "desired": "پرداخت آنلاین با درگاه سان پی",
+    "operation": "Update the native WooCommerce gateway display title through the WordPress Options API. The title is shared by WooCommerce views that use the current gateway title.",
+    "preserve": "Gateway ID, provider, enabled state, all other gateway fields, and existing orders.",
+    "precondition": "Require an exact match of the previously read settings before updating the title. Verify the remaining settings against the prior state on readback.",
+    "acceptance": "The saved option and WooCommerce checkout label render the exact desired title.",
+    "rollback": "Restore the previous title only if the current title still matches the desired title. Preserve any intervening changes to other fields."
+  }
+}
