@@ -97,7 +97,7 @@ Existing orders and payment evidence stay available for tracking.
 
 ## Install and update
 
-After release approval, install the verified `artnovo-core-1.12.3.zip` package from
+After release approval, install the verified `artnovo-core-1.12.4.zip` package from
 the published release. The command below builds a local candidate; a successful
 build alone does not authorize installation. The package contains an
 `artnovo-core/` plugin directory; GitHub's automatic source archives contain the

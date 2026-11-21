@@ -1,6 +1,6 @@
 # Current project state
 
-## Wallet contribution in the plan checkout / development candidate (2026-11-21)
+## Wallet contribution in the plan checkout / Core 1.12.4 candidate (2026-11-21)
 
 When the native checkout includes TeraWallet’s partial-payment row, the Core
 wizard shows the original WooCommerce review table. This keeps the native
@@ -12,9 +12,13 @@ Standalone validation, package checks, and the focused checkout regression
 passed. An isolated Chromium fixture at 390 and 1280 pixels used TeraWallet
 1.7.5’s template, jQuery fragment replacement, and an intercepted wallet
 request to verify keyboard access, the automatic disclosure, and the fallback
-to the compact summary. Independent source review found no blocker. This is
-development evidence. The installed wizard and an actual payment are outside
-its coverage.
+to the compact summary. Independent source review found no blocker.
+[PR 45](https://github.com/vahid162/Artnovo-Core/pull/45) merged the runtime fix
+as `6c6a31ec9f34e97238c8e1dff09d0e510db07e57`. This promotion sets both Core
+version declarations and records the changelog. The manual release workflow
+accepts an optional expected commit and rejects a different revision before
+publishing. The installed wizard and an actual payment are outside the
+development evidence.
 
 ## Native-first ownership rules / documentation candidate (2026-11-20)
 

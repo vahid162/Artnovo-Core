@@ -8,6 +8,10 @@ on:
         required: true
         type: boolean
         default: false
+      expected_commit:
+        description: 'Publish only this main commit when supplied'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -51,9 +55,14 @@ jobs:
           RELEASE_VERSION: ${{ steps.package.outputs.version }}
           RELEASE_ARCHIVE: ${{ steps.package.outputs.archive }}
           RELEASE_CONFIRMED: ${{ inputs.publish }}
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
         run: |
           if [[ "${GITHUB_EVENT_NAME:-}" != "workflow_dispatch" || "${GITHUB_REF:-}" != "refs/heads/main" || "${RELEASE_CONFIRMED:-}" != "true" ]]; then
             echo "::error::Publish requires a confirmed manual run on main."
+            exit 1
+          fi
+          if [[ -n "${EXPECTED_COMMIT:-}" && "$GITHUB_SHA" != "$EXPECTED_COMMIT" ]]; then
+            echo "::error::The workflow source does not match the expected main commit."
             exit 1
           fi
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > "$RUNNER_TEMP/artnovo-existing-release.json" 2>/dev/null; then
