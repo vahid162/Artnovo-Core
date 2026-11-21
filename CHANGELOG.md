@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.12.4 — 2026-11-21
+
 - Keep TeraWallet’s original partial-payment control and deduction notice visible
   in the plan wizard when WooCommerce provides them.
 - Clarify native-first implementation and component ownership in the constitution,

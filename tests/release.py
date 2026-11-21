@@ -84,7 +84,7 @@ with tempfile.TemporaryDirectory(prefix="artnovo-core-release-") as directory:
             "GITHUB_SHA": "a" * 40, "RELEASE_TAG": "v1.0.0", "RELEASE_VERSION": "1.0.0",
             "RELEASE_ARCHIVE": "dist/" + archive,
             "GITHUB_EVENT_NAME": "workflow_dispatch", "GITHUB_REF": "refs/heads/main",
-            "RELEASE_CONFIRMED": "true",
+            "RELEASE_CONFIRMED": "true", "EXPECTED_COMMIT": "a" * 40,
         }
         result = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", script],
                                 cwd=case, env=environment, text=True, capture_output=True)
@@ -122,6 +122,7 @@ with tempfile.TemporaryDirectory(prefix="artnovo-core-release-") as directory:
         ("tag cannot publish", {"GITHUB_REF": "refs/tags/v1.0.0"}),
         ("unconfirmed dispatch cannot publish", {"RELEASE_CONFIRMED": "false"}),
         ("missing confirmation cannot publish", {"RELEASE_CONFIRMED": ""}),
+        ("mismatched expected commit cannot publish", {"EXPECTED_COMMIT": "b" * 40}),
     ]
     for number, (name, overrides) in enumerate(denied):
         case = temporary / f"denied-{number}"
