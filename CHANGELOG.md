@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.12.8 — 2026-11-22
+
+- Refresh the private wallet top-up status card while the owner is waiting for
+  the bank result or the wallet credit, then keep the manual status link available.
+- Show the existing wallet statement link when the credit is recorded.
+
 ## 1.12.7 — 2026-11-22
 
 - Offer payment again on the original wallet top-up only when Pay Bridge

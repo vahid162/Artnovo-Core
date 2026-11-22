@@ -65,14 +65,18 @@ function wallet_result_url( \WC_Order $order ): string {
 	return add_query_arg( [ 'artnovo_topup' => $order->get_id(), 'key' => $order->get_order_key() ], wallet_url() );
 }
 
-function wallet_result_order(): \WC_Order|false {
-	$id = $_GET['artnovo_topup'] ?? null;
-	$key = $_GET['key'] ?? null;
-	if ( 'dashboard' !== account_screen() || ! is_string( $id ) || ! ctype_digit( $id ) || ! is_string( $key ) || '' === $key ) {
+function keyed_wallet_topup_order( mixed $id, mixed $key ): \WC_Order|false {
+	if ( ! is_string( $id ) || ! ctype_digit( $id ) || ! is_string( $key ) || '' === $key ) {
 		return false;
 	}
 	$order = wc_get_order( (int) $id );
 	return owns_topup( $order ) && hash_equals( $order->get_order_key(), wp_unslash( $key ) ) ? $order : false;
+}
+
+function wallet_result_order(): \WC_Order|false {
+	return 'dashboard' === account_screen()
+		? keyed_wallet_topup_order( $_GET['artnovo_topup'] ?? null, $_GET['key'] ?? null )
+		: false;
 }
 
 add_filter( 'artnovo_gpante_topup_return_url', static function ( string $url, \WC_Order $order ): string {
@@ -197,7 +201,7 @@ add_action( 'wp_enqueue_scripts', static function (): void {
 		return;
 	}
 	wp_enqueue_style( 'artnovo-wallet-ui', plugins_url( 'wallet.css', __FILE__ ), [], (string) filemtime( __DIR__ . '/wallet.css' ) );
-	if ( in_array( account_screen(), [ 'add', 'transfer' ], true ) ) {
+	if ( in_array( account_screen(), [ 'add', 'transfer' ], true ) || wallet_result_order() ) {
 		wp_enqueue_script( 'artnovo-wallet-ui', plugins_url( 'wallet.js', __FILE__ ), [], (string) filemtime( __DIR__ . '/wallet.js' ), true );
 	}
 }, 30 );
@@ -403,6 +407,27 @@ add_action( 'woocommerce_before_thankyou', static function ( int $order_id ): vo
 	render_topup_result( $order, false );
 }, 20 );
 
+add_action( 'wc_ajax_artnovo_wallet_topup_status', static function (): void {
+	header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0' );
+	header( 'Referrer-Policy: no-referrer' );
+	$id = $_POST['order'] ?? null;
+	$nonce = $_POST['_ajax_nonce'] ?? null;
+	if ( 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) || ! is_user_logged_in()
+		|| ! is_string( $id ) || ! ctype_digit( $id ) || ! is_string( $nonce )
+		|| ! wp_verify_nonce( wp_unslash( $nonce ), 'artnovo_wallet_topup_status_' . (int) $id ) ) {
+		wp_send_json_error( null, 403 );
+	}
+	$order = keyed_wallet_topup_order( $id, $_POST['key'] ?? null );
+	if ( ! $order || ! function_exists( 'is_wallet_account_locked' ) || is_wallet_account_locked()
+		|| ! defined( 'ArtNovo\\PayBridge\\METHOD' ) || \ArtNovo\PayBridge\METHOD !== $order->get_payment_method( 'edit' )
+		|| ! has_recharge_product() ) {
+		wp_send_json_error( null, 403 );
+	}
+	ob_start();
+	render_topup_result( $order, true );
+	wp_send_json_success( [ 'html' => ob_get_clean() ] );
+} );
+
 function render_topup_result( \WC_Order $order, bool $in_wallet ): void {
 	$entry = credited_transaction( $order );
 	$provider = [ \ArtNovo\PayBridge\Payments::class, 'customer_status' ];
@@ -425,8 +450,18 @@ function render_topup_result( \WC_Order $order, bool $in_wallet ): void {
 		$copy = 'وضعیت همین شارژ را پیگیری کنید.';
 	}
 	$show_balance = $entry && function_exists( 'woo_wallet' ) && is_callable( [ woo_wallet()->wallet, 'get_wallet_balance' ] );
+	$poll = $in_wallet && 'pending' === $state && ( 'open' === $phase || ( 'paid' === $phase && $order->is_paid() ) )
+		&& has_recharge_product();
+	$view = $state . ':' . $phase . ':' . ( $order->is_paid() ? 'paid' : 'unpaid' );
 	?>
-	<section class="artnovo-wallet-panel artnovo-wallet-result" dir="rtl" data-state="<?php echo esc_attr( $state ); ?>">
+	<section class="artnovo-wallet-panel artnovo-wallet-result" dir="rtl" data-state="<?php echo esc_attr( $state ); ?>"
+		<?php if ( $in_wallet ) : ?>data-artnovo-wallet-topup-view="<?php echo esc_attr( $view ); ?>"<?php endif; ?>
+		<?php if ( $poll ) : ?>
+			data-artnovo-wallet-topup-status-url="<?php echo esc_url( \WC_AJAX::get_endpoint( 'artnovo_wallet_topup_status' ) ); ?>"
+			data-artnovo-wallet-topup-status-order="<?php echo esc_attr( (string) $order->get_id() ); ?>"
+			data-artnovo-wallet-topup-status-key="<?php echo esc_attr( $order->get_order_key() ); ?>"
+			data-artnovo-wallet-topup-status-nonce="<?php echo esc_attr( wp_create_nonce( 'artnovo_wallet_topup_status_' . $order->get_id() ) ); ?>"
+		<?php endif; ?>>
 		<?php if ( $entry ) : ?><span class="artnovo-wallet-success" aria-hidden="true">✓</span><?php endif; ?>
 		<h2><?php echo esc_html( $title ); ?></h2>
 		<p><?php echo esc_html( $copy ); ?></p>
@@ -434,8 +469,13 @@ function render_topup_result( \WC_Order $order, bool $in_wallet ): void {
 		<?php if ( $show_balance ) : render_amount( 'موجودی فعلی کیف پول', \Artnovo\Core\display_number_html( wp_kses_post( woo_wallet()->wallet->get_wallet_balance( $order->get_customer_id() ) ), true ) ); endif; ?>
 		<?php if ( 'pending' === $state ) : ?>
 			<a class="artnovo-wallet-primary" href="<?php echo esc_url( $in_wallet ? wallet_result_url( $order ) : $order->get_checkout_order_received_url() ); ?>">پیگیری وضعیت</a>
+			<?php if ( $poll ) : ?>
+				<p data-artnovo-wallet-topup-poll-expired role="status" hidden>بررسی خودکار متوقف شد. وضعیت همین شارژ را دوباره پیگیری کنید.</p>
+			<?php endif; ?>
 		<?php elseif ( '' !== $retry_label && direct_topup_available() ) : ?>
 			<?php render_direct_topup_form( $order, $retry_label ); ?>
+		<?php elseif ( $in_wallet && 'credited' === $state ) : ?>
+			<a class="artnovo-wallet-primary" href="<?php echo esc_url( wallet_url( 'statement' ) ); ?>">مشاهدهٔ تراکنش‌ها</a>
 		<?php elseif ( ! $in_wallet ) : ?>
 			<a class="artnovo-wallet-primary" href="<?php echo esc_url( wallet_url() ); ?>">بازگشت به کیف پول</a>
 		<?php endif; ?>

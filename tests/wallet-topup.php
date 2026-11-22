@@ -19,6 +19,7 @@ namespace ArtNovo\PayBridge {
 namespace Artnovo\Core {
 	function is_service_order( \WC_Order $order ): bool { return $order->service; }
 	function display_digits( string $value ): string { return $value; }
+	function display_number_html( string $value, bool $localize ): string { return $value; }
 }
 
 namespace Artnovo\PlanCheckout {
@@ -54,16 +55,33 @@ namespace {
 		public function get_data(): array { return $this->data; }
 		public function is_error(): bool { return $this->error; }
 	}
+	final class FixtureJson extends \RuntimeException {
+		public function __construct( public bool $ok, public mixed $payload, int $status ) { parent::__construct( '', $status ); }
+	}
+	final class WC_Product {}
+	final class WC_AJAX {
+		public static function get_endpoint( string $action ): string { return 'https://artnovo.test/?wc-ajax=' . $action; }
+	}
 	final class WC_Order {
 		public string $status = 'pending';
+		public string $method = 'artnovo_gpante';
+		public int $credit_id = 0;
 		public bool $payment_allowed = true;
 		public float $refunded = 0.0;
 		public function __construct( public int $id, public int $owner, public bool $service = false ) {}
 		public function get_customer_id(): int { return $this->owner; }
 		public function get_currency(): string { return 'IRT'; }
 		public function get_id(): int { return $this->id; }
-		public function get_meta( string $key ): bool { return '_wallet_rechargeable_order' === $key && ! $this->service; }
+		public function get_meta( string $key ): bool|int {
+			return match ( $key ) {
+				'_wallet_rechargeable_order' => ! $this->service,
+				'_wallet_payment_transaction_id' => $this->credit_id,
+				'_wc_wallet_purchase_credited' => $this->credit_id > 0,
+				default => false,
+			};
+		}
 		public function get_order_key(): string { return 'synthetic-order-' . $this->id; }
+		public function get_payment_method( string $context ): string { return $this->method; }
 		public function has_status( string $status ): bool { return $this->status === $status; }
 		public function get_total_refunded(): float { return $this->refunded; }
 		public function is_paid(): bool { return 'processing' === $this->status; }
@@ -77,26 +95,49 @@ namespace {
 	$lock_keys = [];
 	$lock_busy = false;
 	$actor = 7;
+	$wallet_locked = false;
+	$wallet_product = true;
+	$actions = [];
 	$route_error = false;
 	$routes = [ '/terawallet/v1/me/topup' => true, '/artnovo-pay-bridge/v1/wallet-topup/payment' => true ];
-	function add_action( mixed ...$unused ): void {}
+	function add_action( string $name, callable $callback, mixed ...$unused ): void { $GLOBALS['actions'][ $name ][] = $callback; }
 	function add_filter( mixed ...$unused ): void {}
 	function is_wp_error( mixed $value ): bool { return $value instanceof WP_Error; }
 	function is_wallet_rechargeable_order( WC_Order $order ): bool { return ! $order->service; }
-	function is_wallet_account_locked(): bool { return false; }
+	function is_wallet_account_locked(): bool { return $GLOBALS['wallet_locked']; }
 	function get_current_user_id(): int { return $GLOBALS['actor']; }
 	function is_user_logged_in(): bool { return get_current_user_id() > 0; }
 	function woo_wallet(): object {
-		return (object) [ 'settings_api' => new class {
-			public function get_option( string $name, string $group, mixed $default ): mixed { return $default; }
-		} ];
+		return (object) [
+			'settings_api' => new class {
+				public function get_option( string $name, string $group, mixed $default ): mixed { return $default; }
+			},
+			'wallet' => new class {
+				public function get_wallet_balance( int $user ): string { return '650,000 تومان'; }
+			},
+		];
+	}
+	function get_option( string $name ): int { return '_woo_wallet_recharge_product' === $name && $GLOBALS['wallet_product'] ? 12 : 0; }
+	function wc_get_product( int $id ): WC_Product|false { return 12 === $id ? new WC_Product() : false; }
+	function get_wallet_transaction( int $id ): ?object {
+		return 90 === $id ? (object) [ 'user_id' => 7, 'type' => 'credit', 'amount' => 200000, 'currency' => 'IRT' ] : null;
 	}
 	function woo_wallet_get_dashboard_url(): string { return 'https://artnovo.test/account/wallet/'; }
+	function wc_get_page_permalink( string $page ): string { return 'https://artnovo.test/account/'; }
+	function wc_get_endpoint_url( string $endpoint, string $slug, string $url ): string { return $url . $endpoint . '/' . $slug . '/'; }
+	function wc_price( float $amount, array $format ): string { return number_format( $amount ) . ' تومان'; }
+	function wp_kses( string $html, array $tags ): string { return $html; }
+	function wp_kses_allowed_html( string $context ): array { return []; }
+	function wp_kses_post( string $html ): string { return $html; }
 	function add_query_arg( array $args, string $url ): string { return $url . '?' . http_build_query( $args ); }
 	function esc_attr( string $value ): string { return htmlspecialchars( $value ); }
 	function esc_html( string $value ): string { return htmlspecialchars( $value ); }
 	function esc_url( string $value ): string { return htmlspecialchars( $value ); }
 	function wp_nonce_field( mixed ...$unused ): void {}
+	function wp_create_nonce( string $action ): string { return get_current_user_id() . '_' . $action; }
+	function wp_verify_nonce( string $nonce, string $action ): bool { return hash_equals( wp_create_nonce( $action ), $nonce ); }
+	function wp_send_json_success( mixed $payload ): never { throw new FixtureJson( true, $payload, 200 ); }
+	function wp_send_json_error( mixed $payload, int $status ): never { throw new FixtureJson( false, $payload, $status ); }
 	function wc_terms_and_conditions_checkbox_enabled(): bool { return false; }
 	function wc_checkout_privacy_policy_text(): void {}
 	function get_woocommerce_currency(): string { return 'IRT'; }
@@ -209,5 +250,69 @@ namespace {
 			"payment form for original order: $status / $phase / " . (int) $can_retry . ' / ' . (int) $is_payable . " / $refunded" );
 		check( '' === $action || str_contains( $html, $action ), "expected action for $status / $phase" );
 	}
+
+	$status_action = $actions['wc_ajax_artnovo_wallet_topup_status'][0];
+	$poll = static function ( array $post, string $method = 'POST' ) use ( $status_action ): FixtureJson {
+		$_SERVER['REQUEST_METHOD'] = $method;
+		$_POST = $post;
+		try {
+			$status_action();
+		} catch ( FixtureJson $json ) {
+			return $json;
+		}
+		throw new \RuntimeException( 'Status handler must return a JSON response' );
+	};
+	$request = [ 'order' => '2', 'key' => $order->get_order_key(), '_ajax_nonce' => wp_create_nonce( 'artnovo_wallet_topup_status_2' ) ];
+	$order->status = 'pending';
+	Payments::$status = [ 'phase' => 'open', 'can_retry' => false ];
+	$requests_before_poll = $requests;
+	$waiting = $poll( $request );
+	check( $waiting->ok && str_contains( $waiting->payload['html'], 'data-artnovo-wallet-topup-view="pending:open:unpaid"' )
+		&& str_contains( $waiting->payload['html'], 'data-artnovo-wallet-topup-status-url=' )
+		&& str_contains( $waiting->payload['html'], 'data-artnovo-wallet-topup-poll-expired' )
+		&& str_contains( $waiting->payload['html'], 'پیگیری وضعیت' ), 'private pending bank card offers bounded refresh and manual fallback' );
+	foreach ( [
+		$poll( $request, 'GET' ),
+		$poll( [ '_ajax_nonce' => 'wrong' ] + $request ),
+		$poll( [ 'key' => 'wrong' ] + $request ),
+	] as $denied ) {
+		check( ! $denied->ok && 403 === $denied->getCode() && null === $denied->payload, 'invalid method or credentials yield no wallet result' );
+	}
+	$actor = 0;
+	check( ! $poll( $request )->ok, 'guest cannot read the wallet result' );
+	$actor = 8;
+	check( ! $poll( [ '_ajax_nonce' => wp_create_nonce( 'artnovo_wallet_topup_status_2' ) ] + $request )->ok, 'another authenticated customer cannot use the order key' );
+	$actor = 7;
+	$wallet_locked = true;
+	check( ! $poll( $request )->ok, 'locked wallet cannot read the status' );
+	$wallet_locked = false;
+	$order->service = true;
+	check( ! $poll( $request )->ok, 'service order is outside wallet status scope' );
+	$order->service = false;
+	$order->method = 'bacs';
+	check( ! $poll( $request )->ok, 'other payment method is outside topup polling scope' );
+	$order->method = 'artnovo_gpante';
+	$wallet_product = false;
+	check( ! $poll( $request )->ok, 'missing recharge product cannot be recreated by status reads' );
+	$wallet_product = true;
+
+	$order->status = 'processing';
+	Payments::$status = [ 'phase' => 'paid', 'can_retry' => false ];
+	$paid = $poll( $request )->payload['html'];
+	check( str_contains( $paid, 'data-artnovo-wallet-topup-view="pending:paid:paid"' )
+		&& str_contains( $paid, 'data-artnovo-wallet-topup-status-url=' )
+		&& str_contains( $paid, 'شارژ در انتظار ثبت در کیف پول است' ), 'paid with no TeraWallet credit keeps a distinct pending card' );
+	$order->credit_id = 90;
+	$credited = $poll( $request )->payload['html'];
+	check( str_contains( $credited, 'data-artnovo-wallet-topup-view="credited:paid:paid"' )
+		&& str_contains( $credited, 'مشاهدهٔ تراکنش‌ها' ) && str_contains( $credited, '650,000 تومان' )
+		&& ! str_contains( $credited, 'data-artnovo-wallet-topup-status-url=' ), 'recorded native credit stops polling and displays balance and statement' );
+	$order->credit_id = 0;
+	$order->status = 'failed';
+	Payments::$status = [ 'phase' => 'failed_final', 'can_retry' => true ];
+	$failed = $poll( $request )->payload['html'];
+	check( str_contains( $failed, 'name="artnovo_topup_retry" value="2"' )
+		&& ! str_contains( $failed, 'data-artnovo-wallet-topup-status-url=' ), 'confirmed failure stops polling and keeps the original retry form' );
+	check( $requests === $requests_before_poll, 'status polling made no payment or order-creation requests' );
 	echo "PASS isolated wallet topup contracts\n";
 }
