@@ -1,5 +1,17 @@
 # Current project state
 
+## Purchase amount confirmation and wallet status / Core 1.12.10 (2026-11-22)
+
+The custom plan checkout confirms the amounts rendered by WooCommerce before
+allowing a fresh order. It compares the recalculated total, discount and native
+wallet contribution with the review shown to the customer. A mismatch refreshes
+the review in the same step and leaves payment to the customer's next explicit
+submission. Existing orders continue on their own routes and saved amounts.
+
+The customer surfaces for a direct wallet top-up reuse the provider's available
+status and the native wallet ledger. Pending bank verification, bank-approved
+payment awaiting credit and recorded credit are shown separately.
+
 ## Silent plan selection / Core 1.12.9 (2026-11-22)
 
 The Core wizard replaces the customer's previous cart rows on plan selection, including

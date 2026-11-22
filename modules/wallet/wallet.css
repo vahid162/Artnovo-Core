@@ -158,6 +158,7 @@
 	color: var(--wallet-ui-text); background: var(--wallet-ui-bg);
 }
 .artnovo-wallet-received-page .woocommerce-order:has(> .artnovo-wallet-result) > :is(.woocommerce-order-overview,.woocommerce-thankyou-order-received) { display: none; }
+.artnovo-wallet-received-page .artnovo-wallet-result[data-artnovo-wallet-bank] ~ :is(.woocommerce-thankyou-order-failed:empty,.woocommerce-thankyou-order-failed-actions) { display: none; }
 .artnovo-wallet-received-page :is(.wp-block-woocommerce-order-confirmation-status,.wc-block-order-confirmation-status) > :is(h1,p):empty { display: none; }
 
 @media (max-width: 680px) {

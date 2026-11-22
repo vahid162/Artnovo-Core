@@ -35,6 +35,7 @@ namespace {
 	use ArtNovo\PayBridge\Payments;
 	use ArtNovo\PayBridge\Topup;
 	use function Artnovo\WalletUI\direct_topup_available;
+	use function Artnovo\WalletUI\render_topup_order;
 	use function Artnovo\WalletUI\render_topup_result;
 	use function Artnovo\WalletUI\start_direct_topup;
 	use function Artnovo\WalletUI\wallet_result_order;
@@ -82,11 +83,16 @@ namespace {
 		}
 		public function get_order_key(): string { return 'synthetic-order-' . $this->id; }
 		public function get_payment_method( string $context ): string { return $this->method; }
+		public function get_status(): string { return $this->status; }
 		public function has_status( string $status ): bool { return $this->status === $status; }
 		public function get_total_refunded(): float { return $this->refunded; }
 		public function is_paid(): bool { return 'processing' === $this->status; }
 		public function needs_payment(): bool { return $this->payment_allowed && in_array( $this->status, [ 'pending', 'failed' ], true ); }
 		public function get_order_number(): string { return (string) $this->id; }
+		public function get_total(): string { return '200000'; }
+		public function get_payment_method_title(): string { return ''; }
+		public function get_checkout_order_received_url(): string { return 'https://artnovo.test/checkout/order-received/' . $this->id; }
+		public function get_checkout_payment_url(): string { return 'https://artnovo.test/checkout/order-pay/' . $this->id; }
 		public function get_view_order_url(): string { return 'https://artnovo.test/account/view-order/' . $this->id; }
 	}
 
@@ -98,10 +104,13 @@ namespace {
 	$wallet_locked = false;
 	$wallet_product = true;
 	$actions = [];
+	$filters = [];
+	$endpoint = 'woo-wallet';
+	$query_order_id = 0;
 	$route_error = false;
 	$routes = [ '/terawallet/v1/me/topup' => true, '/artnovo-pay-bridge/v1/wallet-topup/payment' => true ];
 	function add_action( string $name, callable $callback, mixed ...$unused ): void { $GLOBALS['actions'][ $name ][] = $callback; }
-	function add_filter( mixed ...$unused ): void {}
+	function add_filter( string $name, callable $callback, mixed ...$unused ): void { $GLOBALS['filters'][ $name ][] = $callback; }
 	function is_wp_error( mixed $value ): bool { return $value instanceof WP_Error; }
 	function is_wallet_rechargeable_order( WC_Order $order ): bool { return ! $order->service; }
 	function is_wallet_account_locked(): bool { return $GLOBALS['wallet_locked']; }
@@ -132,6 +141,7 @@ namespace {
 	function add_query_arg( array $args, string $url ): string { return $url . '?' . http_build_query( $args ); }
 	function esc_attr( string $value ): string { return htmlspecialchars( $value ); }
 	function esc_html( string $value ): string { return htmlspecialchars( $value ); }
+	function esc_html__( string $value, string $domain ): string { return esc_html( $value ); }
 	function esc_url( string $value ): string { return htmlspecialchars( $value ); }
 	function wp_nonce_field( mixed ...$unused ): void {}
 	function wp_create_nonce( string $action ): string { return get_current_user_id() . '_' . $action; }
@@ -148,9 +158,11 @@ namespace {
 		return 4 === $version && (bool) preg_match( '/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/D', $value );
 	}
 	function wc_get_order( int $id ): WC_Order|false { return $GLOBALS['orders'][ $id ] ?? false; }
+	function wc_get_order_status_name( string $status ): string { return $status; }
+	function get_query_var( string $name ): int { return $GLOBALS['query_order_id']; }
 	function WC(): object {
 		return (object) [ 'query' => new class {
-			public function get_current_endpoint(): string { return 'woo-wallet'; }
+			public function get_current_endpoint(): string { return $GLOBALS['endpoint']; }
 		} ];
 	}
 	function rest_get_server(): object {
@@ -301,7 +313,7 @@ namespace {
 	$paid = $poll( $request )->payload['html'];
 	check( str_contains( $paid, 'data-artnovo-wallet-topup-view="pending:paid:paid"' )
 		&& str_contains( $paid, 'data-artnovo-wallet-topup-status-url=' )
-		&& str_contains( $paid, 'شارژ در انتظار ثبت در کیف پول است' ), 'paid with no TeraWallet credit keeps a distinct pending card' );
+		&& str_contains( $paid, 'پرداخت تأیید شد. در انتظار ثبت اعتبار' ), 'paid with no TeraWallet credit keeps a distinct pending card' );
 	$order->credit_id = 90;
 	$credited = $poll( $request )->payload['html'];
 	check( str_contains( $credited, 'data-artnovo-wallet-topup-view="credited:paid:paid"' )
@@ -314,5 +326,65 @@ namespace {
 	check( str_contains( $failed, 'name="artnovo_topup_retry" value="2"' )
 		&& ! str_contains( $failed, 'data-artnovo-wallet-topup-status-url=' ), 'confirmed failure stops polling and keeps the original retry form' );
 	check( $requests === $requests_before_poll, 'status polling made no payment or order-creation requests' );
+
+	$render_surfaces = static function ( WC_Order $order ): array {
+		ob_start();
+		render_topup_result( $order, true );
+		$wallet = ob_get_clean();
+		ob_start();
+		render_topup_result( $order, false );
+		$return = ob_get_clean();
+		ob_start();
+		render_topup_order( $order );
+		return [ $wallet, $return, ob_get_clean() ];
+	};
+	foreach ( [
+		[ 'pending', 'open', 0, 'شارژ در انتظار تأیید پرداخت است', 'پیگیری وضعیت' ],
+		[ 'failed', 'open', 0, 'شارژ در انتظار تأیید پرداخت است', 'پیگیری وضعیت' ],
+		[ 'failed', 'review', 0, 'پرداخت شارژ نیاز به بررسی دارد', 'پیگیری وضعیت' ],
+		[ 'failed', 'failed_final', 0, 'پرداخت شارژ ناموفق بود', 'پرداخت دوباره' ],
+		[ 'pending', 'none', 0, 'پرداخت شارژ شروع نشده است', 'ادامهٔ پرداخت' ],
+		[ 'processing', 'paid', 0, 'پرداخت تأیید شد. در انتظار ثبت اعتبار', 'پیگیری وضعیت' ],
+		[ 'processing', 'paid', 90, 'شارژ کیف پول انجام شد', 'مشاهدهٔ تراکنش‌ها' ],
+	] as [ $order->status, $phase, $order->credit_id, $title, $action ] ) {
+		Payments::$status = [ 'phase' => $phase, 'can_retry' => 'failed_final' === $phase ];
+		foreach ( $render_surfaces( $order ) as $surface => $html ) {
+			check( str_contains( $html, $title ) && str_contains( $html, $action ) && ! str_contains( $html, '/checkout/order-pay/' ),
+				"same topup status and action in surface $surface for $order->status / $phase" );
+			check( ! $order->credit_id || str_contains( $html, '200,000 تومان' ), "recorded wallet credit amount in surface $surface" );
+		}
+	}
+	$order->credit_id = 0;
+	$order->status = 'failed';
+	Payments::$status = [];
+	foreach ( $render_surfaces( $order ) as $html ) {
+		check( str_contains( $html, 'پرداخت شارژ نیاز به بررسی دارد' ) && ! str_contains( $html, 'پرداخت دوباره' ), 'missing bank status never authorizes retry' );
+	}
+
+	$stock_failure = 'Unfortunately your order cannot be processed as the originating bank/merchant has declined your transaction. Please attempt your purchase again.';
+	$details_status = $filters['woocommerce_order_details_status'][0];
+	$endpoint = 'view-order';
+	$query_order_id = $order->get_id();
+	Payments::$status = [ 'phase' => 'open' ];
+	check( '<mark class="order-status">شارژ در انتظار تأیید پرداخت است</mark>' === $details_status( '<mark class="order-status">failed</mark>', $order ),
+		'WooCommerce order details disclosure uses the projected status' );
+	$failed_text = $filters['woocommerce_thankyou_order_failed_text'][0];
+	$account_actions = $filters['woocommerce_my_account_my_orders_actions'][0];
+	$endpoint = 'order-received';
+	$query_order_id = $order->get_id();
+	$_GET = [ 'key' => $order->get_order_key() ];
+	check( '' === $failed_text( $stock_failure, $order ) && 'Custom payment message' === $failed_text( 'Custom payment message', $order ), 'only stock failure copy is suppressed for the canonical owned wallet return' );
+	check( [] === $account_actions( [ 'pay' => [ 'name' => 'Pay' ] ], $order ), 'managed topup raw pay action is suppressed' );
+	$_GET['key'] = 'wrong';
+	check( $stock_failure === $failed_text( $stock_failure, $order ), 'wrong key keeps the native response untouched' );
+	$actor = 8;
+	check( isset( $account_actions( [ 'pay' => [] ], $order )['pay'] ), 'foreign order actions remain untouched' );
+	$actor = 7;
+	$_GET['key'] = $order->get_order_key();
+	$order->method = 'bacs';
+	Payments::$status = [ 'phase' => 'open' ];
+	check( str_contains( $render_surfaces( $order )[2], '/checkout/order-pay/' )
+		&& $stock_failure === $failed_text( $stock_failure, $order )
+		&& isset( $account_actions( [ 'pay' => [] ], $order )['pay'] ), 'legacy recharge keeps its own status and native payment controls' );
 	echo "PASS isolated wallet topup contracts\n";
 }

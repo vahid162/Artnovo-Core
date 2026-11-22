@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.12.10 — 2026-11-22
+
+- Ask the customer to confirm the refreshed WooCommerce total if the amount,
+  discount, or applied wallet share changes before a plan order is placed.
+- Show a consistent Persian wallet top-up title, payment state and next action
+  in the purchase list, order details and wallet.
+
 ## 1.12.9 — 2026-11-22
 
 - Replace leftover cart items silently when a customer selects a plan, including
