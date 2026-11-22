@@ -544,7 +544,7 @@ body.artnovo-account-page {
 	color: #f5db9c;
 }
 
-.artnovo-account :is([data-artnovo-state="receipt"], [data-artnovo-state="pending"], [data-artnovo-state="issuing"], [data-artnovo-state="review"]) .artnovo-account-row-status {
+.artnovo-account :is([data-artnovo-state="receipt"], [data-artnovo-state="pending"], [data-artnovo-state="wallet_pending"], [data-artnovo-state="wallet_review"], [data-artnovo-state="issuing"], [data-artnovo-state="review"]) .artnovo-account-row-status {
 	background: #233b4d;
 	color: #b8e3f5;
 }

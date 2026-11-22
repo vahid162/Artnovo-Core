@@ -8,22 +8,34 @@ namespace Artnovo\Core {
 namespace Artnovo\HomeOrderUI\Wizard { function is_page(): bool { return $GLOBALS['wizard_page'] ?? false; } }
 namespace Artnovo\AccountUI {
 	function account_native_login_url( string $return ): string { return 'https://example.test/login?back_url=' . rawurlencode( $return ); }
-	function received_bank_payment( \WC_Order $order ): array { return []; }
+}
+namespace ArtNovo\PayBridge {
+	class Payments {
+		public static function customer_status( \WC_Order $order ): array { return $order->bank; }
+	}
 }
 namespace WPVPNBridge\Commerce {
 	class Orders {
 		public static function max_purchase_quantity( $product, ?string $method = null ): int { return 10; }
 		public static function product_terms( $product ): array { return []; }
 		public static function fresh_order( int $id ): \WC_Order|false { return \wc_get_order( $id ); }
+		public static function matches_purchase( \WC_Order $order, array $snapshot ): bool { return $snapshot === $order->get_meta( '_wpvpn_snapshot', true ); }
 	}
 }
 namespace WPVPNBridge { class Settings { public function ready(): bool { return true; } } }
 namespace WPVPNBridge\Payment {
+	class NativeWallet {
+		public static function verified( \WC_Order $order, array $snapshot ): ?string { return $order->wallet_debit; }
+		public static function checkout_status( \WC_Order $order ): ?string { return $order->wallet_status; }
+	}
 	class WalletPayment {
 		public const GATEWAY = 'wpvpn_wallet';
 		public static function configured(): bool { return false; }
 		public static function enabled(): bool { return false; }
 		public static function submitted( mixed $key ): bool { return 'submitted' === $key; }
+		public static function submitted_order_id( mixed $key, int $payer ): ?int {
+			return self::submitted( $key ) && 7 === $payer ? $GLOBALS['bound_wallet_order'] ?? null : null;
+		}
 	}
 }
 namespace Pinova\Channels { class Email { public static function send_code( string $email, int $code ): bool { return true; } } }
@@ -61,7 +73,8 @@ function do_action( string $hook, ...$args ): void {
 	foreach ( array_keys( $priorities ) as $priority ) { foreach ( $GLOBALS['hooks'][$hook][$priority] ?? [] as [$callback, $accepted] ) { $callback( ...array_slice( $args, 0, $accepted ) ); } }
 }
 function remove_action(string $name,callable $callback,int $priority=10):void{foreach($GLOBALS['hooks'][$name][$priority]??[] as $i=>$hook){if($hook[0]===$callback)unset($GLOBALS['hooks'][$name][$priority][$i]);}}
-function wp_verify_nonce( string $nonce, string $action ): bool { return ('valid-checkout' === $nonce && 'woocommerce-process_checkout' === $action)||('valid-review'===$nonce&&'update-order-review'===$action)||('valid-wizard'===$nonce&&'artnovo_wizard_checkout'===$action)||('valid-store'===$nonce&&'wc_store_api'===$action); }
+function remove_filter( string $hook, callable $callback, int $priority = 10 ): void { remove_action( $hook, $callback, $priority ); }
+function wp_verify_nonce( string $nonce, string $action ): bool { return ('valid-checkout' === $nonce && 'woocommerce-process_checkout' === $action)||('valid-review'===$nonce&&'update-order-review'===$action)||('valid-wizard'===$nonce&&'artnovo_wizard_checkout'===$action)||('valid-store'===$nonce&&'wc_store_api'===$action)||('valid-order-status'===$nonce&&'artnovo_received_payment_status_803'===$action); }
 function wp_create_nonce( string $action ): string { return 'fresh-' . $action; }
 class SyntheticResponse extends RuntimeException { public function __construct(public array $payload){parent::__construct('Synthetic response');} }
 class WP_REST_Request {
@@ -80,7 +93,7 @@ class WP_REST_Request {
 	public function get_param( string $name ): ?string { return 'payment_method' === $name ? 'bacs' : null; }
 }
 function wp_send_json(array $payload):never{throw new SyntheticResponse($payload);}
-function wp_send_json_error(array $data,int $status=200):never{throw new SyntheticResponse(['success'=>false,'data'=>$data,'status'=>$status]);}
+function wp_send_json_error(?array $data,int $status=200):never{throw new SyntheticResponse(['success'=>false,'data'=>$data,'status'=>$status]);}
 function wp_send_json_success(array $data,int $status=200):never{throw new SyntheticResponse(['success'=>true,'data'=>$data,'status'=>$status]);}
 function wp_die(string $message,string $title='',array $args=[]):never{throw new SyntheticResponse(['die'=>$message,'status'=>$args['response']??500]);}
 function wp_safe_redirect(string $url,int $status=302):void{throw new SyntheticResponse(['redirect'=>$url,'status'=>$status]);}
@@ -137,16 +150,21 @@ class WC_Product {
 function wc_get_product( int $id ): WC_Product|false { return in_array($id,[25,26,99],true)?new WC_Product($id):false; }
 class WC_Order {
 	public array $meta = [];
+	public array $bank = [];
+	public ?string $wallet_debit = null;
+	public ?string $wallet_status = null;
 	public function __construct( public int $id, public string $method = 'artnovo_gpante', public string $status = 'pending', public int $owner = 7, public bool $service = true ) {}
 	public function get_id(): int { return $this->id; }
 	public function get_customer_id(): int { return $this->owner; }
+	public function get_order_key(): string { return 'synthetic-order-' . $this->id; }
 	public function get_payment_method( string $context = '' ): string { return $this->method; }
 	public function get_created_via(): string { return 'store-api'; }
 	public function get_transaction_id( string $context = '' ): string { return ''; }
 	public function is_paid(): bool { return false; }
 	public function get_meta( string $key, bool $single = true ): mixed { return $this->meta[$key] ?? ''; }
 	public function update_meta_data( string $key, mixed $value ): void { $this->meta[$key] = $value; }
-	public function has_status( string $status ): bool { return $this->status === $status; }
+	public function has_status( array|string $status ): bool { return in_array( $this->status, (array) $status, true ); }
+	public function get_total_refunded(): float { return 0.0; }
 }
 $orders = [];
 function wc_get_order( int $id ): WC_Order|false { return $GLOBALS['orders'][$id] ?? false; }
@@ -184,7 +202,12 @@ class WC_Cart {
 	public function set_quantity( string $key, int $quantity ): bool { $this->items[$key]['quantity']=$quantity;WC()->session->set('cart',$this->items);return true; }
 	public function add_to_cart( int $id, int $quantity ): string|false {
 		if($GLOBALS['reject_add'])return false;
-		$key='product-'.$id;$this->set_cart_contents([$key=>['product_id'=>$id,'quantity'=>$quantity,'data'=>wc_get_product($id)]]);
+		$key = 'product-' . $id;
+		$row = [ 'product_id' => $id, 'quantity' => $quantity, 'data' => wc_get_product( $id ) ];
+		if ( isset( $GLOBALS['fresh_wallet_key'] ) ) {
+			$row['_wpvpn_wallet_key'] = $GLOBALS['fresh_wallet_key'];
+		}
+		$this->set_cart_contents( [ $key => $row ] );
 		if($GLOBALS['throw_add'])throw new RuntimeException('Synthetic late add failure');
 		return $key;
 	}
@@ -226,6 +249,7 @@ $wpdb=new class {
 };
 function check(string $name,bool $passed):void{++$GLOBALS['assertions'];if(!$passed){++$GLOBALS['failures'];fwrite(STDERR,'FAIL '.$name."\n");}}
 require dirname(__DIR__).'/modules/checkout/artnovo-plan-checkout.php';
+require dirname(__DIR__).'/modules/order-received/received.php';
 function choose(int $id,int $quantity,string $revision,bool $ajax=false,string $purchase_action=''):array|WP_Error {
 	$_POST=['artnovo_product'=>(string)$id,'artnovo_quantity'=>(string)$quantity,'artnovo_selection_revision'=>$revision];
 	if($ajax)$_POST['artnovo_wizard_cart']=$id.':'.(Artnovo\PlanCheckout\wizard_draft()['quantity']??1);
@@ -672,6 +696,110 @@ check( 'fresh catalog selection leaves the previous BACS order intact and permit
 	41 === $orders[802]->meta['original-order-item'] && null === WC()->session->get( 'order_awaiting_payment' )
 	&& empty( $new_draft['fresh_order'] ) && $resumed_draft['purchase_intent'] !== Artnovo\PlanCheckout\wizard_purchase_intent( $new_draft )
 	&& true === Artnovo\PlanCheckout\wizard_fresh_purchase_checkout( true ) );
+
+// An explicit fresh selection can detach a submitted split cart after the signed final bank result.
+$persisted = [];
+WC()->session = new WC_Session_Handler();
+WC()->cart->items = [];
+choose( 25, 1, Artnovo\PlanCheckout\wizard_selection_revision() );
+$old = $orders[803] = new WC_Order( 803 );
+$old->meta['_wpvpn_snapshot'] = [ 'native_wallet_key' => 'submitted' ];
+$old->wallet_debit = 'synthetic-debit';
+WC()->cart->items['product-25']['_wpvpn_wallet_key'] = 'submitted';
+WC()->session->set( 'cart', WC()->cart->items );
+WC()->session->set( 'order_awaiting_payment', 803 );
+WC()->session->set( 'store_api_draft_order', 803 );
+WC()->session->save_data();
+$original = $persisted;
+$revision = Artnovo\PlanCheckout\wizard_selection_revision();
+$action = str_repeat( 'd', 32 );
+foreach ( [ 'open', 'review' ] as $phase ) {
+	$old->bank = [ 'phase' => $phase ];
+	check( "$phase bank status preserves the submitted session", isset( choose( 26, 2, $revision, false, $action )['error'] ) && $original === $persisted );
+}
+$old->bank = [ 'phase' => 'failed_final', 'can_retry' => true ];
+$old->wallet_debit = null;
+check( 'final bank failure without the matching debit cannot clear the cart',
+	isset( choose( 26, 2, $revision, false, $action )['error'] ) && $original === $persisted );
+$old->wallet_debit = 'synthetic-debit';
+$old->meta['_wpvpn_snapshot']['native_wallet_key'] = 'other-key';
+check( 'another attempt key cannot clear the submitted cart',
+	isset( choose( 26, 2, $revision, false, $action )['error'] ) && $original === $persisted );
+$old->meta['_wpvpn_snapshot']['native_wallet_key'] = 'submitted';
+$reject_add = true;
+check( 'rejected explicit replacement restores the submitted cart and its pointers',
+	isset( choose( 25, 1, $revision, false, $action )['error'] ) && $original === $persisted );
+$reject_add = false;
+$fresh_wallet_key = 'fresh-wallet-key';
+$notices = [];
+$result = choose( 25, 1, $revision, false, $action );
+$detached = $persisted;
+check( 'same-plan selection after final bank failure gets a fresh cart key without a cart notice',
+	! isset( $result['error'] ) && [] === $notices && $fresh_wallet_key === WC()->cart->items['product-25']['_wpvpn_wallet_key']
+	&& null === WC()->session->get( 'order_awaiting_payment' ) && null === WC()->session->get( 'store_api_draft_order' ) );
+check( 'selecting another checkout leaves the original order and payment retry evidence intact',
+	'submitted' === $old->meta['_wpvpn_snapshot']['native_wallet_key'] && 'synthetic-debit' === $old->wallet_debit
+	&& true === $old->bank['can_retry'] && 803 === Artnovo\PlanCheckout\wizard_draft()['fresh_from'] );
+$replay = choose( 25, 1, $revision, false, $action );
+check( 'repeated replacement returns to the active selection', true === ( $replay['selection_changed'] ?? false ) && $detached === $persisted );
+
+$persisted = $original;
+$old->status = 'cancelled';
+$old->wallet_debit = null;
+$old->bank = [ 'phase' => 'review', 'can_retry' => false ];
+check( 'a cancelled Woo order with unresolved bank status cannot authorize detachment',
+	isset( choose( 26, 2, $revision, false, $action )['error'] ) && $original === $persisted );
+$old->bank = [ 'phase' => 'failed_final', 'can_retry' => false ];
+$result = choose( 26, 2, $revision, false, $action );
+check( 'a cancelled order with final bank status allows a different plan without asserting a refund',
+	! isset( $result['error'] ) && $fresh_wallet_key === WC()->cart->items['product-26']['_wpvpn_wallet_key']
+	&& 'cancelled' === $old->status && null === $old->wallet_debit && false === $old->bank['can_retry'] );
+
+$persisted = [ 'cart' => $original['cart'] ];
+WC()->session = new WC_Session_Handler( $persisted );
+WC()->cart->items = $persisted['cart'];
+$old->status = 'pending';
+$old->wallet_debit = 'synthetic-debit';
+$bound_wallet_order = 803;
+$result = choose( 26, 1, Artnovo\PlanCheckout\wizard_selection_revision(), false, str_repeat( 'e', 32 ) );
+check( 'old submitted key can recover the matching order after loss of both session pointers',
+	! isset( $result['error'] ) && 803 === Artnovo\PlanCheckout\wizard_draft()['fresh_from']
+	&& $fresh_wallet_key === WC()->cart->items['product-26']['_wpvpn_wallet_key'] );
+
+$old->status = 'on-hold';
+$actions = [ 'pay' => [], 'cancel' => [], 'view' => [] ];
+foreach ( [ 'artnovo_gpante', 'bacs' ] as $method ) {
+	$old->method = $method;
+	foreach ( [ 'wallet_pending', 'wallet_review' ] as $status ) {
+		$old->wallet_status = $status;
+		$bank = 'bacs' === $method ? null : [ 'phase' => 'open' ];
+		$view = Artnovo\AccountUI\received_state( $old, [ 'links' => [] ], $bank );
+		check( "$method presents $status without a second payment or cancellation action", $status === $view['state']
+			&& [ 'view' => [] ] === Artnovo\AccountUI\received_account_actions( $old, $bank, $status,
+				static fn () => apply_filters( 'woocommerce_my_account_my_orders_actions', $actions, $old ) ) );
+	}
+}
+$old->wallet_status = 'unknown-capability-state';
+check( 'unknown wallet state leaves existing presentation in charge', null === Artnovo\AccountUI\received_deferred_wallet_state( $old ) );
+$old->wallet_status = 'wallet_pending';
+$method_before_poll = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$_SERVER['REQUEST_METHOD'] = 'POST';
+$_POST = [ 'order' => '803', 'key' => $old->get_order_key(), '_ajax_nonce' => 'valid-order-status' ];
+foreach ( [ 7 => true, 19 => false ] as $actor => $authorized ) {
+	$current_user = $actor;
+	$response = [];
+	try {
+		do_action( 'wc_ajax_artnovo_received_payment_status' );
+	} catch ( SyntheticResponse $exception ) {
+		$response = $exception->payload;
+	}
+	check( 'the existing private status endpoint exposes the BACS wallet state only to its owner', $authorized
+		? 'wallet_pending' === ( $response['data']['state'] ?? null )
+		: 403 === ( $response['status'] ?? null ) && null === ( $response['data'] ?? null ) );
+}
+$_SERVER['REQUEST_METHOD'] = $method_before_poll;
+$current_user = 19;
+check( 'deferred wallet presentation is restricted to the order owner', null === Artnovo\AccountUI\received_deferred_wallet_state( $old ) );
 echo "{$assertions} selection assertions, {$failures} failures\n";
 exit($failures?1:0);
 }

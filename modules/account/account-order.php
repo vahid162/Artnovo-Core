@@ -30,6 +30,7 @@ $payment = match ( $state ) {
 	'receipt' => 'رسید ثبت شد، منتظر تأیید',
 	'pending' => 'open' === ( $bank_payment['phase'] ?? '' ) ? $purchase_state['title'] : 'در انتظار تأیید پرداخت',
 	'failed' => $bank_cancelled ? $purchase_state['title'] : 'پرداخت کامل نشده است',
+	'wallet_pending', 'wallet_review' => $purchase_state['title'],
 	'paid_waiting_fulfillment', 'issuing', 'ready', 'partial' => 'پرداخت تأیید شد',
 	'closed' => $expired ? 'پرداخت تأیید شد' : (
 		(float) $order->get_total_refunded() > 0 ? 'بازپرداخت ثبت شده است' : wc_get_order_status_name( $order->get_status() )
@@ -42,6 +43,8 @@ $payment = match ( $state ) {
 	'failed' => $bank_retry
 		? [ 'تحویل انجام نشده است', $order->get_checkout_payment_url(), 'پرداخت مجدد همین سفارش' ]
 		: [ 'تحویل انجام نشده است', $bank_cancelled ? $support : $tracking, 'پیگیری پرداخت ناموفق' ],
+	'wallet_pending' => [ 'در انتظار ثبت سهم کیف پول', $tracking . '#artnovo-received-status', 'بررسی وضعیت پرداخت' ],
+	'wallet_review' => [ 'در انتظار بررسی سهم کیف پول', $support, 'پیگیری با پشتیبانی' ],
 	'paid_waiting_fulfillment' => [ 'آماده‌سازی اکانت در انتظار شروع است', $tracking . '#artnovo-received-status', 'بررسی وضعیت اکانت' ],
 	'issuing', 'partial' => [ $purchase_state['title'], $tracking . '#artnovo-received-status', 'بررسی وضعیت اکانت' ],
 	'ready' => [ 'آمادهٔ اتصال', account_url(), 'مشاهدهٔ اکانت' ],

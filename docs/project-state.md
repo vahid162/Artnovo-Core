@@ -1,5 +1,20 @@
 # Current project state
 
+## Fresh plan selection after a final bank failure and deferred wallet status
+
+The Core wizard owns the selection session. On an explicit fresh plan choice,
+it can replace the prior submitted split-payment row after a final bank failure
+when the returned order and cart key match the original purchase. Failed cart
+preparation restores the original session. If the session no longer points to
+the previous order, Core can use the Bridge's optional owner-scoped cart key
+lookup. The previous order, retry eligibility, wallet debit and any refund remain
+with their existing payment owners.
+
+Core uses the optional Bridge status to show pending wallet debit or wallet
+review for an externally confirmed service order. Older Bridge installations
+keep their existing payment presentation. Core creates no new wallet debit,
+refund, bank payment or receipt approval in either path.
+
 ## Purchase amount confirmation and wallet status / Core 1.12.10 (2026-11-22)
 
 The custom plan checkout confirms the amounts rendered by WooCommerce before

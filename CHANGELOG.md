@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.12.11 — 2026-11-22
+
+- Allow a fresh plan selection from a submitted split-payment cart after a
+  confirmed final bank failure. The original order keeps its payment history.
+- Show when the external payment is confirmed and the wallet contribution is
+  pending or requires a review, where the Bridge provides that state.
+
 ## 1.12.10 — 2026-11-22
 
 - Ask the customer to confirm the refreshed WooCommerce total if the amount,
