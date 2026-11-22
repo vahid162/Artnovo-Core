@@ -601,6 +601,33 @@ check( 'Pinova selection recovery detaches the older online pointer with the exi
 	&& $guest_draft['purchase_intent'] === ( $resumed_draft['purchase_intent'] ?? null ) && 801 === ( $resumed_draft['fresh_from'] ?? null )
 	&& $online_action === ( $resumed_draft['purchase_action'] ?? null ) && empty( $resumed_draft['purchase_pending_login'] )
 	&& null === WC()->session->get( 'order_awaiting_payment' ) && null === WC()->session->get( 'store_api_draft_order' ) );
+
+$mixed_cart = WC()->cart->get_cart() + [
+	'legacy-wallet' => [ 'product_id' => 99, 'quantity' => 1, 'data' => wc_get_product( 99 ), 'recharge_amount' => 100000 ],
+];
+WC()->cart->set_cart_contents( $mixed_cart );
+WC()->session->set( Artnovo\PlanCheckout\WIZARD_DRAFT, $resumed_draft + [ 'fresh_order' => 802 ] );
+WC()->session->set( 'order_awaiting_payment', 802 );
+WC()->session->save_data();
+$orders[802]->meta['original-order-item'] = 41;
+$revision = Artnovo\PlanCheckout\wizard_selection_revision();
+$action = str_repeat( 'c', 32 );
+$reject_add = true;
+$rejected = choose( 26, 2, $revision, false, $action );
+$reject_add = false;
+check( 'failed fresh selection restores the mixed cart and leaves the saved order linked',
+	isset( $rejected['error'] ) && $mixed_cart === WC()->cart->get_cart()
+	&& 802 === WC()->session->get( 'order_awaiting_payment' ) && $revision === Artnovo\PlanCheckout\wizard_selection_revision() );
+
+$notices = [];
+$fresh = choose( 26, 2, $revision, false, $action );
+$new_draft = Artnovo\PlanCheckout\wizard_draft();
+check( 'fresh catalog selection silently replaces the legacy wallet and every previous row',
+	! isset( $fresh['error'] ) && [] === $notices && 'same' === Artnovo\PlanCheckout\cart_selection( 26, 2 ) );
+check( 'fresh catalog selection leaves the previous BACS order intact and permits online checkout',
+	41 === $orders[802]->meta['original-order-item'] && null === WC()->session->get( 'order_awaiting_payment' )
+	&& empty( $new_draft['fresh_order'] ) && $resumed_draft['purchase_intent'] !== Artnovo\PlanCheckout\wizard_purchase_intent( $new_draft )
+	&& true === Artnovo\PlanCheckout\wizard_fresh_purchase_checkout( true ) );
 echo "{$assertions} selection assertions, {$failures} failures\n";
 exit($failures?1:0);
 }

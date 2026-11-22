@@ -1,5 +1,16 @@
 # Current project state
 
+## Silent plan selection / Core 1.12.9 (2026-11-22)
+
+The Core wizard replaces the customer's previous cart rows on plan selection, including
+legacy TeraWallet recharge rows. WooCommerce still validates the plan, quantity,
+coupon and payment methods. A failed preparation restores the old cart. The
+submitted-wallet-payment guard remains active.
+
+An explicit new purchase starts with its own checkout intent and releases the
+old checkout's session pointers after preparation. Saved orders and payment
+attempts remain available through their original payment and tracking routes.
+
 ## Wallet contribution in the plan checkout / Core 1.12.4 candidate (2026-11-21)
 
 When the native checkout includes TeraWallet’s partial-payment row, the Core

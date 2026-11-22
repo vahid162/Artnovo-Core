@@ -136,7 +136,9 @@ $other_item = array_replace( $item, [ 'data' => $unrelated, 'product_id' => 0, '
 $mixed = [ $old_key => $item, 'unrelated' => $other_item ];
 $cart->set_cart_contents( $mixed );
 $result = $prepare( 26 );
-$check( 'mixed cart stays untouched', is_wp_error( $result ) && $mixed === $cart->get_cart() );
+$check( 'explicit selection replaces every old row without notices', $legacy
+	? is_wp_error( $result ) && $mixed === $cart->get_cart()
+	: true === $result && 'same' === Artnovo\PlanCheckout\cart_selection( 26 ) && 0 === wc_notice_count() );
 
 if ( ! $legacy ) {
 	$old_key = $seed( 25 );

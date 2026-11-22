@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.12.9 — 2026-11-22
+
+- Replace leftover cart items silently when a customer selects a plan, including
+  old TeraWallet recharge rows.
+- Start a fresh checkout independently of previous orders while retaining
+  their payment and tracking records.
+
 ## 1.12.8 — 2026-11-22
 
 - Refresh the private wallet top-up status card while the owner is waiting for
