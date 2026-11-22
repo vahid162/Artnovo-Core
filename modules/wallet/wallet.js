@@ -3,6 +3,30 @@
 	if (!page) return;
 
 	const input = page.querySelector('#woo_wallet_balance_to_add');
+	const topupButton = input?.form?.querySelector('[data-artnovo-topup-cta]');
+	if (topupButton) {
+		const format = new Intl.NumberFormat('fa-IR');
+		const updateTopupButton = () => {
+			topupButton.textContent = input.value && input.validity.valid
+				? `پرداخت ${format.format(Number(input.value))} ${page.dataset.currencyLabel}`
+				: 'پرداخت شارژ';
+		};
+		input.addEventListener('input', updateTopupButton);
+		input.form.addEventListener('submit', (event) => {
+			if (topupButton.disabled) {
+				event.preventDefault();
+				return;
+			}
+			topupButton.disabled = true;
+			topupButton.textContent = 'در حال اتصال به درگاه…';
+		});
+		window.addEventListener('pageshow', () => {
+			topupButton.disabled = false;
+			updateTopupButton();
+		});
+		updateTopupButton();
+	}
+
 	if (input && page.dataset.currency === 'IRT') {
 		const minimum = Number(input.min) || 0;
 		const maximum = input.max ? Number(input.max) : Infinity;

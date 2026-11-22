@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.12.6 — 2026-11-22
+
+- Start eligible wallet top-ups in My Wallet using TeraWallet’s standalone
+  order API and the optional Pay Bridge wallet payment route.
+- Return the customer to the private wallet result and use the original order
+  for eligible retries, preserving the plan cart and the native wallet ledger.
+
 ## 1.12.5 — 2026-11-22
 
 - Show the native wallet contribution in the plan checkout control and use
