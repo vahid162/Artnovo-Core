@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../modules/home/artnovo-home-wizard.js'), 'utf8');
-const start = source.indexOf('\tfunction syncNativeSummary() {');
+const start = source.indexOf('\tfunction syncPaymentButton(');
 const end = source.indexOf('\n\tfunction refreshOrderReview(', start);
 assert.ok(start >= 0 && end > start, 'تابع واقعی همگام‌سازی در کد تولید وجود دارد');
 const numbersStart = source.indexOf('\tfunction persianDigits(value) {');
@@ -57,6 +57,17 @@ class Element {
 		this.childNodes = [];
 		this.append(...children);
 	}
+	before(node) {
+		const parent = this.parentElement;
+		parent.childNodes.splice(parent.childNodes.indexOf(this), 0, node);
+		node.parentElement = parent;
+	}
+	get labels() { return this.parentElement?.tagName === 'label' ? [this.parentElement] : []; }
+	get value() { return this.attributes.value ?? ''; }
+	set value(value) { this.setAttribute('value', value); }
+	get checked() { return this.checkedValue ?? this.defaultChecked; }
+	set checked(value) { this.checkedValue = value; }
+	get defaultChecked() { return this.hasAttribute('checked'); }
 	contains(node) { return node === this || this.childNodes.some((child) => child instanceof Element && child.contains(node)); }
 	remove() {
 		if (!this.parentElement) return;
@@ -80,6 +91,9 @@ class Element {
 			if (rejected.some((name) => classes.includes(name))) return false;
 			const positive = simple.replace(/:not\([^)]*\)/g, '');
 			const tag = positive.match(/^[a-z]+/)?.[0];
+			const id = positive.match(/#([\w-]+)/)?.[1];
+			const name = positive.match(/\[name="([^"]+)"\]/)?.[1];
+			if (id && node.getAttribute('id') !== id || name && node.getAttribute('name') !== name || positive.includes(':checked') && !node.checked) return false;
 			return (!tag || node.tagName === tag) && [...positive.matchAll(/\.([\w-]+)/g)].every((match) => classes.includes(match[1]));
 		};
 		const selected = (node, parts) => {
@@ -199,22 +213,44 @@ assert.equal(state.totals[0].textContent, '۸۰۰٬۰۰۰ تومان');
 assert.equal(state.adjustments.childNodes.length, 1, 'همگام‌سازی مجدد جزئیات قدیمی را انباشته نمی‌کند');
 assert.equal(state.adjustments.querySelector('.woocommerce-remove-coupon').tabIndex, 0);
 
-const nativeWalletCheckbox = el('input', { type: 'checkbox', name: 'partial_pay_through_wallet' });
+const nativeWalletCheckbox = el('input', { type: 'checkbox', name: 'partial_pay_through_wallet', checked: 'checked' });
 const walletCoupon = coupon();
-const walletOptIn = table('۱۳۰٬۰۰۰', [
-	row('wallet-pay-partial', 'پرداخت از کیف پول', nativeWalletCheckbox),
+const walletOptIn = table('90,000', [
+	row('wallet-pay-partial', 'پرداخت از کیف پول', nativeWalletCheckbox, el('span', { class: 'wallet-amount' }, money('60,000'))),
 	row('cart-discount', 'تخفیف بهار', walletCoupon)
 ]);
-state.nativeCheckout.replaceChildren(walletOptIn);
+const paymentButton = el('button', { id: 'place_order', 'data-value': 'ثبت سفارش', value: 'ثبت سفارش' }, 'ثبت سفارش');
+const paymentMethod = (value, gatewayLabel = '') => el('input', { name: 'payment_method', value, checked: 'checked', 'data-order_button_text': gatewayLabel });
+const onlinePayment = paymentMethod('online-test');
+state.nativeCheckout.replaceChildren(walletOptIn, onlinePayment, paymentButton);
 assert.equal(sync(state), true);
 assert.equal(state.order.dataset.artnovoNativeReview, '1');
 assert.equal(state.order.dataset.artnovoSummaryReady, undefined);
 assert.equal(walletOptIn.hasAttribute('aria-hidden'), false);
 assert.equal(walletOptIn.querySelector('.wallet-pay-partial input'), nativeWalletCheckbox);
+assert.equal(nativeWalletCheckbox.labels[0].textContent.trim(), 'استفاده از اعتبار کیف پول تا ۶۰٬۰۰۰ تومان');
 assert.equal(nativeWalletCheckbox.hasAttribute('tabindex'), false, 'کنترل اصلی کیف پول در مسیر صفحه‌کلید باقی می‌ماند');
 assert.equal(walletCoupon.tabIndex, 0, 'پیوند کوپن در جدول بومی قابل دسترس است');
 assert.equal(walletOptIn.querySelector('.product-quantity').textContent, '× ۲');
-assert.equal(walletOptIn.querySelector('.order-total td').textContent, '۱۳۰٬۰۰۰ تومان');
+assert.equal(walletOptIn.querySelector('.order-total td').textContent, '90,000 تومان');
+assert.equal(paymentButton.textContent, 'پرداخت ۹۰٬۰۰۰ تومان');
+assert.equal(paymentButton.value, 'ثبت سفارش');
+nativeWalletCheckbox.checked = false;
+sync(state);
+assert.equal(paymentButton.textContent, 'ثبت سفارش', 'هنگام تغییر انتخاب، مبلغ قبلی روی دکمه نمی‌ماند');
+nativeWalletCheckbox.checked = true;
+nativeWalletCheckbox.dataset.artnovoWalletPending = '1';
+sync(state);
+assert.equal(paymentButton.textContent, 'ثبت سفارش', 'مبلغ قبلی تا دریافت fragment تازه بازنمی‌گردد');
+delete nativeWalletCheckbox.dataset.artnovoWalletPending;
+for (const [method, expected] of [
+	[paymentMethod('bacs'), 'ثبت سفارش و نمایش اطلاعات واریز'],
+	[paymentMethod('gateway-with-own-label', 'ادامه در درگاه'), 'ادامه در درگاه']
+]) {
+	state.nativeCheckout.replaceChildren(walletOptIn, method, paymentButton);
+	sync(state);
+	assert.equal(paymentButton.textContent, expected);
+}
 assert.equal(state.adjustments.childNodes.length, 0, 'کنترل کیف پول و ردیف‌های بومی در خلاصهٔ دوم کپی نمی‌شوند');
 
 const walletNotice = '۷۰٬۰۰۰ تومان از کیف پول و ۱۳۰٬۰۰۰ تومان از روش دیگر پرداخت می‌شود';
@@ -225,12 +261,16 @@ assert.equal(state.order.dataset.artnovoNativeReview, '1');
 assert.equal(walletAutomatic.hasAttribute('aria-hidden'), false);
 assert.equal(walletAutomatic.querySelector('.wallet-pay-partial').textContent, walletNotice, 'اعلان برداشت خودکار بدون ساختن کنترل جدید نمایش داده می‌شود');
 
-state.nativeCheckout.replaceChildren(table('۱٬۰۰۰٬۰۰۰'));
+state.nativeCheckout.replaceChildren(table('۱٬۰۰۰٬۰۰۰'), onlinePayment, paymentButton);
 assert.equal(sync(state), true);
 assert.equal(state.order.dataset.artnovoNativeReview, undefined);
 assert.equal(state.order.dataset.artnovoSummaryReady, '1');
 assert.equal(state.totals[0].textContent, '۱٬۰۰۰٬۰۰۰ تومان');
+assert.equal(paymentButton.textContent, 'ثبت سفارش');
 assert.equal(state.adjustments.childNodes.length, 0, 'حذف کوپن، مالیات و هزینه از fragment در خلاصه هم منعکس می‌شود');
+state.nativeCheckout.replaceChildren(table('۱۵۰٬۰۰۰'), paymentMethod('wallet'), paymentButton);
+sync(state);
+assert.equal(paymentButton.textContent, 'پرداخت با کیف پول');
 
 for (const [raw, thousand, decimal, shown] of [
 	['1,234,567.50', ',', '.', '۱٬۲۳۴٬۵۶۷٫۵۰'],

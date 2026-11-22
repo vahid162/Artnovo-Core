@@ -506,10 +506,7 @@
 			nativeRequests.add(request);
 			request.always(() => nativeRequests.delete(request));
 		});
-		body.on('updated_checkout payment_method_selected', () => {
-			labelBankTransferButton();
-			syncNativeSummary();
-		});
+		body.on('updated_checkout payment_method_selected', () => { syncNativeSummary(); });
 		body.on('checkout_error', () => showBankConnection(false));
 		body.on('applied_coupon_in_checkout removed_coupon_in_checkout', () => {
 			queueMicrotask(() => window.jQuery(order.querySelector('form.checkout_coupon')).stop(true, true).show());
@@ -545,19 +542,35 @@
 		quantityStatus.hidden = !message;
 	}
 
-	function labelBankTransferButton() {
-		if (nativeCheckout?.querySelector('[name="payment_method"]:checked')?.value !== 'bacs') return;
+	function syncPaymentButton(amount) {
+		const method = nativeCheckout?.querySelector('[name="payment_method"]:checked');
+		if (!method) return;
 		const button = nativeCheckout.querySelector('#place_order');
-		if (button) button.value = button.textContent = 'ثبت سفارش و نمایش اطلاعات واریز';
+		if (!button) return;
+		const gatewayLabel = method.getAttribute('data-order_button_text');
+		const label = method.value === 'bacs' ? 'ثبت سفارش و نمایش اطلاعات واریز'
+			: gatewayLabel || (method.value === 'wallet' ? 'پرداخت با کیف پول'
+				: amount ? 'پرداخت ' + moneyText(amount) : button.dataset.value);
+		if (label && button.textContent !== label) button.textContent = label;
 	}
 
 	function syncNativeSummary() {
 		if (selectionPending || !reviewCurrent) return false;
 		const table = nativeCheckout?.querySelector('.woocommerce-checkout-review-order-table');
 		const amount = table?.querySelector('.order-total td');
+		const walletRow = table?.querySelector('.wallet-pay-partial');
+		const walletChoice = walletRow?.querySelector('input[name="partial_pay_through_wallet"]');
+		const walletApplied = walletRow && (!walletChoice || walletChoice.checked && !walletChoice.dataset.artnovoWalletPending);
+		syncPaymentButton(walletApplied ? amount?.querySelector('.woocommerce-Price-amount')?.textContent.trim() : '');
 		if (!amount) return false;
-		if (table.querySelector('.wallet-pay-partial')) {
+		if (walletRow) {
 			// Keep TeraWallet's original control and automatic deduction notice in the form.
+			const contribution = walletRow.querySelector('.wallet-amount .woocommerce-Price-amount')?.textContent.trim();
+			if (walletChoice && !walletChoice.labels?.length && contribution) {
+				const label = document.createElement('label');
+				walletChoice.before(label);
+				label.append(walletChoice, ' استفاده از اعتبار کیف پول تا ' + moneyText(contribution));
+			}
 			table.removeAttribute('aria-hidden');
 			delete order.dataset.artnovoSummaryReady;
 			order.dataset.artnovoNativeReview = '1';
@@ -837,9 +850,20 @@
 	});
 	if (state.step === '3' && !review && (form || order.dataset.artnovoAutoPrepare === '1')) prepareCheckout(state.plan, quantity);
 	bindNativeEvents();
-	labelBankTransferButton();
+	const walletChoiceSelector = '.wallet-pay-partial input[name="partial_pay_through_wallet"]';
+	order.addEventListener('click', (event) => {
+		if (event.target.matches(walletChoiceSelector) && event.target.dataset.artnovoWalletPending) event.preventDefault();
+	}, true);
+	order.addEventListener('change', (event) => {
+		if (!event.target.matches(walletChoiceSelector)) return;
+		// Woo replaces this control when it recalculates from TeraWallet's updated session.
+		event.target.dataset.artnovoWalletPending = '1';
+		syncNativeSummary();
+	}, true);
 	order.addEventListener('submit', (event) => {
+		const walletUpdating = nativeCheckout?.querySelector(walletChoiceSelector)?.dataset.artnovoWalletPending;
 		if (event.target === form && (selectionPending || selectionRecovery)
+			|| event.target === nativeCheckout && walletUpdating
 			|| (event.target === nativeCheckout || event.target.matches('form.checkout_coupon')) && (selectionPending || quantityPending || !reviewCurrent)) {
 			event.preventDefault();
 			event.stopImmediatePropagation();

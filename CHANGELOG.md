@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.12.5 — 2026-11-22
+
+- Show the native wallet contribution in the plan checkout control and use
+  WooCommerce’s confirmed remaining total on the default payment button.
+- Wait for WooCommerce to refresh the selected wallet contribution before
+  allowing checkout submission again.
+
 ## 1.12.4 — 2026-11-21
 
 - Keep TeraWallet’s original partial-payment control and deduction notice visible
