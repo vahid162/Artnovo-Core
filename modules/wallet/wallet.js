@@ -2,6 +2,118 @@
 	const page = document.querySelector('.artnovo-wallet-page');
 	if (!page) return;
 
+	const topupResult = page.querySelector('[data-artnovo-wallet-topup-status-url]');
+	if (topupResult) pollTopupStatus(topupResult);
+
+	function pollTopupStatus(card) {
+		const {
+			artnovoWalletTopupStatusUrl: url,
+			artnovoWalletTopupStatusOrder: order,
+			artnovoWalletTopupStatusKey: key,
+			artnovoWalletTopupStatusNonce: nonce,
+		} = card.dataset;
+		let endpoint;
+		try {
+			endpoint = new URL(url, window.location.href);
+		} catch {
+			return;
+		}
+		if (!url || !order || !key || !nonce || endpoint.origin !== window.location.origin
+			|| endpoint.protocol !== window.location.protocol || endpoint.username || endpoint.password) return;
+
+		const body = new URLSearchParams({ order, key, _ajax_nonce: nonce });
+		// Cover the first scheduled provider check while bounding unattended reads.
+		const deadline = performance.now() + 120000;
+		let delay = 3000;
+		let timer;
+		let reading = false;
+		let stopped = false;
+		const announcement = document.createElement('span');
+		announcement.className = 'screen-reader-text';
+		announcement.setAttribute('role', 'status');
+		card.after(announcement);
+
+		function stop(showFallback = false) {
+			stopped = true;
+			clearTimeout(timer);
+			document.removeEventListener('visibilitychange', schedule);
+			if (showFallback) card.querySelector('[data-artnovo-wallet-topup-poll-expired]')?.removeAttribute('hidden');
+		}
+
+		function schedule() {
+			clearTimeout(timer);
+			if (stopped || reading || document.hidden) return;
+			const remaining = deadline - performance.now();
+			if (remaining <= 0) {
+				stop(true);
+				return;
+			}
+			timer = setTimeout(check, Math.min(delay, remaining));
+		}
+
+		async function check() {
+			const remaining = Math.ceil(deadline - performance.now());
+			if (stopped || document.hidden || remaining <= 0) {
+				schedule();
+				return;
+			}
+			reading = true;
+			try {
+				const response = await fetch(endpoint, {
+					method: 'POST',
+					mode: 'same-origin',
+					credentials: 'same-origin',
+					cache: 'no-store',
+					redirect: 'error',
+					referrerPolicy: 'no-referrer',
+					signal: AbortSignal.timeout(Math.min(10000, remaining)),
+					body,
+				});
+				if ([401, 403, 404].includes(response.status)) {
+					stop(true);
+					return;
+				}
+				if (!response.ok) return;
+				const result = await response.json();
+				if (document.hidden || performance.now() >= deadline) return;
+				if (!result?.success || typeof result.data?.html !== 'string') {
+					stop(true);
+					return;
+				}
+				const fragment = document.createElement('template');
+				fragment.innerHTML = result.data.html;
+				const next = fragment.content.firstElementChild;
+				if (fragment.content.childElementCount !== 1 || !next?.matches('section.artnovo-wallet-result')
+					|| !next.dataset.artnovoWalletTopupView || !card.isConnected) {
+					stop(true);
+					return;
+				}
+				if (next.dataset.artnovoWalletTopupView === card.dataset.artnovoWalletTopupView) return;
+
+				const restoreFocus = card.contains(document.activeElement);
+				card.replaceWith(next);
+				card = next;
+				const heading = card.querySelector('h2');
+				if (restoreFocus && heading) {
+					heading.tabIndex = -1;
+					heading.focus({ preventScroll: true });
+				} else {
+					announcement.textContent = heading?.textContent ?? '';
+				}
+				if (!card.hasAttribute('data-artnovo-wallet-topup-status-url')) stop();
+			} catch {
+				// Temporary errors leave the last result and manual follow-up in place.
+			} finally {
+				reading = false;
+				delay = Math.min(delay + 2000, 15000);
+				schedule();
+			}
+		}
+
+		document.addEventListener('visibilitychange', schedule);
+		schedule();
+	}
+
 	const input = page.querySelector('#woo_wallet_balance_to_add');
 	const topupButton = input?.form?.querySelector('[data-artnovo-topup-cta]');
 	if (topupButton) {
