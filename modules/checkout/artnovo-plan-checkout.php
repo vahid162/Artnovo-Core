@@ -10,6 +10,7 @@ use Automattic\WooCommerce\StoreApi\SessionHandler as StoreSession;
 use Automattic\WooCommerce\StoreApi\StoreApi;
 use Automattic\WooCommerce\StoreApi\Utilities\CartTokenUtils;
 use WPVPNBridge\Commerce\Orders;
+use WPVPNBridge\Payment\NativeWallet;
 use WPVPNBridge\Payment\WalletPayment;
 use WPVPNBridge\Settings;
 
@@ -526,7 +527,19 @@ function wizard_reply( int $product_id, bool $ajax, string $error = '' ): never 
 	exit;
 }
 
-function prepare_wizard_cart( int $product_id, int $quantity, array $methods, string $requested_method, bool $keep_order_pointers = false ): true|\WP_Error {
+function wizard_can_replace_submitted_wallet_cart( int $order_id, string $key ): bool {
+	if ( ! is_callable( [ NativeWallet::class, 'verified' ] ) || ! function_exists( '\Artnovo\AccountUI\received_bank_payment' ) ) {
+		return false;
+	}
+	$order = wizard_new_purchase_order( $order_id );
+	$snapshot = $order?->get_meta( '_wpvpn_snapshot', true );
+	// Native cancellation can consume the debit marker. The old order still owns its original cart key.
+	return is_array( $snapshot ) && $key === ( $snapshot['native_wallet_key'] ?? null )
+		&& 'failed_final' === ( \Artnovo\AccountUI\received_bank_payment( $order )['phase'] ?? null )
+		&& ( $order->has_status( 'cancelled' ) ? Orders::matches_purchase( $order, $snapshot ) : null !== NativeWallet::verified( $order, $snapshot ) );
+}
+
+function prepare_wizard_cart( int $product_id, int $quantity, array $methods, string $requested_method, bool $keep_order_pointers = false, int $previous_order_id = 0 ): true|\WP_Error {
 	$cart         = WC()->cart;
 	$items        = $cart->get_cart();
 	$key          = array_key_first( $items );
@@ -537,9 +550,15 @@ function prepare_wizard_cart( int $product_id, int $quantity, array $methods, st
 	$prepared     = true;
 
 	foreach ( $items as $previous ) {
-		if ( ( $changed || $keep_order_pointers ) && class_exists( WalletPayment::class ) && WalletPayment::submitted( $previous['_wpvpn_wallet_key'] ?? null ) ) {
+		$wallet_key = $previous['_wpvpn_wallet_key'] ?? null;
+		if ( ! ( $changed || $keep_order_pointers ) || ! class_exists( WalletPayment::class ) || ! WalletPayment::submitted( $wallet_key ) ) {
+			continue;
+		}
+		if ( ! $keep_order_pointers || $previous_order_id < 1 || ! is_string( $wallet_key ) || ! wizard_can_replace_submitted_wallet_cart( $previous_order_id, $wallet_key ) ) {
 			return new \WP_Error( 'artnovo_pending_wallet', 'پرداخت قبلی هنوز در حال بررسی است. برای پیگیری با پشتیبانی تماس بگیرید.' );
 		}
+		// Even the same plan needs a fresh cart key when the old order already owns the debit.
+		$same_product = false;
 	}
 	try {
 		if ( $same_product ) {
@@ -674,6 +693,14 @@ function wizard_matches_purchase_request( array $draft, mixed $intent, mixed $re
 function wizard_previous_online_purchase( array $draft ): int|\WP_Error {
 	$pointed = array_filter( [ (int) WC()->session->get( 'order_awaiting_payment' ), (int) WC()->session->get( 'store_api_draft_order' ) ] );
 	$orders = array_unique( array_filter( [ (int) ( $draft['fresh_order'] ?? 0 ), ...$pointed ] ) );
+	if ( ! $orders && is_callable( [ WalletPayment::class, 'submitted_order_id' ] ) ) {
+		foreach ( WC()->cart->get_cart() as $item ) {
+			$id = WalletPayment::submitted_order_id( $item['_wpvpn_wallet_key'] ?? null, get_current_user_id() );
+			if ( null !== $id ) {
+				$orders[] = $id;
+			}
+		}
+	}
 	foreach ( $orders as $id ) {
 		$order = wizard_new_purchase_order( $id );
 		if ( ! $order || $order->has_status( 'checkout-draft' ) ) {
@@ -716,7 +743,7 @@ function wizard_begin_new_purchase( \WC_Order $order, string $revision ): string
 				return new \WP_Error( 'artnovo_new_purchase_active', 'خرید دیگری در این نشست باز است. به فرم فعلی خرید برگردید.' );
 			}
 		}
-		$prepared = prepare_wizard_cart( $id, $quantity, payment_candidates( $product, $quantity ), '' );
+		$prepared = prepare_wizard_cart( $id, $quantity, payment_candidates( $product, $quantity ), '', true, $previous );
 		if ( is_wp_error( $prepared ) ) {
 			return $prepared;
 		}
@@ -1123,7 +1150,7 @@ function wizard_process_selection( bool $ajax, string $otp_action ): array {
 		return [ 'redirect' => $destination, 'selection_revision' => wizard_selection_revision() ];
 	}
 
-	$prepared = prepare_wizard_cart( $product_id, $quantity, $methods, $requested_method, $fresh_selection );
+	$prepared = prepare_wizard_cart( $product_id, $quantity, $methods, $requested_method, $fresh_selection, $detach );
 	if ( is_wp_error( $prepared ) ) {
 		return [ 'product' => $product_id, 'error' => $prepared->get_error_message() ];
 	}

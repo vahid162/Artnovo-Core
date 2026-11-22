@@ -197,6 +197,10 @@ function subscription_payment_presentation( \WC_Order $order, array $snapshot ):
 	if ( ! class_exists( Orders::class ) || ! Orders::matches_purchase( $order, $snapshot ) ) {
 		return [ 'state' => 'review', 'label' => 'خرید نیاز به بررسی دارد', 'action_url' => $order->get_view_order_url(), 'action_label' => 'پیگیری خرید' ];
 	}
+	$wallet_state = received_deferred_wallet_state( $order );
+	if ( null !== $wallet_state ) {
+		return [ 'state' => $wallet_state['state'], 'label' => $wallet_state['title'], 'action_url' => $track . '#artnovo-received-status', 'action_label' => 'بررسی وضعیت پرداخت' ];
+	}
 	if ( $order->is_paid() ) {
 		return null;
 	}

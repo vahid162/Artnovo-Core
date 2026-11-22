@@ -76,7 +76,7 @@
 	background: #3b3427;
 }
 
-.artnovo-account-order:is([data-state="receipt"], [data-state="pending"]) .artnovo-account-order-payment {
+.artnovo-account-order:is([data-state="receipt"], [data-state="pending"], [data-state="wallet_pending"]) .artnovo-account-order-payment {
 	color: #b8e3f5;
 	background: #233b4d;
 }
