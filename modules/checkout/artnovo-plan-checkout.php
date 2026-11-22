@@ -493,10 +493,6 @@ function prepare_wizard_cart( int $product_id, int $quantity, array $methods, st
 	$prepared     = true;
 
 	foreach ( $items as $previous ) {
-		$product = $previous['data'] ?? null;
-		if ( ! is_plan( $product ) || ! $product->is_virtual() ) {
-			return new \WP_Error( 'artnovo_other_cart', 'این خرید آماده نشد. برای بررسی با پشتیبانی تماس بگیرید.' );
-		}
 		if ( ( $changed || $keep_order_pointers ) && class_exists( WalletPayment::class ) && WalletPayment::submitted( $previous['_wpvpn_wallet_key'] ?? null ) ) {
 			return new \WP_Error( 'artnovo_pending_wallet', 'پرداخت قبلی هنوز در حال بررسی است. برای پیگیری با پشتیبانی تماس بگیرید.' );
 		}
@@ -989,7 +985,8 @@ function wizard_process_selection( bool $ajax, string $otp_action ): array {
 		return [ 'product' => $product_id, 'error' => 'درخواست خرید معتبر نیست. صفحه را دوباره باز کنید.' ];
 	}
 	$detach = 0;
-	if ( is_user_logged_in() && ( '' !== $action || ! empty( $previous['purchase_pending_login'] ) ) ) {
+	$fresh_selection = '' !== $action || ! empty( $previous['purchase_pending_login'] );
+	if ( is_user_logged_in() && $fresh_selection ) {
 		if ( ! empty( $previous['purchase_claimed'] ) && empty( $previous['fresh_order'] ) ) {
 			$order = wizard_find_claimed_purchase( $previous );
 			if ( ! $order || $order->has_status( 'checkout-draft' ) ) {
@@ -1038,7 +1035,9 @@ function wizard_process_selection( bool $ajax, string $otp_action ): array {
 		$draft['fresh_from'] = $detach;
 		$draft['purchase_action'] = $action ?: ( $previous['purchase_action'] ?? '' );
 	} elseif ( '' !== wizard_purchase_intent( $previous ) || '' !== $action ) {
-		$draft += array_intersect_key( $previous, array_flip( [ 'purchase_intent', 'purchase_started', 'purchase_action', 'fresh_from', 'fresh_order', 'purchase_claimed' ] ) );
+		if ( '' === $action ) {
+			$draft += array_intersect_key( $previous, array_flip( [ 'purchase_intent', 'purchase_started', 'purchase_action', 'fresh_from', 'fresh_order', 'purchase_claimed' ] ) );
+		}
 		$draft['purchase_intent'] ??= bin2hex( random_bytes( 32 ) );
 		$draft['purchase_started'] ??= time();
 		if ( empty( $draft['purchase_claimed'] ) && $draft['revision'] !== ( $previous['revision'] ?? null )
@@ -1066,16 +1065,14 @@ function wizard_process_selection( bool $ajax, string $otp_action ): array {
 		return [ 'redirect' => $destination, 'selection_revision' => wizard_selection_revision() ];
 	}
 
-	$prepared = prepare_wizard_cart( $product_id, $quantity, $methods, $requested_method, $detach > 0 || '' !== $action );
+	$prepared = prepare_wizard_cart( $product_id, $quantity, $methods, $requested_method, $fresh_selection );
 	if ( is_wp_error( $prepared ) ) {
 		return [ 'product' => $product_id, 'error' => $prepared->get_error_message() ];
 	}
-	if ( $detach ) {
-		foreach ( [ 'order_awaiting_payment', 'store_api_draft_order' ] as $pointer ) {
-			if ( $detach === (int) WC()->session->get( $pointer ) ) {
-				WC()->session->__unset( $pointer );
-			}
-		}
+	if ( $fresh_selection ) {
+		// Start the new checkout without letting WooCommerce reuse a previously saved order.
+		WC()->session->__unset( 'order_awaiting_payment' );
+		WC()->session->__unset( 'store_api_draft_order' );
 	}
 	unset( $draft['coupon'] );
 	WC()->session->set( WIZARD_DRAFT, $draft );
