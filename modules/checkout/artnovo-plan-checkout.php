@@ -2,6 +2,7 @@
 
 namespace Artnovo\PlanCheckout;
 
+use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
 use Automattic\WooCommerce\StoreApi\Payments\PaymentResult;
 use Automattic\WooCommerce\StoreApi\SchemaController;
 use Automattic\WooCommerce\StoreApi\Schemas\V1\CheckoutSchema;
@@ -16,6 +17,7 @@ defined( 'ABSPATH' ) || exit;
 
 const WIZARD_DRAFT = 'artnovo_wizard_checkout';
 const PURCHASE_META = '_artnovo_purchase_intent';
+const AMOUNT_CHANGED = 'مبلغ سفارش تغییر کرده است. مبلغ تازه را بررسی کنید و دوباره دکمهٔ پرداخت را بزنید.';
 
 require_once dirname( __DIR__ ) . '/auth/artnovo-checkout-email.php';
 
@@ -303,6 +305,48 @@ function wizard_checkout_active(): bool {
 		&& $product->is_in_stock() && $product->is_purchasable()
 		&& $draft['quantity'] <= method_quantity_limit( $product );
 }
+
+function wizard_amount_confirmation( ?\WC_Order $order = null ): string {
+	$draft = wizard_draft();
+	if ( ! is_user_logged_in() || ! WC()->session || ! WC()->cart || ! isset( $draft['product'], $draft['quantity'] )
+		|| 'same' !== cart_selection( $draft['product'], $draft['quantity'] ) ) {
+		return '';
+	}
+	$purchase = $order ?? WC()->cart;
+	$wallet = 0.0;
+	if ( $order ) {
+		foreach ( $order->get_items( 'fee' ) as $fee ) {
+			if ( '_via_wallet_partial_payment' === $fee->legacy_fee_key || '_via_wallet_partial_payment' === $fee->get_meta( '_legacy_fee_key', true ) ) {
+				$wallet -= (float) $fee->get_total( 'edit' ) + (float) $fee->get_total_tax( 'edit' );
+			}
+		}
+	} else {
+		$fee = $purchase->get_fees()['_via_wallet_partial_payment'] ?? null;
+		$wallet = -( (float) ( $fee->total ?? 0 ) + (float) ( $fee->tax ?? 0 ) );
+	}
+	$decimals = wc_get_price_decimals();
+	$terms = [
+		get_current_user_id(), WC()->session->get_customer_id(), wizard_selection_revision(),
+		wizard_purchase_intent( $draft ), $draft['product'], $draft['quantity'],
+		$order ? $order->get_currency( 'edit' ) : get_woocommerce_currency(),
+		wc_format_decimal( $purchase->get_total( 'edit' ), $decimals ),
+		wc_format_decimal( $order ? $order->get_discount_total( 'edit' ) : $purchase->get_discount_total(), $decimals ),
+		wc_format_decimal( $order ? $order->get_discount_tax( 'edit' ) : $purchase->get_discount_tax(), $decimals ),
+		wc_format_decimal( max( 0, $wallet ), $decimals ),
+	];
+	return hash_hmac( 'sha256', implode( '|', $terms ), wp_salt( 'nonce' ) );
+}
+
+add_action( 'woocommerce_review_order_before_submit', static function (): void {
+	// Woo replaces the payment fragment after refreshing the reviewed amounts.
+	if ( ! wizard_checkout_active() && ! did_action( 'woocommerce_checkout_update_order_review' ) ) {
+		return;
+	}
+	$confirmation = wizard_amount_confirmation();
+	if ( '' !== $confirmation ) {
+		printf( '<input type="hidden" name="artnovo_checkout_amount" value="%s">', esc_attr( $confirmation ) );
+	}
+} );
 
 add_filter( 'woocommerce_is_checkout', static function ( bool $checkout ): bool {
 	return $checkout || wizard_checkout_active();
@@ -900,6 +944,20 @@ add_filter( 'rest_dispatch_request', static function ( mixed $response, \WP_REST
 			'Cart-Token' => CartTokenUtils::get_cart_token( (string) WC()->session->get_customer_id() ),
 		] );
 	}
+	if ( true === $result && 'POST' === $method && cart_has_plan() && [] !== wizard_draft() ) {
+		$confirmation = (string) $request->get_header( 'X-Artnovo-Checkout-Amount' );
+		WC()->cart->calculate_totals();
+		if ( '' === $confirmation || ! hash_equals( wizard_amount_confirmation(), $confirmation ) ) {
+			return new \WP_Error( 'artnovo_checkout_amount_changed', AMOUNT_CHANGED, [ 'status' => 409 ] );
+		}
+		// Check the final Woo order too, after Store API recalculates its request and before saving a draft.
+		add_action( 'woocommerce_before_order_object_save', static function ( \WC_Order $order ) use ( $confirmation ): void {
+			if ( 'store-api' === $order->get_created_via() && $order->has_status( 'checkout-draft' )
+				&& ! hash_equals( wizard_amount_confirmation( $order ), $confirmation ) ) {
+				throw new RouteException( 'artnovo_checkout_amount_changed', AMOUNT_CHANGED, 409 );
+			}
+		}, 0 );
+	}
 	if ( true === $result && 'POST' === $method && 'artnovo_gpante' === $request->get_param( 'payment_method' ) ) {
 		if ( '' !== wizard_purchase_intent( wizard_draft() ) ) {
 			// Store API saves its initial draft while populating the order from the cart.
@@ -1210,7 +1268,20 @@ add_action( 'woocommerce_after_checkout_validation', static function ( array $da
 		|| 'same' !== cart_selection( $draft['product'], $draft['quantity'] )
 		|| ! in_array( $data['payment_method'] ?? '', payment_methods( $product, $draft['quantity'] ), true ) ) {
 		$errors->add( 'artnovo_wizard_cart', 'انتخاب سفارش تغییر کرده است. از صفحهٔ خرید دوباره بررسی کنید.' );
+		return;
 	}
+	$confirmation = checkout_post_value( 'artnovo_checkout_amount' );
+	if ( '' === $confirmation || ! hash_equals( wizard_amount_confirmation(), $confirmation ) ) {
+		WC()->session->set( 'refresh_totals', true );
+		$errors->add( 'artnovo_checkout_amount_changed', AMOUNT_CHANGED );
+		return;
+	}
+	add_action( 'woocommerce_checkout_create_order', static function ( \WC_Order $order ) use ( $confirmation ): void {
+		if ( ! hash_equals( wizard_amount_confirmation( $order ), $confirmation ) ) {
+			WC()->session->set( 'refresh_totals', true );
+			throw new \RuntimeException( AMOUNT_CHANGED );
+		}
+	}, 90 );
 }, 10, 2 );
 
 add_action( 'wp_loaded', static function (): void {

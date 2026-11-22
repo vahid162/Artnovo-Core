@@ -61,14 +61,23 @@ function do_action( string $hook, ...$args ): void {
 	foreach ( array_keys( $priorities ) as $priority ) { foreach ( $GLOBALS['hooks'][$hook][$priority] ?? [] as [$callback, $accepted] ) { $callback( ...array_slice( $args, 0, $accepted ) ); } }
 }
 function remove_action(string $name,callable $callback,int $priority=10):void{foreach($GLOBALS['hooks'][$name][$priority]??[] as $i=>$hook){if($hook[0]===$callback)unset($GLOBALS['hooks'][$name][$priority][$i]);}}
-function wp_verify_nonce( string $nonce, string $action ): bool { return ('valid-checkout' === $nonce && 'woocommerce-process_checkout' === $action)||('valid-review'===$nonce&&'update-order-review'===$action)||('valid-wizard'===$nonce&&'artnovo_wizard_checkout'===$action); }
+function wp_verify_nonce( string $nonce, string $action ): bool { return ('valid-checkout' === $nonce && 'woocommerce-process_checkout' === $action)||('valid-review'===$nonce&&'update-order-review'===$action)||('valid-wizard'===$nonce&&'artnovo_wizard_checkout'===$action)||('valid-store'===$nonce&&'wc_store_api'===$action); }
 function wp_create_nonce( string $action ): string { return 'fresh-' . $action; }
 class SyntheticResponse extends RuntimeException { public function __construct(public array $payload){parent::__construct('Synthetic response');} }
 class WP_REST_Request {
-	public function __construct( private ?string $intent = null ) {}
-	public function get_method(): string { return 'GET'; }
+	public function __construct( private ?string $intent = null, private string $method = 'GET', private string $revision = '', private string $amount = '' ) {}
+	public function get_method(): string { return $this->method; }
 	public function get_route(): string { return '/WC/Store/V1/Checkout/'; }
-	public function get_header( string $name ): ?string { return 'X-Artnovo-Purchase-Intent' === $name ? $this->intent : null; }
+	public function get_header( string $name ): ?string {
+		return match ( $name ) {
+			'X-Artnovo-Purchase-Intent' => $this->intent,
+			'X-Artnovo-Selection-Revision' => $this->revision,
+			'X-Artnovo-Checkout-Amount' => $this->amount,
+			'Nonce' => 'valid-store',
+			default => null,
+		};
+	}
+	public function get_param( string $name ): ?string { return 'payment_method' === $name ? 'bacs' : null; }
 }
 function wp_send_json(array $payload):never{throw new SyntheticResponse($payload);}
 function wp_send_json_error(array $data,int $status=200):never{throw new SyntheticResponse(['success'=>false,'data'=>$data,'status'=>$status]);}
@@ -86,6 +95,9 @@ function is_wp_error( mixed $value ): bool { return $value instanceof WP_Error; 
 function has_term( $terms, $taxonomy, int $id ): bool { return in_array( $id, [25, 26], true ); }
 function is_user_logged_in(): bool { return $GLOBALS['current_user'] > 0; }
 function get_current_user_id(): int { return $GLOBALS['current_user']; }
+function get_woocommerce_currency(): string { return 'IRT'; }
+function wc_get_price_decimals(): int { return 0; }
+function wc_format_decimal( mixed $value, int $decimals ): string { return number_format( (float) $value, $decimals, '.', '' ); }
 function wp_get_current_user(): object { return (object) [ 'user_email' => $GLOBALS['account_email'] ?? '' ]; }
 function is_wc_endpoint_url( ...$args ): bool { return false; }
 function wp_unslash( string $value ): string { return $value; }
@@ -158,12 +170,17 @@ class WC_Session_Handler {
 }
 class WC_Cart {
 	public array $items = [];
+	public array $fees = [];
+	public float $total = 100.0;
 	public function get_cart(): array { return $this->items; }
 	public function get_applied_coupons(): array { return []; }
 	public function set_applied_coupons( array $coupons ): void {}
 	public function set_cart_contents( array $items ): void { $this->items=$items; WC()->session->set('cart',$items); }
 	public function calculate_totals(): void {}
-	public function get_total( string $context ): float { return 100.0; }
+	public function get_total( string $context ): float { return $this->total; }
+	public function get_fees(): array { return $this->fees; }
+	public function get_discount_total(): float { return 0.0; }
+	public function get_discount_tax(): float { return 0.0; }
 	public function set_quantity( string $key, int $quantity ): bool { $this->items[$key]['quantity']=$quantity;WC()->session->set('cart',$this->items);return true; }
 	public function add_to_cart( int $id, int $quantity ): string|false {
 		if($GLOBALS['reject_add'])return false;
@@ -286,7 +303,23 @@ $db_owner='another-tab';$blocked=choose(25,1,$token_b);$db_owner='selection-requ
 check('concurrent prepare cannot replace an in-flight checkout selection',is_wp_error($blocked)&&26===$persisted[Artnovo\PlanCheckout\WIZARD_DRAFT]['product']);
 finish_request();
 check('shutdown saves the current selection and releases the checkout lock',[]===$locks&&26===$persisted[Artnovo\PlanCheckout\WIZARD_DRAFT]['product']);
-$notices=[];$_POST=['artnovo_wizard_cart'=>'26:2','artnovo_selection_revision'=>$token_b,'woocommerce-process-checkout-nonce'=>'valid-checkout'];
+$notices=[];$_POST=['artnovo_wizard_cart'=>'26:2','artnovo_selection_revision'=>$token_b,'woocommerce-process-checkout-nonce'=>'valid-checkout',
+	'artnovo_checkout_amount'=>Artnovo\PlanCheckout\wizard_amount_confirmation()];
+$previous_total = WC()->cart->total;
+WC()->cart->total = 130.0;
+$errors = checkout_attempt();
+check( 'updated Woo total requires another explicit submit before any order or charge',
+	isset( $errors->errors['artnovo_checkout_amount_changed'] ) && true === WC()->session->get( 'refresh_totals' )
+	&& 0 === $native_creates && 0 === $native_charges );
+finish_request();
+WC()->cart->total = $previous_total;
+WC()->cart->fees['_via_wallet_partial_payment'] = (object) [ 'total' => -30, 'tax' => 0 ];
+$errors = checkout_attempt();
+check( 'a changed applied wallet share requires confirmation even if the remaining total is identical',
+	isset( $errors->errors['artnovo_checkout_amount_changed'] ) && 0 === $native_creates );
+finish_request();
+WC()->cart->fees = [];
+$_POST['artnovo_checkout_amount'] = Artnovo\PlanCheckout\wizard_amount_confirmation();
 $errors=checkout_attempt();checkout_guard();
 check('current checkout can reach the synthetic order boundary',[]===$errors->errors&&1===$native_creates&&1===$native_charges);
 finish_request();
@@ -540,6 +573,17 @@ $synthetic_session_owner = '7';
 $stale_store = apply_filters( 'rest_dispatch_request', null, new WP_REST_Request( str_repeat( 'f', 64 ) ) );
 check( 'mixed-case Store API route with trailing slash rejects a stale intent before dispatch', $stale_store instanceof WP_Error
 	&& 'artnovo_selection_changed' === $stale_store->get_error_code() );
+finish_request();
+$store_confirmation = Artnovo\PlanCheckout\wizard_amount_confirmation();
+WC()->cart->total = 110.0;
+$changed_store = apply_filters( 'rest_dispatch_request', null, new WP_REST_Request( $intent, 'POST', $edited['revision'], $store_confirmation ) );
+check( 'Store API cannot place the same managed checkout with a stale amount',
+	$changed_store instanceof WP_Error && 'artnovo_checkout_amount_changed' === $changed_store->get_error_code() );
+finish_request();
+WC()->cart->total = 100.0;
+$current_store = apply_filters( 'rest_dispatch_request', null, new WP_REST_Request( $intent, 'POST', $edited['revision'], $store_confirmation ) );
+check( 'Store API can continue a managed checkout with the current confirmation', null === $current_store );
+finish_request();
 $plan_cart = WC()->cart->get_cart();
 WC()->cart->set_cart_contents( [ 'ordinary-99' => [ 'product_id' => 99, 'quantity' => 1, 'data' => wc_get_product( 99 ) ] ] );
 WC()->session->save_data();

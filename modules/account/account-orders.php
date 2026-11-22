@@ -3,6 +3,7 @@
 namespace Artnovo\AccountUI;
 
 use Artnovo\Core;
+use Artnovo\WalletUI;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -23,8 +24,12 @@ foreach ( $has_orders ? $customer_orders->orders : [] as $entry ) {
 		'state' => 'completed' === $native_status ? 'ready' : ( $past ? 'closed' : 'pending' ),
 		'label' => wc_get_order_status_name( $native_status ),
 	];
-	$bank_payment = received_bank_payment( $order );
-	if ( Core\is_service_order( $order ) && Core\bridge_available() ) {
+	$topup = WalletUI\owns_topup( $order ) ? WalletUI\topup_presentation( $order ) : null;
+	$bank_payment = $topup ? ( $topup['managed'] ? [ 'phase' => $topup['phase'] ] : null ) : received_bank_payment( $order );
+	if ( $topup ) {
+		$view = [ 'state' => 'credited' === $topup['state'] ? 'ready' : $topup['state'], 'label' => $topup['title'] ];
+		$past = in_array( $view['state'], [ 'ready', 'closed' ], true );
+	} elseif ( Core\is_service_order( $order ) && Core\bridge_available() ) {
 		$snapshot = $order->get_meta( '_wpvpn_snapshot', true );
 		$payment = null === $bank_payment && ! $order->is_paid() && is_array( $snapshot ) ? subscription_payment_presentation( $order, $snapshot ) : null;
 		if ( $payment ) {
@@ -35,7 +40,7 @@ foreach ( $has_orders ? $customer_orders->orders : [] as $entry ) {
 		}
 		$past = in_array( $view['state'], [ 'ready', 'closed' ], true );
 	}
-	$groups[ $past ? 'past' : 'followup' ][] = [ $order, $view, $bank_payment ];
+	$groups[ $past ? 'past' : 'followup' ][] = [ $order, $view, $bank_payment, $topup ];
 }
 
 $action_link = static function ( array $action, string $key, string $reference, bool $highlight = false ) use ( $wp_button_class ): void {
@@ -71,19 +76,23 @@ $show_column = static function ( string $name, \WC_Order $order, string $html ) 
 		<section class="artnovo-orders-group" aria-label="<?php echo esc_attr( $heading ); ?>">
 			<h2><?php echo esc_html( $heading ); ?></h2>
 			<ul class="artnovo-orders-list" role="list">
-				<?php foreach ( $groups[ $group ] as [ $order, $view, $bank_payment ] ) : ?>
+				<?php foreach ( $groups[ $group ] as [ $order, $view, $bank_payment, $topup ] ) : ?>
 					<?php
 					$number = Core\display_digits( (string) $order->get_order_number() );
 					$reference = 'سفارش ' . $number;
 					$url = $order->get_view_order_url();
 					$date = $order->get_date_created();
-					$items = $order->get_items();
-					$item = reset( $items );
-					$title = $item ? Core\display_digits( $item->get_name() ) : $reference;
-					if ( count( $items ) > 1 ) {
-						$title .= ' و ' . Core\display_digits( (string) ( count( $items ) - 1 ) ) . ' مورد دیگر';
+					$title = 'شارژ کیف پول';
+					if ( ! $topup ) {
+						$items = $order->get_items();
+						$item = reset( $items );
+						$title = $item ? Core\display_digits( $item->get_name() ) : $reference;
+						if ( count( $items ) > 1 ) {
+							$title .= ' و ' . Core\display_digits( (string) ( count( $items ) - 1 ) ) . ' مورد دیگر';
+						}
 					}
 					$item_count = $order->get_item_count() - $order->get_item_count_refunded();
+					$topup_action = $topup['action'] ?? null;
 					?>
 					<li class="artnovo-orders-row woocommerce-orders-table__row woocommerce-orders-table__row--status-<?php echo esc_attr( $order->get_status() ); ?> order">
 						<div class="artnovo-orders-identity">
@@ -109,6 +118,7 @@ $show_column = static function ( string $name, \WC_Order $order, string $html ) 
 						</div>
 						<?php if ( isset( $columns['order-actions'] ) ) : ?>
 							<div class="artnovo-orders-actions">
+								<?php if ( $topup_action ) { $action_link( $topup_action, 'wallet-topup', $number, true ); } ?>
 								<?php if ( has_action( 'woocommerce_my_account_my_orders_column_order-actions' ) ) : ?>
 									<?php received_account_actions( $order, $bank_payment, $view['state'], static fn() => do_action( 'woocommerce_my_account_my_orders_column_order-actions', $order ) ); ?>
 								<?php else : ?>
@@ -118,15 +128,19 @@ $show_column = static function ( string $name, \WC_Order $order, string $html ) 
 										$primary = $actions['view'];
 										$canonical = $url === $primary['url'] && __( 'View', 'woocommerce' ) === $primary['name'];
 										if ( $canonical ) {
-											$primary['name'] = match ( $view['state'] ) {
+											$primary['name'] = $topup ? 'جزئیات شارژ' : match ( $view['state'] ) {
 												'transfer' => 'پیگیری واریز',
 												'receipt' => 'پیگیری رسید',
 												default => 'جزئیات خرید',
 											};
 											$primary['aria-label'] = $primary['name'] . ' ' . $reference;
 										}
-										$action_link( $primary, 'view', $number, $canonical && 'transfer' === $view['state'] );
-										unset( $actions['view'] );
+										if ( $topup_action ) {
+											$actions['view'] = $primary;
+										} else {
+											$action_link( $primary, 'view', $number, $canonical && 'transfer' === $view['state'] );
+											unset( $actions['view'] );
+										}
 									}
 									if ( $actions ) :
 										?>
