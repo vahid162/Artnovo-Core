@@ -43,6 +43,7 @@ jobs:
           node --check modules/notices/notices.js
           node tests/notices.js
           php tests/checkout-context.php
+          php tests/wallet-topup.php
           php tests/independence.php
           php tests/migration.php
           python3 tests/release.py
