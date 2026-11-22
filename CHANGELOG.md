@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 1.12.7 — 2026-11-22
+
+- Offer payment again on the original wallet top-up only when Pay Bridge
+  confirms a final bank failure and WooCommerce permits payment, including
+  orders WooCommerce already marked failed.
+
 ## 1.12.6 — 2026-11-22
 
 - Start eligible wallet top-ups in My Wallet using TeraWallet’s standalone
