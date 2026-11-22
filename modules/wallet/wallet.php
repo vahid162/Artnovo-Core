@@ -377,11 +377,11 @@ function credited_transaction( \WC_Order $order ): ?object {
 		&& (float) ( $entry->amount ?? 0 ) > 0 && ! empty( $entry->currency ) ? $entry : null;
 }
 
-function topup_state( \WC_Order $order, ?object $entry ): array {
+function topup_state( \WC_Order $order, ?object $entry, bool $checking_bank = false ): array {
 	return match ( true ) {
-		$order->has_status( 'failed' ) => [ 'failed', 'پرداخت شارژ ناموفق بود', 'پرداخت این سفارش تکمیل نشد.' ],
 		$order->has_status( 'cancelled' ) => [ 'closed', 'شارژ کیف پول لغو شد', 'وضعیت سفارش را در جزئیات خرید ببینید.' ],
 		$order->has_status( 'refunded' ) || (float) $order->get_total_refunded() > 0 => [ 'closed', 'برای این شارژ بازپرداخت ثبت شد', 'ریز مبلغ و وضعیت سفارش در جزئیات خرید در دسترس است.' ],
+		! $checking_bank && $order->has_status( 'failed' ) => [ 'failed', 'پرداخت شارژ ناموفق بود', 'پرداخت این سفارش تکمیل نشد.' ],
 		null !== $entry => [ 'credited', 'شارژ کیف پول انجام شد', 'مبلغ شارژ به کیف پول اضافه شد.' ],
 		$order->is_paid() && $order->get_meta( '_wc_wallet_purchase_credited' ) => [ 'closed', 'پرداخت شارژ ثبت شد', 'موجودی و تراکنش‌های ثبت‌شده را در کیف پول ببینید.' ],
 		$order->is_paid() => [ 'pending', 'شارژ در انتظار ثبت در کیف پول است', 'پرداخت تأیید شده است. وضعیت ثبت شارژ را پیگیری کنید.' ],
@@ -405,16 +405,16 @@ add_action( 'woocommerce_before_thankyou', static function ( int $order_id ): vo
 
 function render_topup_result( \WC_Order $order, bool $in_wallet ): void {
 	$entry = credited_transaction( $order );
-	[ $state, $title, $copy ] = topup_state( $order, $entry );
 	$provider = [ \ArtNovo\PayBridge\Payments::class, 'customer_status' ];
 	$bank = $in_wallet && is_callable( $provider ) ? $provider( $order ) : null;
 	$phase = $bank['phase'] ?? '';
+	[ $state, $title, $copy ] = topup_state( $order, $entry, in_array( $phase, [ 'open', 'review' ], true ) );
 	$retry_label = '';
-	if ( 'pending' === $state && ! $order->is_paid() && 'failed_final' === $phase ) {
+	if ( in_array( $state, [ 'pending', 'failed' ], true ) && ! $order->is_paid() && 'failed_final' === $phase ) {
 		$state = 'failed';
 		$title = 'cancelled_by_user' === ( $bank['reason'] ?? '' ) ? 'پرداخت شارژ لغو شد' : 'پرداخت شارژ ناموفق بود';
 		$copy = 'پرداخت این سفارش تکمیل نشد.';
-		$retry_label = ! empty( $bank['can_retry'] ) ? 'پرداخت دوباره' : '';
+		$retry_label = ( $bank['can_retry'] ?? false ) === true && $order->needs_payment() ? 'پرداخت دوباره' : '';
 	} elseif ( 'pending' === $state && 'none' === $phase && $order->needs_payment() ) {
 		$state = 'unpaid';
 		$title = 'پرداخت شارژ شروع نشده است';
@@ -486,8 +486,8 @@ function render_topup_order( \WC_Order $order ): void {
 		<?php if ( $entry ) : ?>
 			<a class="artnovo-wallet-primary" href="<?php echo esc_url( wallet_url( 'statement' ) ); ?>">مشاهدهٔ تراکنش‌های کیف پول</a>
 		<?php elseif ( $order->needs_payment() ) : ?>
-			<?php $payment_url = direct_topup_available() && \ArtNovo\PayBridge\METHOD === $order->get_payment_method() ? wallet_result_url( $order ) : $order->get_checkout_payment_url(); ?>
-			<a class="artnovo-wallet-primary" href="<?php echo esc_url( $payment_url ); ?>">ادامهٔ پرداخت شارژ</a>
+			<?php $wallet_payment = direct_topup_available() && \ArtNovo\PayBridge\METHOD === $order->get_payment_method(); ?>
+			<a class="artnovo-wallet-primary" href="<?php echo esc_url( $wallet_payment ? wallet_result_url( $order ) : $order->get_checkout_payment_url() ); ?>"><?php echo esc_html( $wallet_payment ? 'پیگیری وضعیت شارژ' : 'ادامهٔ پرداخت شارژ' ); ?></a>
 		<?php endif; ?>
 	</section>
 	<?php
