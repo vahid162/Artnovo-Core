@@ -338,6 +338,14 @@ function wizard_amount_confirmation( ?\WC_Order $order = null ): string {
 	return hash_hmac( 'sha256', implode( '|', $terms ), wp_salt( 'nonce' ) );
 }
 
+function checkout_wallet_blocker_notice(): string {
+	$order = \Artnovo\AccountUI\checkout_wallet_blocking_order();
+	return $order ? sprintf(
+		'<p id="artnovo-wallet-checkout-blocker" class="artnovo-order-hint" data-artnovo-notice-permanent>سهم کیف پول یک سفارش دیگر هنوز تسویه نشده است. برای این خرید، کل مبلغ را با یکی از روش‌های موجود پرداخت کنید. <a href="%s">پیگیری سفارش در انتظار</a></p>',
+		esc_url( $order->get_view_order_url() )
+	) : '';
+}
+
 add_action( 'woocommerce_review_order_before_submit', static function (): void {
 	// Woo replaces the payment fragment after refreshing the reviewed amounts.
 	if ( ! wizard_checkout_active() && ! did_action( 'woocommerce_checkout_update_order_review' ) ) {
@@ -345,6 +353,7 @@ add_action( 'woocommerce_review_order_before_submit', static function (): void {
 	}
 	$confirmation = wizard_amount_confirmation();
 	if ( '' !== $confirmation ) {
+		echo checkout_wallet_blocker_notice();
 		printf( '<input type="hidden" name="artnovo_checkout_amount" value="%s">', esc_attr( $confirmation ) );
 	}
 } );
@@ -1401,7 +1410,8 @@ add_filter( 'render_block_woocommerce/checkout', static function ( string $conte
 	if ( ! cart_has_plan() ) {
 		return $content;
 	}
-	return '<section class="artnovo-plan-flow artnovo-plan-panel" aria-label="تسویه‌حساب پلن"><p class="artnovo-plan-step">مرحلهٔ ۳ از ۳ · اطلاعات و پرداخت</p><h2>تکمیل خرید پلن</h2><p>خلاصهٔ سفارش و مبلغ نهایی را قبل از پرداخت بررسی کن.</p></section>' . $content;
+	return '<section class="artnovo-plan-flow artnovo-plan-panel" aria-label="تسویه‌حساب پلن"><p class="artnovo-plan-step">مرحلهٔ ۳ از ۳ · اطلاعات و پرداخت</p><h2>تکمیل خرید پلن</h2><p>خلاصهٔ سفارش و مبلغ نهایی را قبل از پرداخت بررسی کن.</p>'
+		. checkout_wallet_blocker_notice() . '</section>' . $content;
 } );
 
 add_action( 'wp_enqueue_scripts', static function (): void {

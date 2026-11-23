@@ -14,6 +14,7 @@ defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/received-receipt.php';
 
 const BANK_CANCELLED_TITLE = 'پرداخت انلاین در سان پی لغو شد';
+const WALLET_RETRY_BLOCKED = 'تا تعیین تکلیف سفارش دیگر، پرداخت این سفارش با سهم کیف پول آغاز نمی‌شود.';
 
 function received_page(): bool {
 	return function_exists( 'is_order_received_page' ) && is_order_received_page();
@@ -111,7 +112,35 @@ function received_bank_cancelled( array $payment ): bool {
 }
 
 function received_bank_retry( \WC_Order $order, array $payment ): bool {
-	return 'failed_final' === ( $payment['phase'] ?? '' ) && true === ( $payment['can_retry'] ?? false ) && $order->needs_payment();
+	return 'failed_final' === ( $payment['phase'] ?? '' ) && true === ( $payment['can_retry'] ?? false )
+		&& $order->needs_payment() && null === received_wallet_retry_blocker( $order, $payment );
+}
+
+/** Read the Bridge's owner-scoped checkout decision when available. */
+function checkout_wallet_blocking_order(): ?\WC_Order {
+	$owner = get_current_user_id();
+	if ( $owner < 1 || ! is_callable( [ NativeWallet::class, 'blocking_checkout_order' ] ) ) {
+		return null;
+	}
+	$order = NativeWallet::blocking_checkout_order();
+	return $order instanceof \WC_Order && $owner === $order->get_customer_id() ? $order : null;
+}
+
+function received_wallet_retry_blocker( \WC_Order $order, ?array $bank_payment ): ?\WC_Order {
+	$phase = $bank_payment['phase'] ?? '';
+	if ( ! in_array( $phase, [ 'none', 'failed_final' ], true ) ) {
+		return null;
+	}
+	if ( get_current_user_id() !== $order->get_customer_id() || ! $order->needs_payment()
+		|| ! is_callable( [ NativeWallet::class, 'deferred' ] ) ) {
+		return null;
+	}
+	$snapshot = $order->get_meta( '_wpvpn_snapshot', true );
+	if ( ! is_array( $snapshot ) || ! NativeWallet::deferred( $snapshot ) ) {
+		return null;
+	}
+	$blocking = checkout_wallet_blocking_order();
+	return $blocking && $blocking->get_id() !== $order->get_id() ? $blocking : null;
 }
 
 function received_deferred_wallet_state( \WC_Order $order ): ?array {
@@ -186,6 +215,14 @@ add_filter( 'woocommerce_pay_order_button_text', static function ( string $label
 	}
 	$order = received_payment_order();
 	return $order ? 'پرداخت ' . html_entity_decode( wp_strip_all_tags( received_pay_amount( $order ) ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ) : $label;
+} );
+
+add_filter( 'woocommerce_pay_order_button_html', static function ( string $html ): string {
+	$order = received_payment_order();
+	$blocking = $order ? received_wallet_retry_blocker( $order, received_bank_payment( $order ) ) : null;
+	return $blocking
+		? sprintf( '<p>%s <a href="%s">پیگیری سفارش در انتظار</a></p>', esc_html( WALLET_RETRY_BLOCKED ), esc_url( $blocking->get_view_order_url() ) )
+		: $html;
 } );
 
 $received_payment_skin = false;
@@ -309,6 +346,10 @@ function received_state( \WC_Order $order, ?array $delivery = null, ?array $bank
 		return [ 'state' => 'pending', 'title' => 'در حال بررسی پرداخت بانکی', 'message' => 'لطفاً دوباره پرداخت نکنید. نتیجهٔ پرداخت در همین صفحه نمایش داده می‌شود.', 'step' => 2 ];
 	}
 	if ( 'failed_final' === $bank_phase && ! $order->is_paid() ) {
+		if ( received_wallet_retry_blocker( $order, $bank_payment ) ) {
+			return [ 'state' => 'failed', 'title' => received_bank_cancelled( $bank_payment ) ? BANK_CANCELLED_TITLE : 'پرداخت بانکی کامل نشد',
+				'message' => WALLET_RETRY_BLOCKED, 'step' => 2 ];
+		}
 		if ( received_bank_cancelled( $bank_payment ) ) {
 			return [ 'state' => 'failed', 'title' => BANK_CANCELLED_TITLE,
 				'message' => received_bank_retry( $order, $bank_payment )
@@ -332,6 +373,9 @@ function received_state( \WC_Order $order, ?array $delivery = null, ?array $bank
 	if ( ! $order->is_paid() ) {
 		if ( received_receipt_exists( $order ) ) {
 			return [ 'state' => 'receipt', 'title' => 'رسید ثبت شد؛ منتظر تأیید پرداخت', 'message' => 'رسید شما برای بررسی دریافت شد. پس از تأیید پرداخت، آماده‌سازی اکانت انجام می‌شود.', 'step' => 2 ];
+		}
+		if ( received_wallet_retry_blocker( $order, $bank_payment ) ) {
+			return [ 'state' => 'pending', 'title' => 'پرداخت این سفارش هنوز آغاز نشده است', 'message' => WALLET_RETRY_BLOCKED, 'step' => 2 ];
 		}
 		return [ 'state' => 'pending', 'title' => 'bacs' === $order->get_payment_method() ? 'واریز کنید و رسید را بفرستید' : 'تأیید پرداخت هنوز دریافت نشده است', 'message' => 'bacs' === $order->get_payment_method()
 			? 'سفارش ثبت شده است. پس از واریز مبلغ خرید، تصویر رسید را ارسال کنید.'
@@ -384,7 +428,8 @@ function received_account_actions( \WC_Order $order, ?array $bank_payment, strin
 				return $actions;
 			}
 			$phase = $bank_payment['phase'] ?? '';
-			if ( $separate_pay || ( 'failed_final' === $phase && true !== ( $bank_payment['can_retry'] ?? false ) ) ) {
+			if ( $separate_pay || ( 'failed_final' === $phase && true !== ( $bank_payment['can_retry'] ?? false ) )
+				|| received_wallet_retry_blocker( $order, $bank_payment ) ) {
 				unset( $actions['pay'] );
 			}
 			if ( isset( $actions['pay'] ) && 'failed' === $state && received_bank_cancelled( $bank_payment ) ) {
@@ -667,11 +712,12 @@ function render_received_page(): void {
 	$bank_phase = $bank_payment['phase'] ?? '';
 	$bank_retry = received_bank_retry( $order, $bank_payment ?? [] );
 	$bank_cancelled = received_bank_cancelled( $bank_payment ?? [] );
+	$wallet_retry_blocker = received_wallet_retry_blocker( $order, $bank_payment );
 	$poll_payment = in_array( $state['state'], [ 'wallet_insufficient', 'wallet_pending' ], true ) || ( 'open' === $bank_phase && 'pending' === $state['state'] )
 		|| ( 'review' === $bank_phase && 'review' === $state['state'] )
 		|| ( 'paid' === $bank_phase && in_array( $state['state'], [ 'paid_waiting_fulfillment', 'issuing', 'partial' ], true ) );
 	$topup = 'wallet_insufficient' === $state['state'] ? received_wallet_topup_action() : null;
-	$primary = match ( $state['state'] ) {
+	$primary = $wallet_retry_blocker ? [ $wallet_retry_blocker->get_view_order_url(), 'پیگیری سفارش در انتظار' ] : match ( $state['state'] ) {
 		'pending' => ( null === $bank_payment || 'none' === $bank_phase ) && $order->needs_payment() && ! in_array( $order->get_payment_method(), [ 'bacs', 'wpvpn_wallet' ], true )
 			? [ $order->get_checkout_payment_url(), 'ادامهٔ پرداخت همین سفارش' ] : [ $refresh, 'به‌روزرسانی وضعیت' ],
 		'receipt', 'wallet_pending', 'paid_waiting_fulfillment', 'issuing', 'partial' => [ $refresh, 'به‌روزرسانی وضعیت' ],

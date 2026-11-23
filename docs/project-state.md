@@ -1,5 +1,15 @@
 # Current project state
 
+## Checkout while another wallet contribution is pending
+
+Core can show the owner-scoped order supplied by WP VPN Bridge in the purchase
+review and on a conflicting payment retry. The wizard still confirms the native
+WooCommerce total before placing a fresh purchase and directs the owner to the
+existing order details. Bridge owns whether the wallet can be used and enforces
+its decision through native checkout and payment entry points. Native payment
+configuration alone cannot explain the active order inside the custom wizard.
+Older Bridge installations retain the existing Core presentation.
+
 ## Fresh plan selection after a final bank failure and deferred wallet status
 
 The Core wizard owns the selection session. On an explicit fresh plan choice,

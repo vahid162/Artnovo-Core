@@ -31,11 +31,13 @@ namespace WPVPNBridge\Payment {
 	class LegacyNativeWallet {
 		public static function verified( \WC_Order $order, array $snapshot ): ?string { return $order->wallet_debit; }
 		public static function checkout_status( \WC_Order $order ): ?string { return $order->wallet_status; }
+		public static function deferred( array $snapshot ): bool { return 'payment_complete' === ( $snapshot['native_wallet_debit_on'] ?? null ); }
 	}
 	if ( 'legacy-bridge' === ( $GLOBALS['argv'][1] ?? '' ) ) {
 		class_alias( LegacyNativeWallet::class, __NAMESPACE__ . '\\NativeWallet' );
 	} else {
 		class NativeWallet extends LegacyNativeWallet {
+			public static function blocking_checkout_order(): ?\WC_Order { return $GLOBALS['wallet_checkout_blocker'] ?? null; }
 			public static function checkout_customer_status( \WC_Order $order ): ?string {
 				return false === $order->wallet_customer_status ? self::checkout_status( $order ) : $order->wallet_customer_status;
 			}
@@ -136,6 +138,7 @@ function wc_tax_enabled(): bool { return $GLOBALS['taxes_enabled'] ?? false; }
 function is_email( string $value ): bool { return false !== filter_var( $value, FILTER_VALIDATE_EMAIL ); }
 function post_password_required( int $id ): bool { return in_array($id,$GLOBALS['password_products']??[],true); }
 function home_url( string $path ): string { return 'https://example.test' . $path; }
+function esc_url( string $url ): string { return htmlspecialchars( $url, ENT_QUOTES ); }
 function wc_get_page_permalink( string $name ): string { return 'https://example.test/my-account/'; }
 function add_query_arg( array|string $key, mixed $value, ?string $url = null ): string { return (is_array($key)?$value:$url) . '?' . http_build_query(is_array($key)?$key:[$key=>$value]); }
 function get_option( string $key, mixed $default = false ): mixed {
@@ -171,10 +174,12 @@ class WC_Order {
 	public function get_id(): int { return $this->id; }
 	public function get_customer_id(): int { return $this->owner; }
 	public function get_order_key(): string { return 'synthetic-order-' . $this->id; }
+	public function get_view_order_url(): string { return 'https://example.test/my-account/view-order/' . $this->id . '/'; }
 	public function get_payment_method( string $context = '' ): string { return $this->method; }
 	public function get_created_via(): string { return 'store-api'; }
 	public function get_transaction_id( string $context = '' ): string { return ''; }
 	public function is_paid(): bool { return false; }
+	public function needs_payment(): bool { return $this->has_status( [ 'pending', 'failed' ] ); }
 	public function get_meta( string $key, bool $single = true ): mixed { return $this->meta[$key] ?? ''; }
 	public function update_meta_data( string $key, mixed $value ): void { $this->meta[$key] = $value; }
 	public function has_status( array|string $status ): bool { return in_array( $this->status, (array) $status, true ); }
@@ -819,6 +824,41 @@ $direct_topup = true;
 check( 'available top-up sends the owner to the existing wallet charge view',
 	[ 'url' => 'https://example.test/my-account/my-wallet/add/', 'name' => 'شارژ کیف پول' ] === Artnovo\AccountUI\received_wallet_topup_action() );
 $direct_topup = false;
+$old->status = 'pending';
+$old->wallet_status = null;
+$old->wallet_customer_status = false;
+$old->meta['_wpvpn_snapshot']['native_wallet_debit_on'] = 'payment_complete';
+$bank = [ 'phase' => 'failed_final', 'reason' => 'cancelled_by_user', 'can_retry' => true ];
+$wallet_checkout_blocker = new WC_Order( 814 );
+if ( is_callable( [ WPVPNBridge\Payment\NativeWallet::class, 'blocking_checkout_order' ] ) ) {
+	$notice = Artnovo\PlanCheckout\checkout_wallet_blocker_notice();
+	check( 'checkout links to the different active order without changing the existing bank amount',
+		str_contains( $notice, 'artnovo-wallet-checkout-blocker' ) && str_contains( $notice, $wallet_checkout_blocker->get_view_order_url() )
+		&& 814 === Artnovo\AccountUI\received_wallet_retry_blocker( $old, $bank )?->get_id() );
+	$blocked = Artnovo\AccountUI\received_state( $old, [ 'links' => [] ], $bank );
+	check( 'the old deferred order has its bank payment state but displays the wallet blocker instead of a pay action',
+		'failed' === $blocked['state'] && Artnovo\AccountUI\WALLET_RETRY_BLOCKED === $blocked['message']
+		&& ! Artnovo\AccountUI\received_bank_retry( $old, $bank )
+		&& [ 'cancel' => [], 'view' => [] ] === Artnovo\AccountUI\received_account_actions( $old, $bank, 'failed',
+			static fn () => apply_filters( 'woocommerce_my_account_my_orders_actions', $actions, $old ) ) );
+	$bank_conflict = array_replace( $bank, [ 'can_retry' => false ] );
+	check( 'the order link stays available when Pay Bridge already rejects the blocked retry',
+		814 === Artnovo\AccountUI\received_wallet_retry_blocker( $old, $bank_conflict )?->get_id()
+		&& Artnovo\AccountUI\WALLET_RETRY_BLOCKED === Artnovo\AccountUI\received_state( $old, [ 'links' => [] ], $bank_conflict )['message'] );
+	$wallet_checkout_blocker = $old;
+	check( 'same-order authorization is left with the provider', Artnovo\AccountUI\received_bank_retry( $old, $bank ) );
+	$wallet_checkout_blocker = new WC_Order( 814, owner: 19 );
+	check( 'checkout refuses to expose a foreign order even if returned by the dependency',
+		'' === Artnovo\PlanCheckout\checkout_wallet_blocker_notice() && Artnovo\AccountUI\received_bank_retry( $old, $bank ) );
+	$wallet_checkout_blocker = new WC_Order( 814 );
+	unset( $old->meta['_wpvpn_snapshot']['native_wallet_debit_on'] );
+	check( 'a bank-only or immediate wallet order keeps its original retry', Artnovo\AccountUI\received_bank_retry( $old, $bank ) );
+} else {
+	check( 'older Bridge keeps the prior checkout and bank retry presentation',
+		'' === Artnovo\PlanCheckout\checkout_wallet_blocker_notice() && Artnovo\AccountUI\received_bank_retry( $old, $bank ) );
+}
+unset( $wallet_checkout_blocker );
+$old->status = 'on-hold';
 $old->method = 'bacs';
 $old->wallet_customer_status = false;
 $old->wallet_status = 'wallet_pending';

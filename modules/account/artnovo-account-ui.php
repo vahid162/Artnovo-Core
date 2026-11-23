@@ -216,6 +216,11 @@ function subscription_payment_presentation( \WC_Order $order, array $snapshot ):
 		return null;
 	}
 	$bank_payment = received_bank_payment( $order );
+	$wallet_retry_blocker = received_wallet_retry_blocker( $order, $bank_payment );
+	if ( $wallet_retry_blocker ) {
+		return [ 'state' => 'pending', 'label' => 'سهم کیف پول سفارش دیگر در انتظار تسویه است',
+			'action_url' => $wallet_retry_blocker->get_view_order_url(), 'action_label' => 'پیگیری سفارش در انتظار' ];
+	}
 	if ( received_bank_cancelled( $bank_payment ?? [] ) ) {
 		$retry = received_bank_retry( $order, $bank_payment );
 		return [ 'state' => 'pending', 'label' => BANK_CANCELLED_TITLE, 'action_url' => $retry ? $order->get_checkout_payment_url() : $track,

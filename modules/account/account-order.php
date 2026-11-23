@@ -23,6 +23,7 @@ if ( 'pending' === $state && 'bacs' === $method && received_receipt_can_upload( 
 $expired = 'closed' === $state && 4 === $purchase_state['step'];
 $bank_cancelled = 'failed' === $state && received_bank_cancelled( $bank_payment ?? [] );
 $bank_retry = $bank_cancelled && received_bank_retry( $order, $bank_payment );
+$wallet_retry_blocker = received_wallet_retry_blocker( $order, $bank_payment );
 $tracking = received_tracking_url( $order );
 $support = add_query_arg( 'order', $order_id, account_url( 'support' ) );
 $payment = match ( $state ) {
@@ -55,6 +56,10 @@ $topup = 'wallet_insufficient' === $state ? received_wallet_topup_action() : nul
 		: [ 'این خرید قابل دریافت نیست', $support, 'پیگیری با پشتیبانی' ],
 	default => [ 'نیازمند بررسی', $support, 'پیگیری با پشتیبانی' ],
 };
+if ( $wallet_retry_blocker ) {
+	$action_url = $wallet_retry_blocker->get_view_order_url();
+	$action_text = 'پیگیری سفارش در انتظار';
+}
 
 $receipt_url = 'bacs' === $method && received_receipt_exists( $order ) ? received_receipt_download_url( $order ) : '';
 $date = $order->get_date_created();
