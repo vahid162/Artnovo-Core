@@ -28,6 +28,10 @@ if ( ! isset( $argv[1] ) ) {
 			exit( 1 );
 		}
 	}
+	$process = proc_open( [ PHP_BINARY, __DIR__ . '/selection-contract.php', 'legacy-bridge' ], [ 0 => STDIN, 1 => STDOUT, 2 => STDERR ], $pipes );
+	if ( ! is_resource( $process ) || 0 !== proc_close( $process ) ) {
+		exit( 1 );
+	}
 	exit;
 }
 

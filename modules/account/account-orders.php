@@ -92,7 +92,7 @@ $show_column = static function ( string $name, \WC_Order $order, string $html ) 
 						}
 					}
 					$item_count = $order->get_item_count() - $order->get_item_count_refunded();
-					$topup_action = $topup['action'] ?? null;
+					$topup_action = $topup['action'] ?? ( 'wallet_insufficient' === $view['state'] ? received_wallet_topup_action() : null );
 					?>
 					<li class="artnovo-orders-row woocommerce-orders-table__row woocommerce-orders-table__row--status-<?php echo esc_attr( $order->get_status() ); ?> order">
 						<div class="artnovo-orders-identity">
@@ -135,7 +135,7 @@ $show_column = static function ( string $name, \WC_Order $order, string $html ) 
 											};
 											$primary['aria-label'] = $primary['name'] . ' ' . $reference;
 										}
-										if ( $topup_action ) {
+										if ( $topup && $topup_action ) {
 											$actions['view'] = $primary;
 										} else {
 											$action_link( $primary, 'view', $number, $canonical && 'transfer' === $view['state'] );

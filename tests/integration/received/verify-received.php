@@ -75,8 +75,8 @@ $check( 'signed final bank failure becomes a distinct failed result',
 	'failed' === \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], [ 'phase' => 'failed_final', 'can_retry' => true ] )['state'] );
 $cancelled_payment = [ 'phase' => 'failed_final', 'reason' => 'cancelled_by_user', 'can_retry' => true ];
 $cancelled_status = \Artnovo\AccountUI\received_state( $tracking_bank, [ 'links' => [] ], $cancelled_payment );
-$check( 'verified cancellation names Zibal and directs the customer to retry the exact order',
-	'failed' === $cancelled_status['state'] && 'پرداخت در زیبال لغو شد' === $cancelled_status['title']
+$check( 'verified cancellation names Sun Pay and directs the customer to retry the exact order',
+	'failed' === $cancelled_status['state'] && 'پرداخت انلاین در سان پی لغو شد' === $cancelled_status['title']
 	&& str_contains( $cancelled_status['message'], 'پرداخت همین سفارش را دوباره انجام دهید' )
 	&& \Artnovo\AccountUI\received_bank_retry( $tracking_bank, $cancelled_payment ) );
 $cancelled_payment['can_retry'] = false;
