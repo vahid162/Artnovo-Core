@@ -1,0 +1,619 @@
+{
+  "schema_version": 1,
+  "state": "published_and_verified",
+  "site": "https://artnovo.ir/",
+  "date": "2026-11-21",
+  "owner": "Elementor",
+  "document": {
+    "post_id": 68,
+    "template": "elementor_header_footer",
+    "root_id": "3ffe5619"
+  },
+  "source": {
+    "repository_base": "b3682b5fe97753c78da1f5af6ad4aa04aa23e080",
+    "projection": "Fresh Elementor page structure and Elementor document settings plus public post-68.css"
+  },
+  "operations": [
+    {
+      "tool": "elementor/update-page-settings",
+      "post_id": 68,
+      "setting": "custom_css",
+      "before_sha256": "528bb74c4c2a7e9b12bb7290fd98996c0269213b004adcaf9be336aa4f632c12",
+      "desired_sha256": "ae85d5620b3751a9d3dc6a8fb8a4a1c5137d8cb523d13c71b710728116da6f8c",
+      "patch": [
+        {
+          "selector": ".elementor-68 > main[data-artnovo-wizard] > .elementor-element-5ff1b740",
+          "before": "min-block-size: 260px;",
+          "desired": "min-block-size: 100vh;\n\tmin-block-size: 100dvh;"
+        },
+        {
+          "selector": ".elementor-68 > main[data-artnovo-wizard] > .elementor-element-5ff1b740",
+          "media": "(max-width: 767px)",
+          "before": "min-block-size: 0;",
+          "desired": "align-content: center;"
+        }
+      ]
+    },
+    {
+      "tool": "elementor/manage-elements",
+      "post_id": 68,
+      "action": "update",
+      "element_id": "599de042",
+      "style_apply_mode": "patch",
+      "previous_style": "min-width: 0px; padding: 0px; display: flex; flex-direction: column; gap: 0px;",
+      "style": "margin-block-start: 30px;\n@media(--mobile) { margin-block-start: 18px; }"
+    },
+    {
+      "tool": "elementor/manage-elements",
+      "post_id": 68,
+      "action": "update",
+      "element_id": "26517140",
+      "setting": "title",
+      "before": "مدت اشتراک را انتخاب کن",
+      "desired": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+    }
+  ],
+  "preserve": [
+    "Existing horizontal sizing and gutters, document template and sibling order, hero art/copy/CTA/gradient and visibility on step 1, heading h2 and element IDs, duration choices and existing purchase navigation."
+  ],
+  "acceptance": [
+    "Hero height is at least the current visible viewport height, with enough room for content on short or zoomed viewports.",
+    "The hero-to-duration-section gap is 32 px at widths below 768 px and 48 px otherwise.",
+    "The heading announces ۱ از ۳ next to its existing title. The guest CTA and navigation to and from plan selection still work.",
+    "No horizontal overflow at representative viewport widths."
+  ],
+  "proof_before_write": "Draft proposal over the public page measured successful hero sizing, unchanged inline width, correct section gaps and no horizontal overflow at 320, 390, 509, 767, 768, 1024, 1160, 1440 and 1920 CSS px.",
+  "rollback": "Recheck current supported source. Reverse only the two exact CSS edits and the two targeted element fields if they still match this change. Retain the fresh view and native undo IDs; use document-level revision restoration only if no intervening work would be lost.",
+  "observed": {
+    "document_status": "publish",
+    "staged": false,
+    "template": "elementor_header_footer",
+    "hide_title": "yes",
+    "initial_undo_revision": 256,
+    "css_sha256": "ae85d5620b3751a9d3dc6a8fb8a4a1c5137d8cb523d13c71b710728116da6f8c",
+    "duration_style": "min-width: 0px; padding: 0px; margin-block-start: 30px; display: flex; flex-direction: column; gap: 0px;\n@media(--mobile) { margin-block-start: 18px; }",
+    "heading": "۱ از ۳ · مدت اشتراک را انتخاب کن",
+    "source_comparison": "The complete available Elementor subtree equals the reviewed draft. Settings comparison admitted custom_css only. Reapplying the existing hide_title value to the draft preserved the original page setting.",
+    "asset_verification": "The generated page stylesheet initially retained the previous hero height. Regenerated Elementor's CSS for document 68 through its Post CSS API and then confirmed the published browser result.",
+    "viewport_css_px": [
+      [
+        320,
+        713
+      ],
+      [
+        390,
+        713
+      ],
+      [
+        509,
+        713
+      ],
+      [
+        767,
+        713
+      ],
+      [
+        768,
+        713
+      ],
+      [
+        1024,
+        713
+      ],
+      [
+        1160,
+        713
+      ],
+      [
+        1440,
+        713
+      ],
+      [
+        1920,
+        713
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        1280,
+        540
+      ]
+    ],
+    "geometry": "Hero width follows the original page gutters and height reaches the viewport. Section gap is 32 or 48 px by breakpoint. No horizontal overflow.",
+    "checkout_navigation": "Guest buy CTA, duration selection to step 2, and return via step 1 passed.",
+    "native_chrome_zoom": {
+      "factors": [
+        1,
+        2,
+        4
+      ],
+      "outer_px": [
+        1280,
+        900
+      ],
+      "viewports": [
+        [
+          1280,
+          813
+        ],
+        [
+          640,
+          406
+        ],
+        [
+          320,
+          203
+        ]
+      ],
+      "hero_heights": [
+        813,
+        406.5,
+        336.14453125
+      ],
+      "no_horizontal_overflow": true,
+      "cta_and_title_fit": true,
+      "restored_factor": 1
+    }
+  },
+  "height_refinement": {
+    "state": "published_and_verified",
+    "date": "2026-11-21",
+    "owner": "Elementor homepage document 68, existing custom_css for the hero only",
+    "user_intent": "On page entry at the top, the header, progress strip, their existing spacing, and the hero together reach the bottom of the visible viewport. Keep all other homepage elements and existing horizontal sizing.",
+    "before_sha256": "ae85d5620b3751a9d3dc6a8fb8a4a1c5137d8cb523d13c71b710728116da6f8c",
+    "desired_sha256": "99a1641cbef8f40bea1ea8ab2e8993aee6bd45d9379f2d78dd3aed8d00940402",
+    "changes": [
+      {
+        "selector": ".elementor-68 > main[data-artnovo-wizard] > .elementor-element-5ff1b740",
+        "before": "min-block-size: 100vh;\nmin-block-size: 100dvh;",
+        "desired": "--pantex-banner-start: 244px;\nmin-block-size: max(0px, calc(100vh - var(--pantex-banner-start) - var(--wp-admin--admin-bar--height, 0px)));\nmin-block-size: max(0px, calc(100dvh - var(--pantex-banner-start) - var(--wp-admin--admin-bar--height, 0px)));"
+      },
+      {
+        "selector": ".elementor-68 > main[data-artnovo-wizard] > .elementor-element-5ff1b740",
+        "media": "(max-width: 767px)",
+        "before": "(no banner start variable)",
+        "desired": "--pantex-banner-start: 200px;"
+      }
+    ],
+    "baseline_measurement": "At scroll top, the 61 px header and 80.546875 px progress strip plus existing margins and gaps put the hero top at 199.546875 px on mobile and 243.546875 px at or above 768 px. Use rounded-up offsets so the hero bottom does not extend past the viewport when the content fits.",
+    "preview": "Fourteen viewport measurements verified unchanged banner width, header and progress geometry, duration section width, H2 and section gaps. At 485 × 713, the top is 199.55 px and the banner height is 513 px, with the CTA at 606.11 px. In short viewports, intrinsic content height takes priority over fitting within the available viewport.",
+    "rollback": "Use Elementor to reverse only the hero sizing changes against fresh readback. Preserve the title setting and staged tree. Regenerate document 68 CSS through Elementor if emitted CSS is stale.",
+    "observed": {
+      "document_status": "publish",
+      "staged": false,
+      "undo_revision": 260,
+      "css_sha256": "99a1641cbef8f40bea1ea8ab2e8993aee6bd45d9379f2d78dd3aed8d00940402",
+      "scope": "Exact before/after Elementor tree match. The document settings delta contained only custom_css. Existing template, hide_title, responsive widths, section gaps and duration heading were preserved.",
+      "asset_regeneration": "Regenerated only the stylesheet for document 68 with Elementor's Post CSS API after the initial generated file retained the previous rules.",
+      "viewport_checks": [
+        "320×568 bottom=567.55 CTA=533.61",
+        "360×800 bottom=799.55 CTA=649.61",
+        "390×844 bottom=843.55 CTA=671.61",
+        "485×713 bottom=712.55 CTA=606.11",
+        "509×713 bottom=712.55 CTA=591.86",
+        "640×360 bottom=535.17 CTA=503.17",
+        "767×713 bottom=712.55 CTA=593.83",
+        "768×713 bottom=712.55 CTA=572.97",
+        "844×390 bottom=504.27 CTA=470.52",
+        "1024×768 bottom=767.55 CTA=591.84",
+        "1025×768 bottom=767.55 CTA=591.88",
+        "1280×540 bottom=539.55 CTA=483.45",
+        "1440×900 bottom=899.55 CTA=665.08",
+        "1920×1080 bottom=1079.55 CTA=755.08",
+        "PASS buy CTA, select duration, hide banner on step 2, return to step 1"
+      ],
+      "zoom_checks": [
+        {
+          "factor": 1,
+          "actual": 1,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            1280,
+            813
+          ],
+          "heroTop": 243.546875,
+          "heroBottom": 812.546875,
+          "heroHeight": 569,
+          "gap": 48,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "factor": 2,
+          "actual": 2,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            640,
+            406
+          ],
+          "heroTop": 199.546875,
+          "heroBottom": 535.1875,
+          "heroHeight": 335.640625,
+          "gap": 32,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "factor": 4,
+          "actual": 4,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            320,
+            203
+          ],
+          "heroTop": 199.546875,
+          "heroBottom": 535.69140625,
+          "heroHeight": 336.14453125,
+          "gap": 32,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "restoration": {
+            "status": "restored",
+            "factor": 1,
+            "settings": {
+              "defaultZoomFactor": 1,
+              "mode": "automatic",
+              "scope": "per-origin"
+            }
+          },
+          "errors": []
+        }
+      ],
+      "limitations": "At the shortest tested heights and high native zoom the banner grows to contain its content and the CTA is reachable with vertical scrolling. The fixed offsets are based on the current header and progress strip geometry."
+    }
+  },
+  "first_view_balance": {
+    "state": "published_and_verified",
+    "date": "2026-11-21",
+    "owner": "Elementor homepage document 68, existing page custom_css",
+    "element_id": "5ff1b740",
+    "intent": "From scroll top, leave the same blank space below the hero as the space between the progress strip and the top of the hero.",
+    "before_sha256": "99a1641cbef8f40bea1ea8ab2e8993aee6bd45d9379f2d78dd3aed8d00940402",
+    "desired_sha256": "095de8df58653dd3f6e7fe576038ff9edebfb8ba3af00945f9092b3d0feb3351",
+    "scopes": [
+      {
+        "mode": "default",
+        "start_offset_px": 244,
+        "visible_end_gap_px": 58,
+        "hero_margin_block_end_px": 10
+      },
+      {
+        "mode": "max-width:767px",
+        "start_offset_px": 200,
+        "visible_end_gap_px": 34,
+        "hero_margin_block_end_px": 2
+      }
+    ],
+    "method": "Subtract the visible end gap from both the vh and dvh min-block-size calculations. The small hero-only trailing margin brings the next section to the fold, preserving its existing Elementor settings.",
+    "acceptance": "At the normal top-of-page view the two gaps match within 1px when content fits. Banner width and all other Elementor settings are preserved. Short views retain access to content by natural height and scrolling.",
+    "proposal_browser": [
+      {
+        "viewport": [
+          320,
+          568
+        ],
+        "top_gap": 34,
+        "bottom_gap": 32.328125,
+        "hero_height": 336.125,
+        "minimum_height": "334px"
+      },
+      {
+        "viewport": [
+          390,
+          844
+        ],
+        "top_gap": 34,
+        "bottom_gap": 34.453125,
+        "hero_height": 610,
+        "minimum_height": "610px"
+      },
+      {
+        "viewport": [
+          508,
+          713
+        ],
+        "top_gap": 34,
+        "bottom_gap": 34.453125,
+        "hero_height": 479,
+        "minimum_height": "479px"
+      },
+      {
+        "viewport": [
+          767,
+          713
+        ],
+        "top_gap": 34,
+        "bottom_gap": 34.453125,
+        "hero_height": 479,
+        "minimum_height": "479px"
+      },
+      {
+        "viewport": [
+          768,
+          713
+        ],
+        "top_gap": 58,
+        "bottom_gap": 58.453125,
+        "hero_height": 411,
+        "minimum_height": "411px"
+      },
+      {
+        "viewport": [
+          844,
+          390
+        ],
+        "top_gap": 58,
+        "bottom_gap": -114.265625,
+        "hero_height": 260.71875,
+        "minimum_height": "88px"
+      },
+      {
+        "viewport": [
+          1280,
+          540
+        ],
+        "top_gap": 58,
+        "bottom_gap": 10.25,
+        "hero_height": 286.203125,
+        "minimum_height": "238px"
+      },
+      {
+        "viewport": [
+          1440,
+          900
+        ],
+        "top_gap": 58,
+        "bottom_gap": 58.453125,
+        "hero_height": 598,
+        "minimum_height": "598px"
+      },
+      {
+        "viewport": [
+          1920,
+          1080
+        ],
+        "top_gap": 58,
+        "bottom_gap": 58.453125,
+        "hero_height": 778,
+        "minimum_height": "778px"
+      }
+    ],
+    "rollback": "When the published checksum still matches, restore the previous exact CSS for just the hero. Publish through Elementor and regenerate only document 68 CSS if needed.",
+    "observed": {
+      "css": {
+        "css_sha256": "095de8df58653dd3f6e7fe576038ff9edebfb8ba3af00945f9092b3d0feb3351",
+        "scoped_regeneration": true,
+        "status": "publish"
+      },
+      "undo_revision": 269,
+      "source": "The full native Elementor element tree matched before and after. Only the existing page custom_css setting changed. Published settings retained the template and title visibility.",
+      "responsive": [
+        {
+          "viewport": [
+            320,
+            568
+          ],
+          "top_gap": 34,
+          "bottom_gap": 32.328125,
+          "hero_height": 336.125,
+          "section_top": 569.671875,
+          "content_height_limited": true
+        },
+        {
+          "viewport": [
+            390,
+            844
+          ],
+          "top_gap": 34,
+          "bottom_gap": 34.453125,
+          "hero_height": 610,
+          "section_top": 843.546875,
+          "content_height_limited": false
+        },
+        {
+          "viewport": [
+            508,
+            713
+          ],
+          "top_gap": 34,
+          "bottom_gap": 34.453125,
+          "hero_height": 479,
+          "section_top": 712.546875,
+          "content_height_limited": false
+        },
+        {
+          "viewport": [
+            767,
+            713
+          ],
+          "top_gap": 34,
+          "bottom_gap": 34.453125,
+          "hero_height": 479,
+          "section_top": 712.546875,
+          "content_height_limited": false
+        },
+        {
+          "viewport": [
+            768,
+            713
+          ],
+          "top_gap": 58,
+          "bottom_gap": 58.453125,
+          "hero_height": 411,
+          "section_top": 712.546875,
+          "content_height_limited": false
+        },
+        {
+          "viewport": [
+            844,
+            390
+          ],
+          "top_gap": 58,
+          "bottom_gap": -114.265625,
+          "hero_height": 260.71875,
+          "section_top": 562.265625,
+          "content_height_limited": true
+        },
+        {
+          "viewport": [
+            1280,
+            540
+          ],
+          "top_gap": 58,
+          "bottom_gap": 10.25,
+          "hero_height": 286.203125,
+          "section_top": 587.75,
+          "content_height_limited": true
+        },
+        {
+          "viewport": [
+            1440,
+            900
+          ],
+          "top_gap": 58,
+          "bottom_gap": 58.453125,
+          "hero_height": 598,
+          "section_top": 899.546875,
+          "content_height_limited": false
+        },
+        {
+          "viewport": [
+            1920,
+            1080
+          ],
+          "top_gap": 58,
+          "bottom_gap": 58.453125,
+          "hero_height": 778,
+          "section_top": 1079.546875,
+          "content_height_limited": false
+        }
+      ],
+      "zoom": [
+        {
+          "factor": 1,
+          "actual": 1,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            1280,
+            813
+          ],
+          "heroTop": 243.546875,
+          "heroBottom": 754.546875,
+          "heroHeight": 511,
+          "topGap": 58,
+          "bottomGap": 58.453125,
+          "gap": 58,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "factor": 2,
+          "actual": 2,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            640,
+            406
+          ],
+          "heroTop": 199.546875,
+          "heroBottom": 535.1875,
+          "heroHeight": 335.640625,
+          "topGap": 34,
+          "bottomGap": -129.1875,
+          "gap": 34,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "factor": 4,
+          "actual": 4,
+          "outer": [
+            1280,
+            900
+          ],
+          "viewport": [
+            320,
+            203
+          ],
+          "heroTop": 199.546875,
+          "heroBottom": 535.69140625,
+          "heroHeight": 336.14453125,
+          "topGap": 34,
+          "bottomGap": -332.69140625,
+          "gap": 34,
+          "overflow": 0,
+          "ctaFits": true,
+          "titleFits": true,
+          "title": "۱ از ۳ · مدت اشتراک را انتخاب کن"
+        },
+        {
+          "restoration": {
+            "status": "restored",
+            "factor": 1,
+            "settings": {
+              "defaultZoomFactor": 1,
+              "mode": "automatic",
+              "scope": "per-origin"
+            }
+          },
+          "errors": []
+        }
+      ],
+      "navigation": "PASS buy CTA, select duration, hide banner on step 2, return to step 1",
+      "limitations": "Short viewports and high native zoom retain natural content height, so matching gaps may require more vertical space."
+    }
+  },
+  "duration_title_refinement": {
+    "state": "published_and_verified",
+    "date": "2026-11-21",
+    "owner": "Elementor",
+    "post_id": 68,
+    "element_id": "26517140",
+    "widget_type": "e-heading",
+    "setting": "title",
+    "before": "۱ از ۳ · مدت اشتراک را انتخاب کن",
+    "desired": "مدت اشتراک را انتخاب کن",
+    "scope": "Remove only the stage prefix and its separator from the existing H2. Preserve all other element data, page settings, styles, navigation and purchase behavior.",
+    "verification": "Compare the staged and published native element tree with the baseline after replacing only the title. Check document settings and public heading.",
+    "rollback": "Restore only the previous title through Elementor if the current title still matches this change.",
+    "observed": {
+      "native_full_document_match_except_title": true,
+      "unchanged_page_settings_and_css": true,
+      "public_title": "مدت اشتراک را انتخاب کن",
+      "public_progress_controls": 3,
+      "native_undo_revision": 271
+    }
+  }
+}
