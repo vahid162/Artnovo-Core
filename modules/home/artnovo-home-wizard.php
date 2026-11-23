@@ -159,7 +159,8 @@ function render_native_checkout(): string {
 		echo '<div role="status" data-artnovo-bank-connecting></div>';
 		$previous = PlanCheckout\wizard_new_purchase_order( (int) ( PlanCheckout\wizard_draft()['fresh_from'] ?? 0 ) );
 		$payment = $previous ? \Artnovo\AccountUI\received_bank_payment( $previous ) : [];
-		if ( $previous && in_array( $payment['phase'] ?? '', [ 'open', 'review' ], true ) ) {
+		if ( $previous && in_array( $payment['phase'] ?? '', [ 'open', 'review' ], true )
+			&& $previous->get_id() !== \Artnovo\AccountUI\checkout_wallet_blocking_order()?->get_id() ) {
 			printf( '<p class="artnovo-order-hint">نتیجهٔ پرداخت قبلی هنوز روشن نیست و ممکن است بعداً ثبت شود. <a href="%s">پیگیری سفارش قبلی</a></p>',
 				esc_url( \Artnovo\AccountUI\received_tracking_url( $previous ) ) );
 		}

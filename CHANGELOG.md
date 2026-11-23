@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 1.12.13 — 2026-11-23
+
+- Explain why a new plan uses the full WooCommerce total while another order
+  has a pending wallet contribution, with a link to that order.
+- Show the active order instead of a retry on a different deferred wallet
+  order when WP VPN Bridge reports that the contribution is still committed.
+
 ## 1.12.11 — 2026-11-22
 
 - Allow a fresh plan selection from a submitted split-payment cart after a

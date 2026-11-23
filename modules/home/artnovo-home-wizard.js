@@ -542,15 +542,21 @@
 		quantityStatus.hidden = !message;
 	}
 
-	function syncPaymentButton(amount) {
+	function syncPaymentButton(amount, walletBlocked) {
 		const method = nativeCheckout?.querySelector('[name="payment_method"]:checked');
 		if (!method) return;
 		const button = nativeCheckout.querySelector('#place_order');
 		if (!button) return;
 		const gatewayLabel = method.getAttribute('data-order_button_text');
-		const label = method.value === 'bacs' ? 'ثبت سفارش و نمایش اطلاعات واریز'
-			: gatewayLabel || (method.value === 'wallet' ? 'پرداخت با کیف پول'
-				: amount ? 'پرداخت ' + moneyText(amount) : button.dataset.value);
+		let label = gatewayLabel || button.dataset.value;
+		if (method.value === 'bacs') {
+			label = 'ثبت سفارش و نمایش اطلاعات واریز';
+		} else if (walletBlocked && amount && method.value === 'artnovo_gpante') {
+			label = 'پرداخت کامل ' + moneyText(amount) + ' در سان‌پی';
+		} else if (!gatewayLabel) {
+			if (method.value === 'wallet') label = 'پرداخت با کیف پول';
+			else if (amount) label = 'پرداخت ' + moneyText(amount);
+		}
 		if (label && button.textContent !== label) button.textContent = label;
 	}
 
@@ -561,7 +567,8 @@
 		const walletRow = table?.querySelector('.wallet-pay-partial');
 		const walletChoice = walletRow?.querySelector('input[name="partial_pay_through_wallet"]');
 		const walletApplied = walletRow && (!walletChoice || walletChoice.checked && !walletChoice.dataset.artnovoWalletPending);
-		syncPaymentButton(walletApplied ? amount?.querySelector('.woocommerce-Price-amount')?.textContent.trim() : '');
+		const walletBlocked = !walletRow && Boolean(nativeCheckout?.querySelector('#artnovo-wallet-checkout-blocker'));
+		syncPaymentButton(walletApplied || walletBlocked ? amount?.querySelector('.woocommerce-Price-amount')?.textContent.trim() : '', walletBlocked);
 		if (!amount) return false;
 		if (walletRow) {
 			// Keep TeraWallet's original control and automatic deduction notice in the form.
