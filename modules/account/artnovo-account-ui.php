@@ -110,12 +110,21 @@ add_action( 'wp_enqueue_scripts', static function (): void {
 		return;
 	}
 	wp_enqueue_style( 'artnovo-account-ui', plugins_url( 'artnovo-account.css', __FILE__ ), [], (string) filemtime( __DIR__ . '/artnovo-account.css' ) );
-	$layout = $account && is_user_logged_in() && is_account_page() ? account_endpoint_layout( (string) WC()->query->get_current_endpoint() ) : null;
+	$signed_in_account = $account && is_user_logged_in() && is_account_page();
+	$layout = $signed_in_account ? account_endpoint_layout( (string) WC()->query->get_current_endpoint() ) : null;
 	if ( $layout && is_readable( __DIR__ . '/' . $layout['file'] . '.css' ) ) {
 		$file = $layout['file'];
 		wp_enqueue_style( 'artnovo-' . $file, plugins_url( $file . '.css', __FILE__ ), [ 'artnovo-account-ui' ], (string) filemtime( __DIR__ . '/' . $file . '.css' ) );
 		if ( 'account-profile' === $file ) {
 			wp_enqueue_script( 'artnovo-account-profile', plugins_url( 'account-profile.js', __FILE__ ), [], (string) filemtime( __DIR__ . '/account-profile.js' ), true );
+		}
+	}
+	if ( $signed_in_account ) {
+		wp_enqueue_style( 'artnovo-account-shell', plugins_url( 'account-shell.css', __FILE__ ), [ 'artnovo-account-ui' ], (string) filemtime( __DIR__ . '/account-shell.css' ) );
+		wp_enqueue_style( 'artnovo-account-sections', plugins_url( 'account-sections.css', __FILE__ ), [ 'artnovo-account-shell' ], (string) filemtime( __DIR__ . '/account-sections.css' ) );
+		wp_enqueue_script( 'artnovo-account-shell', plugins_url( 'account-shell.js', __FILE__ ), [], (string) filemtime( __DIR__ . '/account-shell.js' ), true );
+		if ( 'subscriptions' === account_view() ) {
+			wp_enqueue_style( 'artnovo-account-subscriptions', plugins_url( 'account-subscriptions.css', __FILE__ ), [ 'artnovo-account-shell' ], (string) filemtime( __DIR__ . '/account-subscriptions.css' ) );
 		}
 	}
 	$dependencies = [ 'jquery' ];

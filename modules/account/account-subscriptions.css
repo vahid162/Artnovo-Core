@@ -1,0 +1,253 @@
+.artnovo-account--subscriptions .artnovo-account-group + .artnovo-account-group {
+	margin-block-start: 1.5rem;
+}
+
+.artnovo-account--subscriptions .artnovo-account-group > h2 {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	margin-block-end: .625rem;
+	padding: 0;
+	border: 0;
+	font-size: 1.0625rem;
+	line-height: 1.5;
+}
+
+.artnovo-account--subscriptions .artnovo-account-group-count {
+	display: inline-grid;
+	place-items: center;
+	min-width: 1.375rem;
+	min-height: 1.375rem;
+	margin: 0;
+	padding-inline: .25rem;
+	border: 1px solid #344b5c;
+	border-radius: .5rem;
+	background: #1b2b39;
+	font-size: .75rem;
+	line-height: 1.2;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row {
+	grid-template-columns: minmax(0, 1fr) fit-content(44%);
+	gap: .625rem 1rem;
+	margin-block-end: .625rem;
+	padding: .875rem 1rem;
+	border: 1px solid #2b4152;
+	border-radius: 1rem;
+	background: #121f2c;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row-heading > h3,
+.artnovo-account--subscriptions .artnovo-account-row-meta > p {
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row-meta {
+	color: var(--account-muted);
+}
+
+.artnovo-account--subscriptions .artnovo-account-row-status {
+	display: inline-flex;
+	align-items: center;
+	gap: .375rem;
+	padding: .1875rem .625rem;
+	border-radius: 999px;
+	line-height: 1.45;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row-status::before {
+	content: '';
+	flex: 0 0 .375rem;
+	width: .375rem;
+	height: .375rem;
+	border-radius: 50%;
+	background: currentColor;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row .artnovo-account-row-controls {
+	justify-content: end;
+	gap: .375rem .5rem;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row-controls .artnovo-account-row-action {
+	min-height: 2.75rem;
+	max-width: 100%;
+	padding: .5rem .8125rem;
+	border-radius: .6875rem;
+	line-height: 1.45;
+	text-align: center;
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row-controls details > summary {
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row[data-artnovo-state="ready"] {
+	grid-template-columns: minmax(0, 1fr);
+	gap: .875rem 1.5rem;
+	padding: clamp(1rem, 2.5vw, 1.5625rem);
+	border-color: #38645e;
+	border-radius: 1.375rem;
+	background: radial-gradient(ellipse at 12% 3%, #2a595454, transparent 66%), linear-gradient(108deg, #1b3436, #14242e 64%);
+}
+
+.artnovo-account--subscriptions .artnovo-account-row-has-quota[data-artnovo-state="ready"] {
+	grid-template-columns: minmax(0, 1fr) clamp(7.25rem, 15vw, 11rem);
+}
+
+.artnovo-account--subscriptions [data-artnovo-state="ready"] .artnovo-account-row-info {
+	grid-area: 1 / 1;
+	align-self: end;
+	gap: .375rem;
+}
+
+.artnovo-account--subscriptions [data-artnovo-state="ready"] .artnovo-account-row-heading {
+	display: grid;
+	gap: .5rem;
+}
+
+.artnovo-account--subscriptions [data-artnovo-state="ready"] .artnovo-account-row-heading > h3 {
+	font-size: clamp(1.03125rem, 2.3vw, 1.6875rem);
+	font-weight: 750;
+	line-height: 1.45;
+}
+
+.artnovo-account--subscriptions [data-artnovo-state="ready"] .artnovo-account-row-status {
+	order: -1;
+	background: #1b453b;
+	color: #a1f4d3;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row[data-artnovo-state="ready"] .artnovo-account-row-controls {
+	grid-area: 2 / 1;
+	align-self: start;
+	justify-content: start;
+}
+
+.artnovo-account--subscriptions [data-artnovo-state="ready"] .artnovo-account-row-controls [role="status"]:empty {
+	display: none;
+}
+
+.artnovo-account--subscriptions [data-artnovo-state="ready"] .artnovo-account-row-controls .artnovo-account-row-action {
+	border-color: #6be1ba;
+	background: #6be1ba;
+	color: #0a251c;
+}
+
+.artnovo-account--subscriptions [data-artnovo-state="ready"] .artnovo-account-row-controls .artnovo-account-row-action:hover {
+	background: #89edcb;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row .artnovo-account-row-controls > .artnovo-account-link-details {
+	max-width: 100%;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row .artnovo-account-link-details > summary {
+	display: inline-grid;
+	min-height: 2.75rem;
+	place-items: center;
+	padding: .375rem .8125rem;
+	border: 1px solid #486471;
+	border-radius: .6875rem;
+	color: #d4e9e9;
+	font-size: .8125rem;
+	font-weight: 650;
+	line-height: 1.45;
+	text-align: center;
+	list-style: none;
+}
+
+.artnovo-account--subscriptions .artnovo-account-link-details > summary::-webkit-details-marker {
+	display: none;
+}
+
+.artnovo-account--subscriptions .artnovo-account-link-details > summary:hover {
+	border-color: #9ac3c3;
+	background: #263f45;
+}
+
+.artnovo-account--subscriptions .artnovo-account-link-details > [data-artnovo-qr] {
+	margin-block: .75rem .5rem;
+}
+
+.artnovo-account--subscriptions .artnovo-account-link-details > .artnovo-account-purchase {
+	margin-block-start: .625rem;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row-quota {
+	display: grid;
+	grid-area: 1 / 2 / 3 / 3;
+	justify-items: center;
+	gap: .375rem;
+	padding-inline-start: 1rem;
+	border-inline-start: 1px solid #416558;
+	color: #b2cfcc;
+	font-size: .75rem;
+	line-height: 1.5;
+	text-align: center;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row-quota-ring {
+	display: grid;
+	align-content: center;
+	justify-items: center;
+	width: 6.875rem;
+	aspect-ratio: 1;
+	padding: .375rem;
+	border: .3125rem solid #6be1ba;
+	border-radius: 50%;
+	background: #1b3637;
+	color: #d0e8e3;
+	line-height: 1.2;
+}
+
+.artnovo-account--subscriptions .artnovo-account-row-quota-ring strong {
+	max-width: 100%;
+	font-size: 1.25rem;
+	line-height: 1.35;
+	overflow-wrap: anywhere;
+}
+
+@media (max-width: 599px) {
+	.artnovo-account--subscriptions .artnovo-account-row {
+		padding: .8125rem;
+	}
+	.artnovo-account--subscriptions .artnovo-account-row-has-quota[data-artnovo-state="ready"] {
+		grid-template-columns: minmax(0, 1fr) 4.5rem;
+		column-gap: .625rem;
+	}
+	.artnovo-account--subscriptions .artnovo-account-row-quota {
+		grid-row: 1;
+		padding-inline-start: 0;
+		border-inline-start: 0;
+		font-size: .6875rem;
+	}
+	.artnovo-account--subscriptions .artnovo-account-row-quota-ring {
+		width: 4.5rem;
+		border-width: .25rem;
+	}
+	.artnovo-account--subscriptions .artnovo-account-row-quota-ring strong {
+		font-size: 1rem;
+	}
+	.artnovo-account--subscriptions .artnovo-account-row-has-quota[data-artnovo-state="ready"] .artnovo-account-row-controls {
+		grid-column: 1 / -1;
+	}
+	.artnovo-account--subscriptions [data-artnovo-state="ready"] .artnovo-account-row-controls > :is(p, details) {
+		flex: 1 1 0;
+		min-width: 0;
+	}
+	.artnovo-account--subscriptions [data-artnovo-state="ready"] .artnovo-account-row-controls :is(.artnovo-account-row-action, .artnovo-account-link-details > summary) {
+		width: 100%;
+	}
+}
+
+@media (max-width: 360px) {
+	.artnovo-account--subscriptions .artnovo-account-row:not([data-artnovo-state="ready"]) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.artnovo-account--subscriptions .artnovo-account-row:not([data-artnovo-state="ready"]) .artnovo-account-row-controls {
+		justify-content: start;
+	}
+}
