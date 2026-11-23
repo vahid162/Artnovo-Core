@@ -29,31 +29,63 @@ function account_navigation(): array {
 }
 
 function render_account_links( array $links ): void {
-	foreach ( $links as $item ) : ?>
-		<a href="<?php echo esc_url( $item['url'] ); ?>" <?php if ( $item['current'] ) : ?>aria-current="page"<?php endif; ?>><?php echo esc_html( \Artnovo\Core\display_digits( $item['label'] ) ); ?></a>
+	foreach ( $links as $key => $item ) : ?>
+		<a class="artnovo-account-shell-link" href="<?php echo esc_url( $item['url'] ); ?>" <?php if ( $item['current'] ) : ?>aria-current="page"<?php endif; ?>>
+			<span class="artnovo-account-shell-icon" data-icon="<?php echo esc_attr( $key ); ?>" aria-hidden="true"></span>
+			<span><?php echo esc_html( \Artnovo\Core\display_digits( $item['label'] ) ); ?></span>
+		</a>
 	<?php endforeach;
 }
 
-function render_account_navigation( array $navigation, bool $compact ): void {
-	if ( $compact ) {
-		unset( $navigation['primary']['buy'] );
+function render_account_navigation( array $navigation ): void {
+	// The page's purchase action stays in the content. The navigation is for account sections.
+	unset( $navigation['primary']['buy'] );
+	$quick = array_intersect_key( $navigation['primary'], array_flip( [ 'subscriptions', 'orders', 'woo-wallet' ] ) );
+	$profile = array_intersect_key( $navigation['secondary'], [ 'profile' => true ] );
+	$additional = array_diff_key( $navigation['secondary'], $profile );
+	$more = array_diff_key( $navigation['primary'], $quick ) + $navigation['secondary'];
+	$more_current = (bool) array_filter( $more, static fn( array $item ): bool => $item['current'] );
+	$balance = null;
+	if ( isset( $quick['woo-wallet'] ) && function_exists( 'woo_wallet' ) ) {
+		try {
+			$wallet = woo_wallet()->wallet ?? null;
+			if ( is_callable( [ $wallet, 'get_wallet_balance' ] ) && ( ! function_exists( 'is_wallet_account_locked' ) || ! is_wallet_account_locked() ) ) {
+				$balance = $wallet->get_wallet_balance( get_current_user_id() );
+			}
+		} catch ( \Throwable ) {
+			// An unavailable optional balance must not block account navigation.
+		}
 	}
 	?>
-	<nav class="artnovo-account-nav" aria-label="بخش‌های حساب پانتکس">
-		<?php render_account_links( $navigation['primary'] ); ?>
-		<details class="artnovo-account-more" <?php if ( array_filter( $navigation['secondary'], static fn( array $item ): bool => $item['current'] ) ) : ?>open<?php endif; ?>>
-			<summary>بخش‌های دیگر حساب</summary>
-			<div class="artnovo-account-more-links"><?php render_account_links( $navigation['secondary'] ); ?></div>
+	<aside class="artnovo-account-sidebar">
+		<nav class="artnovo-account-nav" aria-label="بخش‌های حساب پانتکس">
+			<p class="artnovo-account-sidebar-title">حساب کاربری</p>
+			<?php render_account_links( $quick ); ?>
+			<hr class="artnovo-account-sidebar-divider">
+			<?php render_account_links( array_diff_key( $navigation['primary'], $quick ) + $profile ); ?>
+			<details class="artnovo-account-sidebar-more" <?php if ( array_filter( $additional, static fn( array $item ): bool => $item['current'] ) ) : ?>open<?php endif; ?>>
+				<summary>بخش‌های دیگر حساب</summary>
+				<div><?php render_account_links( $additional ); ?></div>
+			</details>
+		</nav>
+		<?php if ( is_string( $balance ) && '' !== $balance ) : ?>
+			<a class="artnovo-account-sidebar-balance" href="<?php echo esc_url( $quick['woo-wallet']['url'] ); ?>">
+				<span>موجودی کیف پول</span>
+				<strong><?php echo wp_kses_post( \Artnovo\Core\display_number_html( $balance, true ) ); ?></strong>
+			</a>
+		<?php endif; ?>
+	</aside>
+	<nav class="artnovo-account-quick-nav artnovo-account-mobile-nav" aria-label="بخش‌های حساب پانتکس">
+		<?php render_account_links( $quick ); ?>
+		<details class="artnovo-account-quick-more" data-artnovo-account-more>
+			<summary class="artnovo-account-shell-link"<?php if ( $more_current ) : ?> data-current<?php endif; ?>>
+				<span class="artnovo-account-shell-icon" data-icon="more" aria-hidden="true"></span>
+				<span>بیشتر</span>
+			</summary>
+			<div class="artnovo-account-quick-menu"><?php render_account_links( $more ); ?></div>
 		</details>
 	</nav>
-	<?php if ( $compact ) : ?>
-		<details class="artnovo-account-mobile-nav">
-			<summary>منوی حساب</summary>
-			<nav class="artnovo-account-nav" aria-label="بخش‌های حساب پانتکس">
-				<?php render_account_links( array_merge( $navigation['primary'], $navigation['secondary'] ) ); ?>
-			</nav>
-		</details>
-	<?php endif;
+	<?php
 }
 
 function account_endpoint_layout( string $endpoint ): ?array {
@@ -123,27 +155,28 @@ function render_account(): void {
 	$gallery = $wallet_view || 'downloads' === $endpoint || '' !== $secondary_title;
 	$compact = 'subscriptions' === $current || null !== $layout || $gallery;
 	?>
-	<main id="content" class="artnovo-account<?php if ( $compact ) : ?> artnovo-account--compact<?php endif; ?><?php if ( $gallery ) : ?> artnovo-account--gallery<?php endif; ?><?php if ( 'subscriptions' === $current ) : ?> artnovo-account--subscriptions<?php endif; ?>" dir="rtl" data-artnovo-price-thousand-separator="<?php echo esc_attr( wc_get_price_thousand_separator() ); ?>" data-artnovo-price-decimal-separator="<?php echo esc_attr( wc_get_price_decimal_separator() ); ?>">
+	<main id="content" class="artnovo-account<?php if ( $logged_in ) : ?> artnovo-account-shell<?php endif; ?><?php if ( $compact ) : ?> artnovo-account--compact<?php endif; ?><?php if ( $gallery ) : ?> artnovo-account--gallery<?php endif; ?><?php if ( 'subscriptions' === $current ) : ?> artnovo-account--subscriptions<?php endif; ?>" dir="rtl" data-artnovo-price-thousand-separator="<?php echo esc_attr( wc_get_price_thousand_separator() ); ?>" data-artnovo-price-decimal-separator="<?php echo esc_attr( wc_get_price_decimal_separator() ); ?>">
 		<?php if ( ! $logged_in ) : ?>
 			<?php render_account_login(); ?>
 		<?php else :
 			$navigation = account_navigation();
-			if ( ! $compact ) :
-				$title = 'اکانت‌های من';
-				foreach ( array_merge( $navigation['primary'], $navigation['secondary'] ) as $item ) {
-					if ( $item['current'] ) { $title = $item['label']; break; }
-				}
 			?>
-				<header class="artnovo-account-header">
-					<div><p class="artnovo-account-muted">حساب پانتکس</p><h1><?php echo esc_html( \Artnovo\Core\display_digits( $title ) ); ?></h1><p class="artnovo-account-muted">اکانت‌ها، خریدها و راهنمای استفاده در یک حساب.</p></div>
-					<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">خرید اکانت جدید</a>
-				</header>
-			<?php endif; ?>
 			<div class="artnovo-account-layout">
-				<?php render_account_navigation( $navigation, $compact ); ?>
+				<?php render_account_navigation( $navigation ); ?>
 				<div class="artnovo-account-main">
 					<?php
-					if ( ! $wallet_view && ( $layout || '' !== $secondary_title ) ) {
+					if ( ! $compact ) {
+						$title = 'اکانت‌های من';
+						foreach ( array_merge( $navigation['primary'], $navigation['secondary'] ) as $item ) {
+							if ( $item['current'] ) { $title = $item['label']; break; }
+						}
+						?>
+						<header class="artnovo-account-header">
+							<h1><?php echo esc_html( \Artnovo\Core\display_digits( $title ) ); ?></h1>
+							<a class="artnovo-account-button" href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">خرید اکانت جدید</a>
+						</header>
+						<?php
+					} elseif ( ! $wallet_view && ( $layout || '' !== $secondary_title ) ) {
 						?>
 						<header class="artnovo-account-header">
 							<h1><?php echo esc_html( $layout['title'] ?? $secondary_title ); ?></h1>

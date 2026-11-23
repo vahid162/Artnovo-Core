@@ -1,0 +1,177 @@
+.artnovo-account-shell {
+	--account-section-line: #2b4152;
+	--account-section-raised: #172836;
+}
+
+.artnovo-account-shell .artnovo-account-main :is(.artnovo-account-back, .artnovo-account-gallery-link) {
+	min-block-size: 44px;
+}
+
+.artnovo-account-shell :is(.artnovo-account-native.artnovo-account-card, .artnovo-account-gallery-card, .artnovo-orders-empty) {
+	border: 1px solid var(--account-section-line);
+	border-radius: 1rem;
+	background: var(--account-surface);
+	box-shadow: none;
+}
+
+.artnovo-account-shell :is(.artnovo-account-gallery-row, .artnovo-account-gallery-profile, .artnovo-account-gallery-support) > * {
+	min-inline-size: 0;
+}
+
+.artnovo-account-shell .artnovo-account-orders .artnovo-orders-group h2 {
+	margin-block: 0 .65rem;
+	font-size: 1.0625rem;
+	font-weight: 750;
+}
+
+.artnovo-account-shell .artnovo-account-orders .artnovo-orders-list {
+	display: grid;
+	gap: .625rem;
+	border: 0;
+}
+
+.artnovo-account-shell .artnovo-account-orders .artnovo-orders-row {
+	padding: .85rem 1rem;
+	border: 1px solid var(--account-section-line);
+	border-radius: 1rem;
+	background: var(--account-surface);
+}
+
+.artnovo-account-shell .artnovo-orders-meta {
+	line-height: 1.75;
+}
+
+.artnovo-account-shell .artnovo-account-orders .artnovo-orders-meta > a {
+	display: inline-flex;
+	align-items: center;
+	min-block-size: 44px;
+}
+
+.artnovo-account-shell .artnovo-orders-status,
+.artnovo-account-shell .artnovo-account-order-payment {
+	border-radius: 1rem;
+}
+
+.artnovo-account-shell .artnovo-orders-status:is([data-state="transfer"], [data-state="wallet_insufficient"]),
+.artnovo-account-shell .artnovo-account-order[data-state="wallet_insufficient"] .artnovo-account-order-payment {
+	background: #463823;
+	color: #ffd590;
+}
+
+.artnovo-account-shell .artnovo-orders-actions .artnovo-account-button {
+	max-inline-size: 100%;
+	text-align: center;
+	white-space: normal;
+}
+
+.artnovo-account-shell .artnovo-account-order :is(.artnovo-account-order-status, .artnovo-account-order-invoice, .artnovo-account-order-native) {
+	border-color: var(--account-section-line);
+	border-radius: 1rem;
+	background: var(--account-surface);
+}
+
+.artnovo-account-shell .artnovo-account-order :is(.artnovo-account-order-status, .artnovo-account-order-invoice) {
+	padding: clamp(.875rem, 2.3vw, 1.5rem);
+}
+
+.artnovo-account-shell .artnovo-account-order-facts > div {
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.65fr);
+	border-color: var(--account-section-line);
+}
+
+.artnovo-account-shell .artnovo-account-order :is(.artnovo-account-order-receipt, .artnovo-account-order-native) {
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account-shell .artnovo-account-order-native :is(table, img, input, pre) {
+	max-inline-size: 100%;
+}
+
+.artnovo-account-shell .artnovo-profile-form .artnovo-profile-section {
+	border-color: var(--account-section-line);
+	border-radius: 1rem;
+}
+
+.artnovo-account-shell .artnovo-profile-form .artnovo-profile-fields {
+	padding: clamp(.875rem, 2.3vw, 1.5rem);
+}
+
+.artnovo-account-shell .artnovo-profile-form .artnovo-profile-fields input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]) {
+	border-radius: .625rem;
+	background: var(--account-navy);
+	color: var(--account-text);
+}
+
+.artnovo-account-shell .artnovo-profile-form .artnovo-profile-navigation > button[aria-expanded="true"] {
+	border-color: #38645e;
+	background: #193934;
+}
+
+.artnovo-account.artnovo-account-shell .artnovo-wallet-page :where(.woo-wallet-form-wrapper, .woo-wallet-transactions-list, .woo-wallet-statement) {
+	overflow-wrap: anywhere;
+}
+
+.artnovo-account.artnovo-account-shell :is(.artnovo-wallet-page, .artnovo-wallet-panel, .artnovo-wallet-details) {
+	--wallet-ui-bg: var(--account-navy);
+	--wallet-ui-panel: var(--account-surface);
+	--wallet-ui-line: var(--account-section-line);
+	--wallet-ui-text: var(--account-text);
+	--wallet-ui-muted: var(--account-muted);
+	--wallet-ui-accent: var(--account-emerald);
+	--wallet-ui-focus: var(--account-focus);
+}
+
+.artnovo-account.artnovo-account-shell .artnovo-wallet-page .artnovo-wallet-heading h1 {
+	font-size: clamp(1.7rem, 3.3vw, 2.56rem);
+	font-weight: 800;
+	line-height: 1.35;
+}
+
+.artnovo-account.artnovo-account-shell .artnovo-account-native .artnovo-wallet-page[data-artnovo-wallet-screen="dashboard"] .woo-wallet-my-wallet-container .woo-wallet-top-section {
+	padding: clamp(1rem, 3vw, 1.625rem);
+	border-color: #38645e;
+	border-radius: 1.375rem;
+	background: radial-gradient(ellipse at 80% 5%, #2a59544f, transparent 65%), var(--account-section-raised);
+}
+
+.artnovo-account.artnovo-account-shell .artnovo-account-native .artnovo-wallet-page[data-artnovo-wallet-screen="dashboard"] .woo-wallet-balance-card .woo-wallet-price {
+	font-size: clamp(1.5rem, 4vw, 2.5rem);
+	font-weight: 800;
+	line-height: 1.5;
+}
+
+.artnovo-account.artnovo-account-shell .artnovo-wallet-page .woo-wallet-form-wrapper {
+	background: var(--account-surface);
+}
+
+.artnovo-account.artnovo-account-shell .artnovo-wallet-page:is([data-artnovo-wallet-screen="add"], [data-artnovo-wallet-screen="transfer"]) {
+	max-inline-size: 40rem;
+	margin-inline: 0 auto;
+}
+
+@media (max-width: 720px) {
+	.artnovo-account-shell .artnovo-account-orders .artnovo-orders-row {
+		grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
+		padding: .8rem;
+	}
+
+	.artnovo-account-shell .artnovo-orders-actions {
+		max-inline-size: min(11rem, 43vw);
+	}
+
+	.artnovo-account.artnovo-account-shell .artnovo-wallet-page[data-artnovo-wallet-screen="dashboard"] .woo-wallet-my-wallet-container .woo-wallet-nav-tabs {
+		max-inline-size: 100%;
+	}
+}
+
+@media (max-width: 380px) {
+	.artnovo-account-shell .artnovo-account-orders .artnovo-orders-row {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.artnovo-account-shell .artnovo-orders-actions {
+		max-inline-size: 100%;
+		justify-self: stretch;
+		justify-items: stretch;
+	}
+}

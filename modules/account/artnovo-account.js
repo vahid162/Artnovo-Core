@@ -38,7 +38,7 @@
 		const cards = [...list.querySelectorAll(':scope > .wpvpn-subscription[data-artnovo-card]')];
 		const number = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 });
 		const groups = [
-			{ key: 'ready', label: 'اکانت‌های آماده', states: ['ready'], rows: [] },
+			{ key: 'ready', label: 'اکانت فعال', states: ['ready'], rows: [] },
 			{ key: 'pending', label: 'در حال پیگیری', states: ['transfer', 'receipt', 'pending', 'wallet_insufficient', 'wallet_pending', 'wallet_review', 'issuing', 'review'], rows: [] },
 			{ key: 'ended', label: 'پایان‌یافته', states: ['expired', 'closed'], rows: [] }
 		];
@@ -102,10 +102,12 @@
 			section.dataset.artnovoGroup = group.key;
 			const heading = document.createElement('h2');
 			heading.id = 'artnovo-account-group-' + group.key;
-			heading.textContent = group.label;
+			heading.textContent = group.key === 'ready' && group.rows.length > 1 ? 'اکانت‌های فعال' : group.label;
 			const count = document.createElement('span');
 			count.className = 'artnovo-account-group-count';
-			count.textContent = number.format(group.rows.length);
+			const countText = number.format(group.rows.length);
+			count.textContent = countText;
+			count.setAttribute('aria-label', countText + ' اکانت');
 			heading.append(' ', count);
 			section.setAttribute('aria-labelledby', heading.id);
 			section.append(heading);
@@ -134,18 +136,30 @@
 		const summary = document.createElement('summary');
 		summary.textContent = 'جزئیات خرید';
 		purchase.append(summary);
+		let showsExpiry = false;
 		for (const paragraph of card.querySelectorAll(':scope > p')) {
 			if (paragraph.querySelector('a')) continue;
-			const expiry = paragraph.textContent.trim().startsWith('پایان اعتبار ');
-			(ready && !expiry ? meta : purchase).append(paragraph);
+			const text = paragraph.textContent.trim();
+			const quota = ready && text.match(/^حجم خریداری‌شده\s+([0-9٠-٩۰-۹.,٫٬]+)\s+گیگابایت$/u);
+			if (quota && !card.classList.contains('artnovo-account-row-has-quota')) {
+				card.append(subscriptionQuota(displayDigits(quota[1].replace('.', '٫'))));
+				card.classList.add('artnovo-account-row-has-quota');
+				paragraph.remove();
+			} else if (ready) {
+				showsExpiry ||= text.startsWith('پایان اعتبار ');
+				meta.append(paragraph);
+			} else {
+				purchase.append(paragraph);
+			}
 		}
 
 		const purchaseData = data.purchase;
 		if (ready && Number.isInteger(data.days_left) && data.days_left > 0) {
 			const time = document.createElement('p');
 			time.textContent = number.format(data.days_left) + ' روز اعتبار باقی‌مانده';
-			meta.prepend(time);
-		} else if (!ready && typeof purchaseData.number === 'string' && purchaseData.number) {
+			(showsExpiry ? purchase : meta).prepend(time);
+		}
+		if (typeof purchaseData.number === 'string' && purchaseData.number) {
 			const reference = document.createElement('p');
 			reference.textContent = 'خرید ' + displayDigits(purchaseData.number);
 			meta.append(reference);
@@ -200,7 +214,23 @@
 			actions.append(link);
 		}
 		if (actions.childElementCount) purchase.append(actions);
-		controls.append(purchase);
+		(controls.querySelector(':scope > .artnovo-account-link-details') || controls).append(purchase);
+	}
+
+	function subscriptionQuota(quantity) {
+		const quota = document.createElement('div');
+		quota.className = 'artnovo-account-row-quota';
+		const ring = document.createElement('div');
+		ring.className = 'artnovo-account-row-quota-ring';
+		const value = document.createElement('strong');
+		value.textContent = quantity;
+		const unit = document.createElement('span');
+		unit.textContent = 'گیگابایت';
+		ring.append(value, unit);
+		const label = document.createElement('span');
+		label.textContent = 'حجم پلن';
+		quota.append(ring, label);
+		return quota;
 	}
 
 	function compactConnectionTools(controls) {
@@ -209,7 +239,7 @@
 		const details = document.createElement('details');
 		details.className = 'artnovo-account-link-details';
 		const summary = document.createElement('summary');
-		summary.textContent = 'نمایش لینک اتصال';
+		summary.textContent = 'جزئیات اتصال';
 		details.append(summary);
 		for (const paragraph of Array.from(controls.children)) {
 			if (paragraph.contains(input) || paragraph.querySelector('a')) details.append(paragraph);
@@ -400,8 +430,9 @@
 			status.hidden = true;
 			status.setAttribute('role', 'status');
 			const details = controls.querySelector('.artnovo-account-link-details');
-			if (details) details.querySelector('summary').textContent = 'لینک و کد QR';
-			(details || controls).append(toggle, target, status);
+			const purchase = details?.querySelector('.artnovo-account-purchase');
+			if (purchase) purchase.before(toggle, target, status);
+			else (details || controls).append(toggle, target, status);
 			toggle.addEventListener('click', () => {
 				if (!target.childElementCount) {
 					try {
