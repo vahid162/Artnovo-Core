@@ -44,7 +44,7 @@
 
 		const body = new URLSearchParams({ order, key, _ajax_nonce: nonce });
 		// A deferred Bridge recovery can span two 15-minute intervals.
-		const minutes = state === 'paid_waiting_fulfillment' ? 35 : 16;
+		const minutes = ['wallet_pending', 'paid_waiting_fulfillment'].includes(state) ? 35 : 16;
 		const deadline = performance.now() + minutes * 60 * 1000;
 		let delay = 3000;
 		let timer;

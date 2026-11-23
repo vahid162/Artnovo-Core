@@ -199,7 +199,9 @@ function subscription_payment_presentation( \WC_Order $order, array $snapshot ):
 	}
 	$wallet_state = received_deferred_wallet_state( $order );
 	if ( null !== $wallet_state ) {
-		return [ 'state' => $wallet_state['state'], 'label' => $wallet_state['title'], 'action_url' => $track . '#artnovo-received-status', 'action_label' => 'بررسی وضعیت پرداخت' ];
+		$topup = 'wallet_insufficient' === $wallet_state['state'] ? received_wallet_topup_action() : null;
+		return [ 'state' => $wallet_state['state'], 'label' => $wallet_state['title'],
+			'action_url' => $topup['url'] ?? $track . '#artnovo-received-status', 'action_label' => $topup['name'] ?? 'بررسی وضعیت پرداخت' ];
 	}
 	if ( $order->is_paid() ) {
 		return null;
@@ -207,7 +209,7 @@ function subscription_payment_presentation( \WC_Order $order, array $snapshot ):
 	$bank_payment = received_bank_payment( $order );
 	if ( received_bank_cancelled( $bank_payment ?? [] ) ) {
 		$retry = received_bank_retry( $order, $bank_payment );
-		return [ 'state' => 'pending', 'label' => 'پرداخت در زیبال لغو شد', 'action_url' => $retry ? $order->get_checkout_payment_url() : $track,
+		return [ 'state' => 'pending', 'label' => BANK_CANCELLED_TITLE, 'action_url' => $retry ? $order->get_checkout_payment_url() : $track,
 			'action_label' => $retry ? 'پرداخت مجدد همین سفارش' : 'پیگیری سفارش' ];
 	}
 	if ( $order->has_status( 'failed' ) ) {

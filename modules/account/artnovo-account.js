@@ -39,7 +39,7 @@
 		const number = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 });
 		const groups = [
 			{ key: 'ready', label: 'اکانت‌های آماده', states: ['ready'], rows: [] },
-			{ key: 'pending', label: 'در حال پیگیری', states: ['transfer', 'receipt', 'pending', 'issuing', 'review'], rows: [] },
+			{ key: 'pending', label: 'در حال پیگیری', states: ['transfer', 'receipt', 'pending', 'wallet_insufficient', 'wallet_pending', 'wallet_review', 'issuing', 'review'], rows: [] },
 			{ key: 'ended', label: 'پایان‌یافته', states: ['expired', 'closed'], rows: [] }
 		];
 		let first = null;

@@ -289,6 +289,13 @@ function paymentFixture(responses, state = 'partial', count = '1') {
 		'confirmed payment keeps monitoring while recovery can exceed the old deadline');
 	await waiting.next();
 	check(waiting.navigations[0] === waiting.tracking && !waiting.timer, 'Bridge recovery refreshes the view with zero ready accounts');
+	const shortfall = paymentFixture([ok('wallet_pending', 0)], 'wallet_insufficient', '0');
+	await shortfall.next();
+	check(shortfall.navigations[0] === shortfall.tracking && !shortfall.timer, 'funding returns to the same purchase tracking view');
+	const walletPending = paymentFixture([ok('wallet_pending', 0)], 'wallet_pending', '0');
+	await walletPending.next(16 * 60 * 1000 + 1);
+	check(walletPending.requests.length === 1 && walletPending.expired.hidden && walletPending.timer,
+		'funded wallet settlement remains visible past the ordinary bank polling period');
 	const waitingExpired = paymentFixture([], 'paid_waiting_fulfillment', '0');
 	await waitingExpired.next(35 * 60 * 1000);
 	check(!waitingExpired.requests.length && !waitingExpired.navigations.length && !waitingExpired.timer && !waitingExpired.expired.hidden,

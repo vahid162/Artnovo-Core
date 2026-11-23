@@ -2,6 +2,7 @@
 
 namespace Artnovo\AccountUI;
 
+use Artnovo\WalletUI;
 use WPVPNBridge\Commerce\Account;
 use WPVPNBridge\Commerce\Orders;
 use WPVPNBridge\Commerce\Receipts;
@@ -11,6 +12,8 @@ use WPVPNBridge\Persistence\Store;
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/received-receipt.php';
+
+const BANK_CANCELLED_TITLE = 'پرداخت انلاین در سان پی لغو شد';
 
 function received_page(): bool {
 	return function_exists( 'is_order_received_page' ) && is_order_received_page();
@@ -112,16 +115,27 @@ function received_bank_retry( \WC_Order $order, array $payment ): bool {
 }
 
 function received_deferred_wallet_state( \WC_Order $order ): ?array {
-	if ( get_current_user_id() < 1 || get_current_user_id() !== $order->get_customer_id() || ! is_callable( [ NativeWallet::class, 'checkout_status' ] ) ) {
+	if ( get_current_user_id() < 1 || get_current_user_id() !== $order->get_customer_id() ) {
 		return null;
 	}
-	return match ( NativeWallet::checkout_status( $order ) ) {
-		'wallet_pending' => [ 'state' => 'wallet_pending', 'title' => 'سهم بانکی تأیید شد. در انتظار برداشت از کیف پول',
+	$status = is_callable( [ NativeWallet::class, 'checkout_customer_status' ] )
+		? NativeWallet::checkout_customer_status( $order )
+		: ( is_callable( [ NativeWallet::class, 'checkout_status' ] ) ? NativeWallet::checkout_status( $order ) : null );
+	return match ( $status ) {
+		'wallet_insufficient' => [ 'state' => 'wallet_insufficient', 'title' => 'سهم بانکی تأیید شد. موجودی کیف پول کافی نیست.',
+			'message' => 'پس از تأمین موجودی، وضعیت همین سفارش را بررسی کنید.', 'step' => 2 ],
+		'wallet_pending' => [ 'state' => 'wallet_pending', 'title' => 'سهم بانکی تأیید شد. در انتظار تکمیل پرداخت',
 			'message' => 'پس از ثبت سهم کیف پول، آماده‌سازی اکانت ادامه پیدا می‌کند.', 'step' => 2 ],
 		'wallet_review' => [ 'state' => 'wallet_review', 'title' => 'سهم کیف پول نیاز به بررسی دارد',
 			'message' => 'سهم بانکی تأیید شده است. برای پیگیری سهم کیف پول، شمارهٔ سفارش را به پشتیبانی بفرستید.', 'step' => 2 ],
 		default => null,
 	};
+}
+
+function received_wallet_topup_action(): ?array {
+	return function_exists( '\\Artnovo\\WalletUI\\direct_topup_available' ) && WalletUI\direct_topup_available()
+		? [ 'url' => WalletUI\wallet_url( 'add' ), 'name' => 'شارژ کیف پول' ]
+		: null;
 }
 
 add_action( 'wc_ajax_artnovo_received_payment_status', static function (): void {
@@ -296,7 +310,7 @@ function received_state( \WC_Order $order, ?array $delivery = null, ?array $bank
 	}
 	if ( 'failed_final' === $bank_phase && ! $order->is_paid() ) {
 		if ( received_bank_cancelled( $bank_payment ) ) {
-			return [ 'state' => 'failed', 'title' => 'پرداخت در زیبال لغو شد',
+			return [ 'state' => 'failed', 'title' => BANK_CANCELLED_TITLE,
 				'message' => received_bank_retry( $order, $bank_payment )
 					? 'برای دریافت اکانت، پرداخت همین سفارش را دوباره انجام دهید.'
 					: 'پرداخت این سفارش انجام نشده است. برای پیگیری با پشتیبانی تماس بگیرید.', 'step' => 2 ];
@@ -359,7 +373,7 @@ function received_state( \WC_Order $order, ?array $delivery = null, ?array $bank
 }
 
 function received_account_actions( \WC_Order $order, ?array $bank_payment, string $state, callable $render, bool $separate_pay = false ): mixed {
-	$wallet_settlement = in_array( $state, [ 'wallet_pending', 'wallet_review' ], true );
+	$wallet_settlement = in_array( $state, [ 'wallet_insufficient', 'wallet_pending', 'wallet_review' ], true );
 	if ( null === $bank_payment && ! $wallet_settlement ) {
 		return $render();
 	}
@@ -645,7 +659,7 @@ function render_received_page(): void {
 	$expected = is_array( $snapshot ) && class_exists( Orders::class ) ? Orders::snapshot_quantity( $snapshot ) : 1;
 	$ready_count = in_array( $state['state'], [ 'partial', 'ready' ], true ) ? count( $delivery['links'] ) : 0;
 	$has_services = $order->is_paid() && '' !== $delivery['html'] && ( null === $bank_payment || $ready_count > 0 )
-		&& ! in_array( $state['state'], [ 'wallet_pending', 'wallet_review' ], true );
+		&& ! in_array( $state['state'], [ 'wallet_insufficient', 'wallet_pending', 'wallet_review' ], true );
 	$multi = $expected > 1;
 	$journey_step = $state['step'] >= 3 ? 3 : 2;
 	$refresh = add_query_arg( 'artnovo_status', wp_generate_uuid4(), received_order_url( $order ) ) . '#artnovo-received-status';
@@ -653,13 +667,15 @@ function render_received_page(): void {
 	$bank_phase = $bank_payment['phase'] ?? '';
 	$bank_retry = received_bank_retry( $order, $bank_payment ?? [] );
 	$bank_cancelled = received_bank_cancelled( $bank_payment ?? [] );
-	$poll_payment = 'wallet_pending' === $state['state'] || ( 'open' === $bank_phase && 'pending' === $state['state'] )
+	$poll_payment = in_array( $state['state'], [ 'wallet_insufficient', 'wallet_pending' ], true ) || ( 'open' === $bank_phase && 'pending' === $state['state'] )
 		|| ( 'review' === $bank_phase && 'review' === $state['state'] )
 		|| ( 'paid' === $bank_phase && in_array( $state['state'], [ 'paid_waiting_fulfillment', 'issuing', 'partial' ], true ) );
+	$topup = 'wallet_insufficient' === $state['state'] ? received_wallet_topup_action() : null;
 	$primary = match ( $state['state'] ) {
 		'pending' => ( null === $bank_payment || 'none' === $bank_phase ) && $order->needs_payment() && ! in_array( $order->get_payment_method(), [ 'bacs', 'wpvpn_wallet' ], true )
 			? [ $order->get_checkout_payment_url(), 'ادامهٔ پرداخت همین سفارش' ] : [ $refresh, 'به‌روزرسانی وضعیت' ],
 		'receipt', 'wallet_pending', 'paid_waiting_fulfillment', 'issuing', 'partial' => [ $refresh, 'به‌روزرسانی وضعیت' ],
+		'wallet_insufficient' => $topup ? [ $topup['url'], $topup['name'] ] : [ $refresh, 'به‌روزرسانی وضعیت' ],
 		'ready' => [ '#artnovo-received-services', 'دریافت لینک اتصال' ],
 		'failed' => ( null === $bank_payment || $bank_retry ) && $order->needs_payment() && 'wpvpn_wallet' !== $order->get_payment_method()
 			? [ $order->get_checkout_payment_url(), $bank_cancelled ? 'پرداخت مجدد همین سفارش' : 'ادامهٔ پرداخت همین خرید' ] : [ $support, 'پیگیری پرداخت با پشتیبانی' ],

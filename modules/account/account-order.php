@@ -30,13 +30,14 @@ $payment = match ( $state ) {
 	'receipt' => 'رسید ثبت شد، منتظر تأیید',
 	'pending' => 'open' === ( $bank_payment['phase'] ?? '' ) ? $purchase_state['title'] : 'در انتظار تأیید پرداخت',
 	'failed' => $bank_cancelled ? $purchase_state['title'] : 'پرداخت کامل نشده است',
-	'wallet_pending', 'wallet_review' => $purchase_state['title'],
+	'wallet_insufficient', 'wallet_pending', 'wallet_review' => $purchase_state['title'],
 	'paid_waiting_fulfillment', 'issuing', 'ready', 'partial' => 'پرداخت تأیید شد',
 	'closed' => $expired ? 'پرداخت تأیید شد' : (
 		(float) $order->get_total_refunded() > 0 ? 'بازپرداخت ثبت شده است' : wc_get_order_status_name( $order->get_status() )
 	),
 	default => 'نیازمند بررسی',
 };
+$topup = 'wallet_insufficient' === $state ? received_wallet_topup_action() : null;
 [ $delivery, $action_url, $action_text ] = match ( $state ) {
 	'transfer' => [ 'پس از تأیید پرداخت', $tracking, 'واریز و ارسال رسید' ],
 	'receipt', 'pending' => [ 'پس از تأیید پرداخت', $tracking, 'بررسی وضعیت پرداخت' ],
@@ -44,6 +45,7 @@ $payment = match ( $state ) {
 		? [ 'تحویل انجام نشده است', $order->get_checkout_payment_url(), 'پرداخت مجدد همین سفارش' ]
 		: [ 'تحویل انجام نشده است', $bank_cancelled ? $support : $tracking, 'پیگیری پرداخت ناموفق' ],
 	'wallet_pending' => [ 'در انتظار ثبت سهم کیف پول', $tracking . '#artnovo-received-status', 'بررسی وضعیت پرداخت' ],
+	'wallet_insufficient' => [ 'در انتظار تأمین موجودی کیف پول', $topup['url'] ?? $tracking . '#artnovo-received-status', $topup['name'] ?? 'بررسی وضعیت پرداخت' ],
 	'wallet_review' => [ 'در انتظار بررسی سهم کیف پول', $support, 'پیگیری با پشتیبانی' ],
 	'paid_waiting_fulfillment' => [ 'آماده‌سازی اکانت در انتظار شروع است', $tracking . '#artnovo-received-status', 'بررسی وضعیت اکانت' ],
 	'issuing', 'partial' => [ $purchase_state['title'], $tracking . '#artnovo-received-status', 'بررسی وضعیت اکانت' ],
@@ -77,6 +79,7 @@ $message = 'pending' === $state && 'bacs' === $method && ! $order->is_paid()
 			</dl>
 			<p><?php echo esc_html( \Artnovo\Core\display_digits( $message ) ); ?></p>
 			<a class="artnovo-account-button artnovo-account-order-primary" href="<?php echo esc_url( $action_url ); ?>"><?php echo esc_html( $action_text ); ?></a>
+			<?php if ( $topup ) : ?><a href="<?php echo esc_url( $tracking . '#artnovo-received-status' ); ?>">بررسی وضعیت پرداخت</a><?php endif; ?>
 			<?php if ( ! $order->is_paid() && in_array( $bank_payment['phase'] ?? '', [ 'open', 'review', 'failed_final' ], true )
 				&& in_array( $state, [ 'pending', 'review', 'failed' ], true ) ) : ?>
 				<a href="<?php echo esc_url( home_url( '/#artnovo-categories' ) ); ?>">مشاهدهٔ پلن‌ها</a>

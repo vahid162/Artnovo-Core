@@ -9,6 +9,10 @@ namespace Artnovo\HomeOrderUI\Wizard { function is_page(): bool { return $GLOBAL
 namespace Artnovo\AccountUI {
 	function account_native_login_url( string $return ): string { return 'https://example.test/login?back_url=' . rawurlencode( $return ); }
 }
+namespace Artnovo\WalletUI {
+	function direct_topup_available(): bool { return $GLOBALS['direct_topup'] ?? false; }
+	function wallet_url( string $screen ): string { return 'https://example.test/my-account/my-wallet/' . $screen . '/'; }
+}
 namespace ArtNovo\PayBridge {
 	class Payments {
 		public static function customer_status( \WC_Order $order ): array { return $order->bank; }
@@ -24,9 +28,18 @@ namespace WPVPNBridge\Commerce {
 }
 namespace WPVPNBridge { class Settings { public function ready(): bool { return true; } } }
 namespace WPVPNBridge\Payment {
-	class NativeWallet {
+	class LegacyNativeWallet {
 		public static function verified( \WC_Order $order, array $snapshot ): ?string { return $order->wallet_debit; }
 		public static function checkout_status( \WC_Order $order ): ?string { return $order->wallet_status; }
+	}
+	if ( 'legacy-bridge' === ( $GLOBALS['argv'][1] ?? '' ) ) {
+		class_alias( LegacyNativeWallet::class, __NAMESPACE__ . '\\NativeWallet' );
+	} else {
+		class NativeWallet extends LegacyNativeWallet {
+			public static function checkout_customer_status( \WC_Order $order ): ?string {
+				return false === $order->wallet_customer_status ? self::checkout_status( $order ) : $order->wallet_customer_status;
+			}
+		}
 	}
 	class WalletPayment {
 		public const GATEWAY = 'wpvpn_wallet';
@@ -153,6 +166,7 @@ class WC_Order {
 	public array $bank = [];
 	public ?string $wallet_debit = null;
 	public ?string $wallet_status = null;
+	public string|bool|null $wallet_customer_status = false;
 	public function __construct( public int $id, public string $method = 'artnovo_gpante', public string $status = 'pending', public int $owner = 7, public bool $service = true ) {}
 	public function get_id(): int { return $this->id; }
 	public function get_customer_id(): int { return $this->owner; }
@@ -781,6 +795,32 @@ foreach ( [ 'artnovo_gpante', 'bacs' ] as $method ) {
 }
 $old->wallet_status = 'unknown-capability-state';
 check( 'unknown wallet state leaves existing presentation in charge', null === Artnovo\AccountUI\received_deferred_wallet_state( $old ) );
+
+$old->method = 'artnovo_gpante';
+$old->wallet_status = 'wallet_review';
+$old->wallet_customer_status = 'wallet_insufficient';
+$bank = [ 'phase' => 'open', 'can_retry' => false ];
+$view = Artnovo\AccountUI\received_state( $old, [ 'links' => [] ], $bank );
+if ( is_callable( [ WPVPNBridge\Payment\NativeWallet::class, 'checkout_customer_status' ] ) ) {
+	check( 'new Bridge reports a precise shortfall without bank payment or cancellation actions',
+		'wallet_insufficient' === $view['state'] && 'سهم بانکی تأیید شد. موجودی کیف پول کافی نیست.' === $view['title']
+		&& [ 'view' => [] ] === Artnovo\AccountUI\received_account_actions( $old, $bank, $view['state'],
+			static fn () => apply_filters( 'woocommerce_my_account_my_orders_actions', $actions, $old ) ) );
+	$old->wallet_customer_status = 'wallet_pending';
+	check( 'funded same order displays pending completion without waiting for the bank again',
+		'wallet_pending' === Artnovo\AccountUI\received_state( $old, [ 'links' => [] ], $bank )['state'] );
+	$old->wallet_customer_status = null;
+	check( 'new capability null does not revive a legacy wallet review', 'pending' === Artnovo\AccountUI\received_state( $old, [ 'links' => [] ], $bank )['state'] );
+} else {
+	check( 'older Bridge keeps generic wallet review and never infers a shortfall', 'wallet_review' === $view['state'] );
+}
+check( 'top-up action is absent when native direct top-up is unavailable', null === Artnovo\AccountUI\received_wallet_topup_action() );
+$direct_topup = true;
+check( 'available top-up sends the owner to the existing wallet charge view',
+	[ 'url' => 'https://example.test/my-account/my-wallet/add/', 'name' => 'شارژ کیف پول' ] === Artnovo\AccountUI\received_wallet_topup_action() );
+$direct_topup = false;
+$old->method = 'bacs';
+$old->wallet_customer_status = false;
 $old->wallet_status = 'wallet_pending';
 $method_before_poll = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $_SERVER['REQUEST_METHOD'] = 'POST';
