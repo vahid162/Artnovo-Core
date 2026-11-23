@@ -1,0 +1,220 @@
+{
+  "schema_version": 1,
+  "state": "published_and_verified",
+  "date": "2026-11-21",
+  "site": "https://artnovo.ir/",
+  "document": {
+    "post_id": 68,
+    "root_id": "3ffe5619",
+    "template": "elementor_header_footer"
+  },
+  "ownership": {
+    "catalog": "WooCommerce product data",
+    "rendering": "Elementor product loops and native excerpt widgets"
+  },
+  "reason": "Show the current product's own WooCommerce description and a single reusable list of common features after it in the expanded details panel.",
+  "groups": [
+    {
+      "slug": "vpn-one-month",
+      "loop_id": "5e3a70a2",
+      "accordion_content_id": "44f6df74",
+      "description_widget_id": "4b358a65",
+      "live_products": 4
+    },
+    {
+      "slug": "vpn-two-month",
+      "loop_id": "6d8cdb7a",
+      "accordion_content_id": "7afbfc9c",
+      "description_widget_id": "286d84fe",
+      "live_products": 6
+    },
+    {
+      "slug": "vpn-three-month",
+      "loop_id": "17e8d163",
+      "accordion_content_id": "28b76764",
+      "description_widget_id": "7a6c2c49",
+      "live_products": 0
+    }
+  ],
+  "baseline": "In all three detail widgets the excerpt setting is the native default. All ten current products have individual WooCommerce short descriptions and empty long descriptions.",
+  "description_setting": {
+    "before": "Native post-excerpt default",
+    "after": {
+      "name": "post-excerpt",
+      "settings": {
+        "apply_to_post_content": "yes"
+      }
+    },
+    "behavior": "Prefer the loop item's explicit WooCommerce short description. If empty, use Elementor's native excerpt of the full product description. The current product is resolved from the loop, without a fixed product ID."
+  },
+  "features": {
+    "component_title": "ویژگی‌های مشترک پلن‌های پانتکس",
+    "lines": [
+      "آی‌پی ثابت",
+      "لوکیشن آلمان",
+      "بدون محدودیت در اتصال و تعداد کاربر",
+      "مناسب و سازگار با همهٔ هوش مصنوعی‌ها"
+    ],
+    "native_xml": "<e-list configuration-id=\"common-plan-features\"><e-list-item configuration-id=\"feature-1\"><e-list-item-marker configuration-id=\"marker-1\"></e-list-item-marker><e-list-item-content configuration-id=\"content-1\"><e-paragraph configuration-id=\"text-1\"></e-paragraph></e-list-item-content></e-list-item><e-list-item configuration-id=\"feature-2\"><e-list-item-marker configuration-id=\"marker-2\"></e-list-item-marker><e-list-item-content configuration-id=\"content-2\"><e-paragraph configuration-id=\"text-2\"></e-paragraph></e-list-item-content></e-list-item><e-list-item configuration-id=\"feature-3\"><e-list-item-marker configuration-id=\"marker-3\"></e-list-item-marker><e-list-item-content configuration-id=\"content-3\"><e-paragraph configuration-id=\"text-3\"></e-paragraph></e-list-item-content></e-list-item><e-list-item configuration-id=\"feature-4\"><e-list-item-marker configuration-id=\"marker-4\"></e-list-item-marker><e-list-item-content configuration-id=\"content-4\"><e-paragraph configuration-id=\"text-4\"></e-paragraph></e-list-item-content></e-list-item></e-list>",
+    "element_config": {
+      "text-1": {
+        "paragraph": "آی‌پی ثابت",
+        "tag": "p"
+      },
+      "text-2": {
+        "paragraph": "لوکیشن آلمان",
+        "tag": "p"
+      },
+      "text-3": {
+        "paragraph": "بدون محدودیت در اتصال و تعداد کاربر",
+        "tag": "p"
+      },
+      "text-4": {
+        "paragraph": "مناسب و سازگار با همهٔ هوش مصنوعی‌ها",
+        "tag": "p"
+      }
+    },
+    "style": {
+      "common-plan-features": "margin-block-start: 8px; margin-block-end: 0px; gap: 4px;",
+      "text-1": "margin: 0px; font-size: 14px; line-height: 1.7; color: #BDD1D0; overflow-wrap: anywhere;",
+      "text-2": "margin: 0px; font-size: 14px; line-height: 1.7; color: #BDD1D0; overflow-wrap: anywhere;",
+      "text-3": "margin: 0px; font-size: 14px; line-height: 1.7; color: #BDD1D0; overflow-wrap: anywhere;",
+      "text-4": "margin: 0px; font-size: 14px; line-height: 1.7; color: #BDD1D0; overflow-wrap: anywhere;"
+    },
+    "placement": "One instance appended after the description in each of the three existing repeatable templates."
+  },
+  "scope": "Existing or future eligible products in the configured duration groups inherit the template. A new duration group needs its own existing wizard integration and can reuse the component. Do not change the WooCommerce descriptions, product pricing, taxonomy assignments, query IDs, CTA or purchase controls.",
+  "preflight": "Exact live Elementor subtree read; native dry runs accepted the list composition and V3 excerpt options; component authoring available.",
+  "rollback": "Use native Elementor operations to remove just the three identified component instances and restore the prior excerpt setting if unchanged since publication. Archive the component only after verifying that there are no other consumers. Retain the initial document revision and avoid whole-document restore after unrelated changes.",
+  "observed": {
+    "component_id": 262,
+    "component_root_id": "277d37d8",
+    "component_editor": "https://artnovo.ir/wp-admin/post.php?post=262&action=elementor",
+    "component_instances": [
+      {
+        "parent": "44f6df74",
+        "id": "72d147c"
+      },
+      {
+        "parent": "7afbfc9c",
+        "id": "c38d88a"
+      },
+      {
+        "parent": "28b76764",
+        "id": "757eb256"
+      }
+    ],
+    "source": "MCP readback matched the reviewed staged Elementor tree. Native document API confirmed all three published V3 dynamic tags, plus unchanged page settings and CSS checksums. Only the three target descriptions and three appended component instances changed.",
+    "initial_document_undo_revision": 264,
+    "fallback_native_memory_cases": {
+      "short_description_prioritized": true,
+      "main_description_excerpt_when_short_empty": true,
+      "both_empty_returns_empty": true
+    },
+    "browser_description_and_list_checks": [
+      {
+        "width": 320,
+        "month": 1,
+        "cards": 4,
+        "distinctDescriptions": 4,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      },
+      {
+        "width": 320,
+        "month": 2,
+        "cards": 6,
+        "distinctDescriptions": 6,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      },
+      {
+        "width": 508,
+        "month": 1,
+        "cards": 4,
+        "distinctDescriptions": 4,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      },
+      {
+        "width": 508,
+        "month": 2,
+        "cards": 6,
+        "distinctDescriptions": 6,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      },
+      {
+        "width": 1280,
+        "month": 1,
+        "cards": 4,
+        "distinctDescriptions": 4,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      },
+      {
+        "width": 1280,
+        "month": 2,
+        "cards": 6,
+        "distinctDescriptions": 6,
+        "featuresAfterDescription": true,
+        "oneListPerCard": true,
+        "noOverflow": true,
+        "accordionWorking": true
+      }
+    ],
+    "native_zoom_keyboard_and_reflow": [
+      {
+        "zoom": 1,
+        "width": 1280,
+        "height": 813,
+        "overflow": 0,
+        "listFits": true,
+        "count": 4,
+        "text": "مناسب و سازگار با همهٔ هوش مصنوعی‌ها"
+      },
+      {
+        "zoom": 2,
+        "width": 640,
+        "height": 406,
+        "overflow": 0,
+        "listFits": true,
+        "count": 4,
+        "text": "مناسب و سازگار با همهٔ هوش مصنوعی‌ها"
+      },
+      {
+        "zoom": 4,
+        "width": 320,
+        "height": 203,
+        "overflow": 0,
+        "listFits": true,
+        "count": 4,
+        "text": "مناسب و سازگار با همهٔ هوش مصنوعی‌ها"
+      },
+      {
+        "restoration": {
+          "status": "restored",
+          "factor": 1,
+          "settings": {
+            "defaultZoomFactor": 1,
+            "mode": "automatic",
+            "scope": "per-origin"
+          }
+        },
+        "errors": []
+      }
+    ],
+    "no_three_month_product": true,
+    "limitations": "The three-month template was verified by native readback. No public three-month product was available to exercise a real card. New eligible products in existing groups inherit the templates. Adding an entirely new duration is a separate wizard/catalog layout change."
+  }
+}
